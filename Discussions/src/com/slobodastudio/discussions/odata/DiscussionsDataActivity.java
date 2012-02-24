@@ -19,7 +19,7 @@ public class DiscussionsDataActivity extends Activity {
 	public void onCreate(final Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+		setContentView(R.layout.base_list_activity);
 		testInsertPoint();
 		Log.v("Hello", "Success");
 	}

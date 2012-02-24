@@ -3,5 +3,9 @@
 
     <string name="hello">Hello World, DiscussionsActivity!</string>
     <string name="app_name">Discussions</string>
+    <string name="activity_name_users">Users</string>
+    <string name="activity_name_discussions">Discussions</string>
+    <string name="activity_name_topics">Topics</string>
+    <string name="activity_name_points">Points</string>
 
 </resources>
