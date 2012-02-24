@@ -33,7 +33,6 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 	private DiscussionUser localUser;
 	private final List<PhotonServiceCallback> m_callbacks = new LinkedList<PhotonServiceCallback>();
 	private final IBinder mBinder = new LocalBinder();
-	/** Not sure how to use this one. Defines unique session on server. */
 	LitePeer peer;
 	Object sequenceNumberingLockObj = new Object();
 	/** Handler required to process async events that are interfering with UI (eventAction changes players

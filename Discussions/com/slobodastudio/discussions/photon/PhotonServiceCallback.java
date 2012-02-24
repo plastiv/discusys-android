@@ -6,5 +6,5 @@ public interface PhotonServiceCallback {
 
 	void loginDone(boolean ok);
 
-	void onStructureChanged(int topicId);
+	void onStructureChanged(final int topicId);
 }
