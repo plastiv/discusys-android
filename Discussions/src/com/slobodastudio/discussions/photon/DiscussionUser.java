@@ -2,38 +2,37 @@ package com.slobodastudio.discussions.photon;
 
 public class DiscussionUser {
 
-	private int actorNr;
-	private final int id;
-	private final String name;
+	private int actorNumber = -10;
+	private int userId = -10;
+	private String userName = null;
 
-	private DiscussionUser(final String name, final int id) {
+	public int getActorNumber() {
 
-		this.name = name;
-		this.id = id;
+		return actorNumber;
 	}
 
-	public static DiscussionUser newInstance(final String name, final int id) {
+	public int getUserId() {
 
-		return new DiscussionUser(name, id);
+		return userId;
 	}
 
-	public int getActorNr() {
+	public String getUserName() {
 
-		return actorNr;
+		return userName;
 	}
 
-	public int getId() {
+	public void setActorNumber(final int actorNumber) {
 
-		return id;
+		this.actorNumber = actorNumber;
 	}
 
-	public String getName() {
+	public void setUserId(final int userId) {
 
-		return name;
+		this.userId = userId;
 	}
 
-	public void setActorNr(final int actorNr) {
+	public void setUserName(final String userName) {
 
-		this.actorNr = actorNr;
+		this.userName = userName;
 	}
 }

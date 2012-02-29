@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.odata;
+package com.slobodastudio.discussions.data.odata;
 
 import org.core4j.Enumerable;
 import org.odata4j.consumer.ODataConsumer;

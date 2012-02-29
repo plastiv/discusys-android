@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.photon;
+package com.slobodastudio.discussions.photon.constants;
 
 import de.exitgames.client.photon.LiteOpKey;
 

@@ -1,9 +1,9 @@
-package com.slobodastudio.discussions.odata;
+package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.odata.DiscussionsTableShema.Discussion;
-import com.slobodastudio.discussions.odata.DiscussionsTableShema.Person;
-import com.slobodastudio.discussions.odata.DiscussionsTableShema.Point;
+import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Discussion;
+import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Person;
+import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Point;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -20,7 +20,8 @@ public class DiscussionsDataActivity extends Activity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.base_list_activity);
-		testInsertPoint();
+		DiscussionsOdata odata = new DiscussionsOdata();
+		odata.reportCurrentState();
 		Log.v("Hello", "Success");
 	}
 

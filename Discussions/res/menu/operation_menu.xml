@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- This group uses the default category. -->
+    <group android:id="@+id/menuGroup_Main" >
+        <item
+            android:id="@+id/menu_refresh"
+            android:orderInCategory="5"
+            android:title="Refresh"/>
+        <item
+            android:id="@+id/menu_addNew"
+            android:orderInCategory="5"
+            android:title="Add new"/>
+    </group>
+
+</menu>

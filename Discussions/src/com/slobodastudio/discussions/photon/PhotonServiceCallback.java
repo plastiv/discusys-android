@@ -2,9 +2,13 @@ package com.slobodastudio.discussions.photon;
 
 public interface PhotonServiceCallback {
 
-	void errorOccurred(String message);
+	void onConnect();
 
-	void loginDone(boolean ok);
+	void onErrorOccured(String message);
+
+	void onEventJoin(DiscussionUser newUser);
+
+	void onEventLeave(DiscussionUser leftUser);
 
 	void onStructureChanged(int topicId);
 }

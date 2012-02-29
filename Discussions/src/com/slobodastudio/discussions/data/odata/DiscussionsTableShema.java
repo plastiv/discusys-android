@@ -1,15 +1,19 @@
-package com.slobodastudio.discussions.odata;
+package com.slobodastudio.discussions.data.odata;
 
 public class DiscussionsTableShema {
 
 	public class Discussion {
 
+		/** Type Int32. */
+		public static final String _ID = "Id";
 		/** Type String. */
 		public static final String SUBJECT = "Subject";
 	}
 
 	public class Person {
 
+		/** Type Int32. */
+		public static final String _ID = "Id";
 		/** Type Int32. */
 		public static final String COLOR = "Color";
 		/** Type String. */
@@ -21,6 +25,8 @@ public class DiscussionsTableShema {
 	public class Point {
 
 		/** Type Int32. */
+		public static final String _ID = "Id";
+		/** Type Int32. 0-not agreed */
 		public static final String AGREEMENT_CODE = "AgreementCode";
 		/** Type Binary. */
 		public static final String DRAWING = "Drawing";
@@ -53,10 +59,10 @@ public class DiscussionsTableShema {
 	public class Topic {
 
 		/** Type Int32. */
+		public static final String _ID = "Id";
+		/** Type Int32. Foreign key. */
 		public static final String DISCUSSION_ID = "Discussion";
 		/** Type String. */
 		public static final String NAME = "Name";
-		/** Type Int32. */
-		public static final String PERSON_ID = "Person";
 	}
 }

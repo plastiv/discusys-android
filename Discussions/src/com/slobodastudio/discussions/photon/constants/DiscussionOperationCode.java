@@ -1,7 +1,8 @@
-package com.slobodastudio.discussions.photon;
+package com.slobodastudio.discussions.photon.constants;
 
 public class DiscussionOperationCode {
 
+	public static final byte JoinFromJava = 8;
 	// badge was expanded or collapsed
 	public static final byte NotifyBadgeExpansionChanged = 4;
 	// client moved a badge and pushes changes to server;

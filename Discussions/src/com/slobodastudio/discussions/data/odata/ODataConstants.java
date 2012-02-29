@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.odata;
+package com.slobodastudio.discussions.data.odata;
 
 /** Helper class that consist of constants for open data protocol client SDK. */
 public class ODataConstants {

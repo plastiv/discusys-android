@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.photon;
+package com.slobodastudio.discussions.photon.constants;
 
 public class ActorPropertiesCode {
 

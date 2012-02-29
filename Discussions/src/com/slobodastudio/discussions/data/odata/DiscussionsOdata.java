@@ -1,10 +1,9 @@
-package com.slobodastudio.discussions.odata;
+package com.slobodastudio.discussions.data.odata;
 
-import com.slobodastudio.discussions.odata.DiscussionsTableShema.Discussion;
-import com.slobodastudio.discussions.odata.DiscussionsTableShema.Person;
-import com.slobodastudio.discussions.odata.DiscussionsTableShema.Point;
-import com.slobodastudio.discussions.odata.DiscussionsTableShema.Tables;
-import com.slobodastudio.discussions.odata.DiscussionsTableShema.Topic;
+import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Discussion;
+import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Person;
+import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Point;
+import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Tables;
 
 import android.graphics.Color;
 
@@ -62,29 +61,33 @@ public class DiscussionsOdata extends ODataReportUtil {
 		// OProperties.string(Person.EMAIL, "test@android.from")).properties(
 		// OProperties.int32(Person.COLOR, Integer.valueOf(Color.CYAN))).execute();
 		// create the new topic
-		OEntity topic = consumer.createEntity(Tables.TOPIC).properties(
-				OProperties.string(Topic.NAME, "Android topic link to person 2")).execute();
-		consumer.mergeEntity(topic.getEntitySetName(), topic.getEntityKey()).link(Topic.PERSON_ID,
-				OEntityKey.parse("3")).execute();
+		// OEntity topic = consumer.createEntity(Tables.TOPIC).properties(
+		// OProperties.string(Topic.NAME, "Android topic link to person 2")).execute();
+		// consumer.mergeEntity(topic.getEntitySetName(), topic.getEntityKey()).link(Topic.PERSON_ID,
+		// OEntityKey.parse("3")).execute();
 	}
 
 	public void reportCurrentState() {
 
+		// list all topics for person 4
+		for (OEntity person : consumer.getEntities("Person(4)/Discussion").execute()) {
+			reportEntity("Person 4: ", person);
+		}
 		// list all persons
-		for (OEntity person : consumer.getEntities(Tables.PERSON).execute()) {
-			reportEntity("Person: " + person.getProperty(Person.NAME).getValue(), person);
-		}
-		// list all discussions
-		for (OEntity discussion : consumer.getEntities(Tables.DISCUSSION).execute()) {
-			reportEntity("Discussion: " + discussion.getProperty(Discussion.SUBJECT).getValue(), discussion);
-		}
-		// list all topics
-		for (OEntity topic : consumer.getEntities(Tables.TOPIC).execute()) {
-			reportEntity("Topic: " + topic.getProperty(Topic.NAME).getValue(), topic);
-		}
-		// list all points
-		for (OEntity point : consumer.getEntities(Tables.POINT).execute()) {
-			reportEntity("Point: " + point.getProperty(Point.POINT).getValue(), point);
-		}
+		// for (OEntity person : consumer.getEntities(Tables.PERSON).execute()) {
+		// reportEntity("Person: " + person.getProperty(Person.NAME).getValue(), person);
+		// }
+		// // list all discussions
+		// for (OEntity discussion : consumer.getEntities(Tables.DISCUSSION).execute()) {
+		// reportEntity("Discussion: " + discussion.getProperty(Discussion.SUBJECT).getValue(), discussion);
+		// }
+		// // list all topics
+		// for (OEntity topic : consumer.getEntities(Tables.TOPIC).execute()) {
+		// reportEntity("Topic: " + topic.getProperty(Topic.NAME).getValue(), topic);
+		// }
+		// // list all points
+		// for (OEntity point : consumer.getEntities(Tables.POINT).execute()) {
+		// reportEntity("Point: " + point.getProperty(Point.POINT).getValue(), point);
+		// }
 	}
 }
