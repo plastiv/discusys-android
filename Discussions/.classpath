@@ -14,5 +14,6 @@
 			<attribute name="javadoc_location" value="file:/C:/Users/plastiv/workspace/Discussions/Discussions/lib/doc/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/android-support-v4.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

@@ -1,7 +1,6 @@
 package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussion;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Person;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Point;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topic;
 import com.slobodastudio.discussions.tool.MyLog;
@@ -88,8 +87,8 @@ public class OdataSyncService {
 			ContentValues cv = OEntityToContentValue(entity);
 			cv.put(Topic.Columns.DISCUSSION_ID, getNavigationPropertyId(entity, Topic.Columns.DISCUSSION_ID,
 					Discussion.Columns.DISCUSSION_ID));
-			cv.put(Topic.Columns.PERSON_ID, getNavigationPropertyIds(entity, Topic.Columns.PERSON_ID,
-					Person.Columns.PERSON_ID).toString());
+			// cv.put(Topic.Columns.PERSON_ID, getNavigationPropertyIds(entity, Topic.Columns.PERSON_ID,
+			// Person.Columns.PERSON_ID).toString());
 			if (LOGV) {
 				MyLog.v(TAG, "Content value: " + cv.toString());
 			}

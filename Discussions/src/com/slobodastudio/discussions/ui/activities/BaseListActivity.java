@@ -1,7 +1,7 @@
-package com.slobodastudio.discussions.ui;
+package com.slobodastudio.discussions.ui.activities;
 
-import com.slobodastudio.ui.actionbar.ActionBarActivity;
-import com.slobodastudio.ui.actionbar.R;
+import com.slobodastudio.discussions.R;
+import com.slobodastudio.ui.actionbar.ActionBarFragmentActivity;
 
 import android.os.Bundle;
 import android.view.Menu;
@@ -9,21 +9,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-public class BaseListActivity extends ActionBarActivity {
-
-	@Override
-	public void onCreate(final Bundle savedInstanceState) {
-
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.base_list_activity);
-		setTitle(R.string.activity_name_points);
-	}
+public class BaseListActivity extends ActionBarFragmentActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(final Menu menu) {
 
 		MenuInflater menuInflater = getMenuInflater();
-		menuInflater.inflate(R.menu.list_actionbar, menu);
+		menuInflater.inflate(R.menu.actionbar_menu, menu);
 		// Calling super after populating the menu is necessary here to ensure that the
 		// action bar helpers have a chance to handle this event.
 		return super.onCreateOptionsMenu(menu);
@@ -53,5 +45,12 @@ public class BaseListActivity extends ActionBarActivity {
 				break;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	protected void onCreate(final Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.base_list_activity);
 	}
 }

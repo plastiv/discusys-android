@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="hello">Hello World, DiscussionsActivity!</string>
     <string name="app_name">Discussions</string>
-    <string name="activity_name_users">Users</string>
+    <string name="activity_name_persons">Persons</string>
     <string name="activity_name_discussions">Discussions</string>
     <string name="activity_name_topics">Topics</string>
     <string name="activity_name_points">Points</string>
     <string name="menu_refresh">Refresh</string>
     <string name="menu_new">New</string>
+    <string name="menu_details">Details</string>
+    <string name="menu_select">Select</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_delete">Delete</string>
+    <string name="fragment_empty_persons">No persons on server</string>
+    <string name="fragment_empty_points">No points on server</string>
+    <string name="fragment_empty_discussions">No discussions on server</string>
+    <string name="fragment_empty_topics">No topics on server</string>
 
 </resources>
