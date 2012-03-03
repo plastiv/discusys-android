@@ -4,27 +4,16 @@ import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
-/** Contract class for interacting with {@link DeliveryProvider}. Unless otherwise noted, all time-based fields
- * are milliseconds since epoch and can be compared against {@link System#currentTimeMillis()}.
+/** Contract class for interacting with {@link DiscussionsProvider}. Unless otherwise noted, all time-based
+ * fields are milliseconds since epoch and can be compared against {@link System#currentTimeMillis()}.
  * <p>
  * The backing {@link android.content.ContentProvider} assumes that {@link Uri} are generated using stronger
  * {@link String} identifiers, instead of {@code int} {@link BaseColumns#_ID} values, which are prone to
  * shuffle during sync. */
 public class DiscussionsContract {
 
-	/** A domain name for the {@link DeliveryProvider} */
-	public static final String CONTENT_AUTHORITY = "com.slobodastudio.delivery";
-	/** Special value for {@link Tasks#TASK_STATE} indicating that a task finished with a fail. */
-	public static final long STATE_FINISHED_FAIL = 3;
-	/** Special value for {@link Tasks#TASK_STATE} indicating that a task finished correctly. */
-	public static final long STATE_FINISHED_OK = 2;
-	/** Special value for {@link Tasks#TASK_STATE} indicating that a task is started. */
-	public static final long STATE_STARTED = 1;
-	/** Special value for {@link Tasks#TASK_STATE} indicating that a task is not started. */
-	public static final long STATE_WAIT = 0;
-	private static final String PATH_LOCATIONS = "locations";
-	private static final String PATH_POINTS = "points";
-	private static final String PATH_TASKS = "tasks";
+	/** A domain name for the {@link DiscussionsProvider} */
+	public static final String CONTENT_AUTHORITY = "com.slobodastudio.discussions";
 	static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
 	/** A private Constructor prevents class from instantiating. */
@@ -33,200 +22,311 @@ public class DiscussionsContract {
 		throw new UnsupportedOperationException("Class is prevented from instantiation");
 	}
 
-	/** Describes location's table. Each location is associated with a specific {@link Tasks}. */
-	public static class Locations implements LocationsColumns, BaseColumns {
+	/** Describes discussion's table. Discussion is an abstraction of room. */
+	public static class Discussion {
 
-		/** The MIME type of {@link #CONTENT_URI} providing a directory of locations */
-		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.delivery.location";
-		/** The MIME type of {@link #CONTENT_URI} providing a single location */
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.delivery.location";
-		/** The content:// style URL for this table */
-		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_LOCATIONS).build();
-		/** Default "ORDER BY" clause. */
-		public static final String DEFAULT_SORT = LocationsColumns.LOCATION_TIMESTAMP + " DESC";
-
-		/** A private Constructor prevents class from instantiating. */
-		private Locations() {
-
-			throw new UnsupportedOperationException("Class is prevented from instantiation");
-		}
-
-		/** Build {@link Uri} for requested location {@link #_ID}.
-		 * 
-		 * @param locationId
-		 *            unique location identifier
-		 * @return a Uri for the given id */
-		public static Uri buildLocationsUri(long locationId) {
-
-			return ContentUris.withAppendedId(CONTENT_URI, locationId);
-		}
-
-		/** Build {@link Uri} for requested location {@link #_ID}.
-		 * 
-		 * @param locationId
-		 *            unique location identifier
-		 * @return a Uri for the given id */
-		public static Uri buildLocationsUri(String locationId) {
-
-			return CONTENT_URI.buildUpon().appendPath(locationId).build();
-		}
-
-		/** Read {@link #_ID} from {@link Locations} {@link Uri}.
-		 * 
-		 * @param uri
-		 *            a location uri that contains location id
-		 * @return a unique identifier provided by location uri */
-		public static String getLocationId(Uri uri) {
-
-			return uri.getPathSegments().get(1);
-		}
-	}
-
-	/** Describes point's table. Each point is associated with a specific {@link Tasks}. */
-	public static class Points implements PointsColumns, BaseColumns {
-
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "discussion";
 		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
-		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.delivery.point";
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
 		/** The MIME type of {@link #CONTENT_URI} providing a single point */
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.delivery.point";
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
 		/** The content:// style URL for this table */
-		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_POINTS).build();
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
 		/** Default "ORDER BY" clause. */
-		public static final String DEFAULT_SORT = PointsColumns.POINT_NAME + " ASC";
+		public static final String DEFAULT_SORT = Columns.SUBJECT + " ASC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "Discussion";
 
 		/** A private Constructor prevents class from instantiating. */
-		private Points() {
+		private Discussion() {
 
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
 		}
 
-		/** Build {@link Uri} for requested point {@link #_ID}.
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
 		 * 
-		 * @param pointsId
-		 *            unique point identifier
+		 * @param valueId
+		 *            unique value identifier
 		 * @return a Uri for the given id */
-		public static Uri buildPointsUri(long pointsId) {
+		public static Uri buildTableUri(final long valueId) {
 
-			return ContentUris.withAppendedId(CONTENT_URI, pointsId);
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
 		}
 
-		/** Build {@link Uri} for requested point {@link #_ID}.
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
 		 * 
-		 * @param pointsId
-		 *            unique point identifier
+		 * @param valueId
+		 *            unique row identifier
 		 * @return a Uri for the given id */
-		public static Uri buildPointsUri(String pointsId) {
+		public static Uri buildTableUri(final String valueId) {
 
-			return CONTENT_URI.buildUpon().appendPath(pointsId).build();
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
 		}
 
-		/** Read {@link #_ID} from {@link Points} {@link Uri}.
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
 		 * 
 		 * @param uri
-		 *            a point uri that contains point id
-		 * @return a unique identifier provided by point uri */
-		public static String getPointId(Uri uri) {
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
 
 			return uri.getPathSegments().get(1);
 		}
+
+		/** List of columns names. */
+		public class Columns implements BaseColumns {
+
+			/** Type Int32. */
+			public static final String DISCUSSION_ID = "Id";
+			/** Type String. */
+			public static final String SUBJECT = "Subject";
+		}
 	}
 
-	/** Describes task's table. */
-	public static class Tasks implements TasksColumns, BaseColumns {
+	/** Describes group's table. */
+	public static class Group {
 
-		/** The MIME type of {@link #CONTENT_URI} providing a directory of tasks */
-		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.delivery.task";
-		/** The MIME type of {@link #CONTENT_URI} providing a single task */
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.delivery.task";
-		/** The content:// style URL for this table */
-		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_TASKS).build();
-		/** Default "ORDER BY" clause. */
-		public static final String DEFAULT_SORT = TasksColumns.TASK_DATE + " DESC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "Group";
 
 		/** A private Constructor prevents class from instantiating. */
-		private Tasks() {
+		private Group() {
 
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
 		}
 
-		/** Build {@link Uri} for requested task {@link #_ID}.
-		 * 
-		 * @param taskId
-		 *            unique task identifier
-		 * @return a Uri for the given id */
-		public static Uri buildTasksUri(long taskId) {
+		/** List of columns names. */
+		public class Columns implements BaseColumns {
 
-			return ContentUris.withAppendedId(CONTENT_URI, taskId);
+			/** Type Int32. */
+			public static final String GROUP_ID = "Id";
+			/** Type String. */
+			public static final String NAME = "Name";
+		}
+	}
+
+	/** Describes person's table. Basically users for discussions. */
+	public static class Person {
+
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "person";
+		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The MIME type of {@link #CONTENT_URI} providing a single point */
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The content:// style URL for this table */
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
+		/** Default "ORDER BY" clause. */
+		public static final String DEFAULT_SORT = Columns.NAME + " ASC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "Person";
+
+		/** A private Constructor prevents class from instantiating. */
+		private Person() {
+
+			throw new UnsupportedOperationException("Class is prevented from instantiation");
 		}
 
-		/** Build {@link Uri} for requested task {@link #_ID}.
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
 		 * 
-		 * @param taskId
-		 *            unique task identifier
+		 * @param valueId
+		 *            unique value identifier
 		 * @return a Uri for the given id */
-		public static Uri buildTasksUri(String taskId) {
+		public static Uri buildTableUri(final long valueId) {
 
-			return CONTENT_URI.buildUpon().appendPath(taskId).build();
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
 		}
 
-		/** Read {@link #_ID} from {@link Tasks} {@link Uri}.
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique row identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
 		 * 
 		 * @param uri
-		 *            a task uri that contains task's id
-		 * @return a unique identifier provided by task uri */
-		public static String getTaskId(Uri uri) {
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
 
 			return uri.getPathSegments().get(1);
 		}
+
+		/** List of columns names. */
+		public class Columns implements BaseColumns {
+
+			/** Type Int32. */
+			public static final String COLOR = "Color";
+			/** Type String. */
+			public static final String EMAIL = "Email";
+			/** Type String. */
+			public static final String NAME = "Name";
+			/** Type Bit. */
+			public static final String ONLINE = "Online";
+			/** Type Int32. */
+			public static final String PERSON_ID = "Id";
+		}
 	}
 
-	interface LocationsColumns {
+	/** Describes point's table. Each point is associated with a {@link Topic}, {@link Person}, {@link Group}. */
+	public static class Point {
 
-		/** Point latitude. in double */
-		String LOCATION_LATITUDE = "location_latitude";
-		/** Point longitude. in double */
-		String LOCATION_LONGITUDE = "location_longitude";
-		/** Time when location received. in milliseconds */
-		String LOCATION_TIMESTAMP = "location_timestamp";
-		/** {@link Tasks#_ID} that this location belongs to. */
-		String TASK_ID = "task_id";
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "point";
+		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The MIME type of {@link #CONTENT_URI} providing a single point */
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The content:// style URL for this table */
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
+		/** Default "ORDER BY" clause. */
+		public static final String DEFAULT_SORT = Columns.POINT_NAME + " ASC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "ArgPoint";
+
+		/** A private Constructor prevents class from instantiating. */
+		private Point() {
+
+			throw new UnsupportedOperationException("Class is prevented from instantiation");
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique value identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final long valueId) {
+
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique row identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
+		 * 
+		 * @param uri
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
+
+			return uri.getPathSegments().get(1);
+		}
+
+		/** List of columns names. */
+		public class Columns implements BaseColumns {
+
+			/** Type Int32. 0-not agreed */
+			public static final String AGREEMENT_CODE = "AgreementCode";
+			/** Type Binary. */
+			public static final String DRAWING = "Drawing";
+			/** Type Boolean. */
+			public static final String EXPANDED = "Expanded";
+			/** Type Int32. Special value, because sqlite word Group is reserved. */
+			public static final String GROUP_ID = "Group_id";
+			/** Type Int32. */
+			public static final String GROUP_ID_SERVER = "Group";
+			/** Type String. */
+			public static final String NUMBERED_POINT = "NumberedPoint";
+			/** Type Int32. */
+			public static final String PERSON_ID = "Person";
+			/** Type Int32. */
+			public static final String POINT_ID = "Id";
+			/** Type String. */
+			public static final String POINT_NAME = "Point";
+			/** Type Boolean. */
+			public static final String SHARED_TO_PUBLIC = "SharedToPublic";
+			/** Type Int32. */
+			public static final String SIDE_CODE = "SideCode";
+			/** Type Int32. */
+			public static final String TOPIC_ID = "Topic";
+		}
 	}
 
-	interface PointsColumns {
+	/** Describes topic's table. Each topic is associated with a {@link Discussion}. */
+	public static class Topic {
 
-		/** Point address. in String */
-		String POINT_ADDRESS = "point_address";
-		/** Point confirmation. True if confirmation required, false otherwise. in boolean */
-		String POINT_CONFIRMATION = "point_confirmation";
-		/** Point description. in String */
-		String POINT_DESCRIPTION = "point_description";
-		/** Point latitude. in double */
-		String POINT_LATITUDE = "point_latitude";
-		/** Point longitude. in double */
-		String POINT_LONGITUDE = "point_longitude";
-		/** Point name. in String */
-		String POINT_NAME = "point_name";
-		/** {@link Tasks#_ID} that this point belongs to. */
-		String TASK_ID = "task_id";
-	}
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "topic";
+		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The MIME type of {@link #CONTENT_URI} providing a single point */
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The content:// style URL for this table */
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
+		/** Default "ORDER BY" clause. */
+		public static final String DEFAULT_SORT = Columns.NAME + " ASC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "Topic";
 
-	interface SyncColumns {
+		/** A private Constructor prevents class from instantiating. */
+		private Topic() {
 
-		/** Last time this entry was updated or synchronized. */
-		String UPDATED = "updated";
-	}
+			throw new UnsupportedOperationException("Class is prevented from instantiation");
+		}
 
-	interface TasksColumns {
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique value identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final long valueId) {
 
-		/** Date when task should be done. in milliseconds */
-		String TASK_DATE = "task_date";
-		/** Time when task was delivered. in milliseconds */
-		String TASK_END = "task_end";
-		/** Time when task was started. in milliseconds */
-		String TASK_START = "task_start";
-		/** Task state. in int */
-		String TASK_STATE = "task_state";
-		/** Title describes task. in String */
-		String TASK_TITLE = "task_title";
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique row identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
+		 * 
+		 * @param uri
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
+
+			return uri.getPathSegments().get(1);
+		}
+
+		/** List of columns names. */
+		public class Columns implements BaseColumns {
+
+			/** Type Int32. Foreign key. */
+			public static final String DISCUSSION_ID = "Discussion";
+			/** Type String. */
+			public static final String NAME = "Name";
+			/** Type Int32. */
+			public static final String PERSON_ID = "Person";
+			/** Type Int32. */
+			public static final String TOPIC_ID = "Id";
+		}
 	}
 }

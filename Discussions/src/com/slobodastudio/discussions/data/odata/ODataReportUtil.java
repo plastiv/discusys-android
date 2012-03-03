@@ -33,7 +33,66 @@ public class ODataReportUtil {
 		}
 	}
 
-	private static void reportProperties(final Iterable<EdmProperty> properties) {
+	public static void reportMetadata(final EdmDataServices services) {
+
+		for (EdmSchema schema : services.getSchemas()) {
+			report("Schema Namespace=%s", schema.getNamespace());
+			for (EdmEntityType et : schema.getEntityTypes()) {
+				String ets = String.format("  EntityType Name=%s", et.getName());
+				if (et.getHasStream() != null) {
+					ets = ets + " HasStream=" + et.getHasStream();
+				}
+				report(ets);
+				for (String key : et.getKeys()) {
+					report("    Key PropertyRef Name=%s", key);
+				}
+				reportProperties(et.getDeclaredProperties());
+				for (EdmNavigationProperty np : et.getDeclaredNavigationProperties()) {
+					report("    NavigationProperty Name=%s Relationship=%s FromRole=%s ToRole=%s", np
+							.getName(), np.getRelationship().getFQNamespaceName(),
+							np.getFromRole().getRole(), np.getToRole().getRole());
+				}
+			}
+			for (EdmComplexType ct : schema.getComplexTypes()) {
+				report("  ComplexType Name=%s", ct.getName());
+				reportProperties(ct.getProperties());
+			}
+			for (EdmAssociation assoc : schema.getAssociations()) {
+				report("  Association Name=%s", assoc.getName());
+				report("    End Role=%s Type=%s Multiplicity=%s", assoc.getEnd1().getRole(), assoc.getEnd1()
+						.getType().getFullyQualifiedTypeName(), assoc.getEnd1().getMultiplicity());
+				report("    End Role=%s Type=%s Multiplicity=%s", assoc.getEnd2().getRole(), assoc.getEnd2()
+						.getType().getFullyQualifiedTypeName(), assoc.getEnd2().getMultiplicity());
+			}
+			for (EdmEntityContainer ec : schema.getEntityContainers()) {
+				report("  EntityContainer Name=%s IsDefault=%s LazyLoadingEnabled=%s", ec.getName(), ec
+						.isDefault(), ec.getLazyLoadingEnabled());
+				for (EdmEntitySet ees : ec.getEntitySets()) {
+					report("    EntitySet Name=%s EntityType=%s", ees.getName(), ees.getType()
+							.getFullyQualifiedTypeName());
+				}
+				for (EdmAssociationSet eas : ec.getAssociationSets()) {
+					report("    AssociationSet Name=%s Association=%s", eas.getName(), eas.getAssociation()
+							.getFQNamespaceName());
+					report("      End Role=%s EntitySet=%s", eas.getEnd1().getRole().getRole(), eas.getEnd1()
+							.getEntitySet().getName());
+					report("      End Role=%s EntitySet=%s", eas.getEnd2().getRole().getRole(), eas.getEnd2()
+							.getEntitySet().getName());
+				}
+				for (EdmFunctionImport efi : ec.getFunctionImports()) {
+					report("    FunctionImport Name=%s EntitySet=%s ReturnType=%s HttpMethod=%s", efi
+							.getName(), efi.getEntitySet() == null ? null : efi.getEntitySet().getName(), efi
+							.getReturnType(), efi.getHttpMethod());
+					for (EdmFunctionParameter efp : efi.getParameters()) {
+						report("      Parameter Name=%s Type=%s Mode=%s", efp.getName(), efp.getType(), efp
+								.getMode());
+					}
+				}
+			}
+		}
+	}
+
+	public static void reportProperties(final Iterable<EdmProperty> properties) {
 
 		for (EdmProperty property : properties) {
 			String p = String.format("Property Name=%s Type=%s Nullable=%s", property.getName(), property
@@ -95,64 +154,5 @@ public class ODataReportUtil {
 		}
 		report("total count: %s \n\n", count);
 		return count;
-	}
-
-	protected static void reportMetadata(final EdmDataServices services) {
-
-		for (EdmSchema schema : services.getSchemas()) {
-			report("Schema Namespace=%s", schema.getNamespace());
-			for (EdmEntityType et : schema.getEntityTypes()) {
-				String ets = String.format("  EntityType Name=%s", et.getName());
-				if (et.getHasStream() != null) {
-					ets = ets + " HasStream=" + et.getHasStream();
-				}
-				report(ets);
-				for (String key : et.getKeys()) {
-					report("    Key PropertyRef Name=%s", key);
-				}
-				reportProperties(et.getDeclaredProperties());
-				for (EdmNavigationProperty np : et.getDeclaredNavigationProperties()) {
-					report("    NavigationProperty Name=%s Relationship=%s FromRole=%s ToRole=%s", np
-							.getName(), np.getRelationship().getFQNamespaceName(),
-							np.getFromRole().getRole(), np.getToRole().getRole());
-				}
-			}
-			for (EdmComplexType ct : schema.getComplexTypes()) {
-				report("  ComplexType Name=%s", ct.getName());
-				reportProperties(ct.getProperties());
-			}
-			for (EdmAssociation assoc : schema.getAssociations()) {
-				report("  Association Name=%s", assoc.getName());
-				report("    End Role=%s Type=%s Multiplicity=%s", assoc.getEnd1().getRole(), assoc.getEnd1()
-						.getType().getFullyQualifiedTypeName(), assoc.getEnd1().getMultiplicity());
-				report("    End Role=%s Type=%s Multiplicity=%s", assoc.getEnd2().getRole(), assoc.getEnd2()
-						.getType().getFullyQualifiedTypeName(), assoc.getEnd2().getMultiplicity());
-			}
-			for (EdmEntityContainer ec : schema.getEntityContainers()) {
-				report("  EntityContainer Name=%s IsDefault=%s LazyLoadingEnabled=%s", ec.getName(), ec
-						.isDefault(), ec.getLazyLoadingEnabled());
-				for (EdmEntitySet ees : ec.getEntitySets()) {
-					report("    EntitySet Name=%s EntityType=%s", ees.getName(), ees.getType()
-							.getFullyQualifiedTypeName());
-				}
-				for (EdmAssociationSet eas : ec.getAssociationSets()) {
-					report("    AssociationSet Name=%s Association=%s", eas.getName(), eas.getAssociation()
-							.getFQNamespaceName());
-					report("      End Role=%s EntitySet=%s", eas.getEnd1().getRole().getRole(), eas.getEnd1()
-							.getEntitySet().getName());
-					report("      End Role=%s EntitySet=%s", eas.getEnd2().getRole().getRole(), eas.getEnd2()
-							.getEntitySet().getName());
-				}
-				for (EdmFunctionImport efi : ec.getFunctionImports()) {
-					report("    FunctionImport Name=%s EntitySet=%s ReturnType=%s HttpMethod=%s", efi
-							.getName(), efi.getEntitySet() == null ? null : efi.getEntitySet().getName(), efi
-							.getReturnType(), efi.getHttpMethod());
-					for (EdmFunctionParameter efp : efi.getParameters()) {
-						report("      Parameter Name=%s Type=%s Mode=%s", efp.getName(), efp.getType(), efp
-								.getMode());
-					}
-				}
-			}
-		}
 	}
 }

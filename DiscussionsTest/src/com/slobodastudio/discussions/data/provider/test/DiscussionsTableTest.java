@@ -36,6 +36,21 @@ public class DiscussionsTableTest extends ProviderTestCase2<DiscussionsProvider>
 		}
 	}
 
+	public void testInsertSameValue() {
+
+		final ContentProvider provider = getProvider();
+		final Uri uri = provider.insert(Discussion.CONTENT_URI, getTestValue());
+		final Cursor cursor = provider.query(uri, null, null, null, null);
+		if (cursor.moveToFirst()) {
+			assertTrue(true);
+		} else {
+			fail();
+		}
+		final Uri secondUri = provider.insert(Discussion.CONTENT_URI, getTestValue());
+		final Cursor secondCursor = provider.query(secondUri, null, null, null, null);
+		assertEquals(1, secondCursor.getCount());
+	}
+
 	public void testIsEmpty() {
 
 		final ContentProvider provider = getProvider();

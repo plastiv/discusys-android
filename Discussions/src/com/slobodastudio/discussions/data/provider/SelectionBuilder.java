@@ -27,7 +27,7 @@ public class SelectionBuilder {
 	 *            {@link SQLiteDatabase} to operate with
 	 * @return the number of rows affected if a whereClause is passed in, 0 otherwise. To remove all rows and
 	 *         get a count set "1" as the whereClause. */
-	public int delete(SQLiteDatabase db) {
+	public int delete(final SQLiteDatabase db) {
 
 		assertTable();
 		if (LOGV) {
@@ -62,7 +62,7 @@ public class SelectionBuilder {
 	 * @param toClause
 	 *            database original column name
 	 * @return this instance of SelectionBuuilder */
-	public SelectionBuilder map(String fromColumn, String toClause) {
+	public SelectionBuilder map(final String fromColumn, final String toClause) {
 
 		mProjectionMap.put(fromColumn, toClause + " AS " + fromColumn);
 		return this;
@@ -75,7 +75,7 @@ public class SelectionBuilder {
 	 * @param table
 	 *            The table name
 	 * @return This selection builder with added map column to "table.column" */
-	public SelectionBuilder mapToTable(String column, String table) {
+	public SelectionBuilder mapToTable(final String column, final String table) {
 
 		mProjectionMap.put(column, table + "." + column);
 		return this;
@@ -92,7 +92,7 @@ public class SelectionBuilder {
 	 *            Passing null will use the default sort order, which may be unordered.
 	 * @return A {@link Cursor} object, which is positioned before the first entry. Note that Cursors are not
 	 *         synchronized, see the documentation for more details. */
-	public Cursor query(SQLiteDatabase db, String[] columns, String orderBy) {
+	public Cursor query(final SQLiteDatabase db, final String[] columns, final String orderBy) {
 
 		return query(db, columns, null, null, orderBy, null);
 	}
@@ -118,8 +118,8 @@ public class SelectionBuilder {
 	 *            denotes no LIMIT clause.
 	 * @return A {@link Cursor} object, which is positioned before the first entry. Note that Cursors are not
 	 *         synchronized, see the documentation for more details. */
-	public Cursor query(SQLiteDatabase db, String[] columns, String groupBy, String having, String orderBy,
-			String limit) {
+	public Cursor query(final SQLiteDatabase db, final String[] columns, final String groupBy,
+			final String having, final String orderBy, final String limit) {
 
 		assertTable();
 		if (columns != null) {
@@ -144,7 +144,7 @@ public class SelectionBuilder {
 	/** @param table
 	 *            The table name to compile the query/update/delete/insert against.
 	 * @return this instance of SelectionBuilder */
-	public SelectionBuilder table(String table) {
+	public SelectionBuilder table(final String table) {
 
 		mTable = table;
 		return this;
@@ -164,7 +164,7 @@ public class SelectionBuilder {
 	 *            a map from column names to new column values. null is a valid value that will be translated
 	 *            to NULL.
 	 * @return the number of rows affected */
-	public int update(SQLiteDatabase db, ContentValues values) {
+	public int update(final SQLiteDatabase db, final ContentValues values) {
 
 		assertTable();
 		if (LOGV) {
@@ -182,7 +182,7 @@ public class SelectionBuilder {
 	 *            You may include ?s in selection, which will be replaced by the values from selectionArgs, in
 	 *            order that they appear in the selection. The values will be bound as Strings.
 	 * @return this instance of SelectionBuilder */
-	public SelectionBuilder where(String selection, String... selectionArgs) {
+	public SelectionBuilder where(final String selection, final String... selectionArgs) {
 
 		if (TextUtils.isEmpty(selection)) {
 			if ((selectionArgs != null) && (selectionArgs.length > 0)) {
@@ -210,7 +210,7 @@ public class SelectionBuilder {
 		}
 	}
 
-	private void mapColumns(String[] columns) {
+	private void mapColumns(final String[] columns) {
 
 		for (int i = 0; i < columns.length; i++) {
 			final String target = mProjectionMap.get(columns[i]);

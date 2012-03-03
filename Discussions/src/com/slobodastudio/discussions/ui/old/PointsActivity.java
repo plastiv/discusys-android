@@ -1,22 +1,15 @@
-package com.slobodastudio.discussions.ui;
+package com.slobodastudio.discussions.ui.old;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Point;
-import com.slobodastudio.discussions.data.odata.ODataConstants;
-import com.slobodastudio.discussions.data.odata.OdataReadClient;
-import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Toast;
-
-import org.odata4j.core.OEntity;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -37,8 +30,8 @@ public class PointsActivity extends BaseListActivity implements OnItemClickListe
 	@Override
 	public void onItemClick(final AdapterView<?> adView, final View target, final int position, final long id) {
 
-		Log.v(TAG, "in onItemClick with " + " Position = " + position + ". Id = "
-				+ points.get(position).get(Point._ID));
+		// Log.v(TAG, "in onItemClick with " + " Position = " + position + ". Id = "
+		// + points.get(position).get(Point._ID));
 		// Uri selectedPerson = ContentUris.withAppendedId(People.CONTENT_URI, id);
 		// Intent intent = new Intent(Intent.ACTION_VIEW, selectedPerson);
 		// startActivity(intent);
@@ -81,27 +74,28 @@ public class PointsActivity extends BaseListActivity implements OnItemClickListe
 		alert.show();
 	}
 
-	OEntity addNewValue(final String value) {
+	void addNewValue(final String value) {
 
-		return new OdataWriteClient(ODataConstants.DISCUSSIONS_JAPAN).insertPoint(value, 0, 1, true,
-				getIntent().getIntExtra("id", -1), getIntent().getIntExtra(UriParameterKey.PERSON_ID, -1));
+		// FIXME : return new OdataWriteClient(ODataConstants.DISCUSSIONS_JAPAN).insertPoint(value, 0, 1,
+		// true,
+		// getIntent().getIntExtra("id", -1), getIntent().getIntExtra(IntentParameterKeys.PERSON_ID, -1));
 	}
 
 	void updateListValues() {
 
-		if (getIntent().hasExtra("id")) {
-			int topicId = getIntent().getIntExtra("id", -1);
-			points = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getPoints(topicId);
-		} else {
-			points = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getPoints();
-		}
-		if (points.size() > 0) {
-			updateListValues(points, Point.POINT);
-		} else {
-			Toast.makeText(this,
-					"No assosiated arg points for this topicId: " + getIntent().getIntExtra("id", -1),
-					Toast.LENGTH_LONG).show();
-			finish();
-		}
+		// if (getIntent().hasExtra("id")) {
+		// int topicId = getIntent().getIntExtra("id", -1);
+		// points = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getPoints(topicId);
+		// } else {
+		// points = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getPoints();
+		// }
+		// if (points.size() > 0) {
+		// updateListValues(points, Point.Columns.POINT_NAME);
+		// } else {
+		// Toast.makeText(this,
+		// "No assosiated arg points for this topicId: " + getIntent().getIntExtra("id", -1),
+		// Toast.LENGTH_LONG).show();
+		// finish();
+		// }
 	}
 }

@@ -1,13 +1,8 @@
-package com.slobodastudio.discussions.ui;
+package com.slobodastudio.discussions.ui.old;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Topic;
-import com.slobodastudio.discussions.data.odata.ODataConstants;
-import com.slobodastudio.discussions.data.odata.OdataReadClient;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -33,15 +28,17 @@ public class TopicsActivity extends BaseListActivity implements OnItemClickListe
 	@Override
 	public void onItemClick(final AdapterView<?> adView, final View target, final int position, final long id) {
 
-		Log.v(TAG, "in onItemClick with " + " Position = " + position + ". Id = "
-				+ topics.get(position).get(Topic._ID));
+		// Log.v(TAG, "in onItemClick with " + " Position = " + position + ". Id = "
+		// + topics.get(position).get(Topic._ID));
 		// Uri selectedPerson = ContentUris.withAppendedId(People.CONTENT_URI, id);
 		// Intent intent = new Intent(Intent.ACTION_VIEW, selectedPerson);
 		// startActivity(intent);
-		Intent intent = new Intent(this, PointsActivity.class);
-		intent.putExtra("id", ((Integer) topics.get(position).get(Topic._ID)).intValue());
-		intent.putExtra(UriParameterKey.PERSON_ID, getIntent().getIntExtra(UriParameterKey.PERSON_ID, -1));
-		startActivity(intent);
+		// Intent intent = new Intent(this, PointsActivity.class);
+		// intent.putExtra("id", ((Integer) topics.get(position).get(Topic._ID)).intValue());
+		// intent.putExtra(IntentParameterKeys.PERSON_ID,
+		// getIntent().getIntExtra(IntentParameterKeys.PERSON_ID,
+		// -1));
+		// startActivity(intent);
 	}
 
 	@Override
@@ -63,20 +60,20 @@ public class TopicsActivity extends BaseListActivity implements OnItemClickListe
 
 	private void updateTopicsList() {
 
-		if (getIntent().hasExtra("id")) {
-			int discussionId = getIntent().getIntExtra("id", -1);
-			Log.v(TAG, "discussionId: " + discussionId);
-			topics = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getTopics(discussionId);
-		} else {
-			topics = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getTopics();
-		}
-		if (topics.size() > 0) {
-			updateListValues(topics, Topic.NAME);
-		} else {
-			Toast.makeText(this,
-					"No assosiated topics for this disscussionId: " + getIntent().getIntExtra("id", -1),
-					Toast.LENGTH_LONG).show();
-			finish();
-		}
+		// if (getIntent().hasExtra("id")) {
+		// int discussionId = getIntent().getIntExtra("id", -1);
+		// Log.v(TAG, "discussionId: " + discussionId);
+		// topics = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getTopics(discussionId);
+		// } else {
+		// topics = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getTopics();
+		// }
+		// if (topics.size() > 0) {
+		// updateListValues(topics, Topic.NAME);
+		// } else {
+		// Toast.makeText(this,
+		// "No assosiated topics for this disscussionId: " + getIntent().getIntExtra("id", -1),
+		// Toast.LENGTH_LONG).show();
+		// finish();
+		// }
 	}
 }

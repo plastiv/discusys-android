@@ -1,50 +1,57 @@
 package com.slobodastudio.discussions.ui;
 
-import com.slobodastudio.discussions.R;
+import com.slobodastudio.ui.actionbar.ActionBarActivity;
+import com.slobodastudio.ui.actionbar.R;
 
-import android.app.ListActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.widget.ArrayAdapter;
+import android.view.MenuItem;
+import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-public class BaseListActivity extends ListActivity {
-
-	private static final String TAG = "BaseListActivity";
-	private ArrayAdapter<String> mAdapter;
-	private List<String> mListValues;
+public class BaseListActivity extends ActionBarActivity {
 
 	@Override
 	public void onCreate(final Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.base_list_activity);
-		// FIXME: check if network is accessible
-		// FIXME: move network sync off main thread!
-		mListValues = new ArrayList<String>();
-		mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mListValues);
-		setListAdapter(mAdapter);
+		setTitle(R.string.activity_name_points);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(final Menu menu) {
 
-		MenuInflater inflater = getMenuInflater(); // from activity
-		inflater.inflate(R.menu.operation_menu, menu);
-		// It is important to return true to see the menu
-		return true;
+		MenuInflater menuInflater = getMenuInflater();
+		menuInflater.inflate(R.menu.list_actionbar, menu);
+		// Calling super after populating the menu is necessary here to ensure that the
+		// action bar helpers have a chance to handle this event.
+		return super.onCreateOptionsMenu(menu);
 	}
 
-	protected void updateListValues(final ArrayList<Map<String, Object>> mEntityValues, final String valueKey) {
+	@Override
+	public boolean onOptionsItemSelected(final MenuItem item) {
 
-		mListValues.clear();
-		for (Map<String, Object> map : mEntityValues) {
-			mListValues.add((String) map.get(valueKey));
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				Toast.makeText(this, "Tapped home", Toast.LENGTH_SHORT).show();
+				break;
+			case R.id.menu_refresh:
+				Toast.makeText(this, "Fake refreshing...", Toast.LENGTH_SHORT).show();
+				getActionBarHelper().setRefreshActionItemState(true);
+				getWindow().getDecorView().postDelayed(new Runnable() {
+
+					@Override
+					public void run() {
+
+						getActionBarHelper().setRefreshActionItemState(false);
+					}
+				}, 1000);
+				break;
+			case R.id.menu_new:
+				Toast.makeText(this, "Tapped new", Toast.LENGTH_SHORT).show();
+				break;
 		}
-		mAdapter.notifyDataSetChanged();
+		return super.onOptionsItemSelected(item);
 	}
 }

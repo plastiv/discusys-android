@@ -1,17 +1,13 @@
-package com.slobodastudio.discussions.ui;
+package com.slobodastudio.discussions.ui.old;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Person;
 import com.slobodastudio.discussions.data.odata.ODataConstants;
-import com.slobodastudio.discussions.data.odata.OdataReadClient;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -32,7 +28,7 @@ public class UsersActivity extends BaseListActivity implements OnItemClickListen
 	static OEntity addNewValue(final String value) {
 
 		return new OdataWriteClient(ODataConstants.DISCUSSIONS_JAPAN).insertPerson(value,
-				"test@from.android", Integer.valueOf(Color.CYAN));
+				"test@from.android", Integer.valueOf(Color.CYAN), false);
 	}
 
 	@Override
@@ -46,14 +42,14 @@ public class UsersActivity extends BaseListActivity implements OnItemClickListen
 	@Override
 	public void onItemClick(final AdapterView<?> adView, final View target, final int position, final long id) {
 
-		Log.v(TAG, "in onItemClick with " + " Position = " + position + ". Id = "
-				+ users.get(position).get(Person._ID));
-		// Uri selectedPerson = ContentUris.withAppendedId(People.CONTENT_URI, id);
-		// Intent intent = new Intent(Intent.ACTION_VIEW, selectedPerson);
+		// Log.v(TAG, "in onItemClick with " + " Position = " + position + ". Id = "
+		// + users.get(position).get(Person._ID));
+		// // Uri selectedPerson = ContentUris.withAppendedId(People.CONTENT_URI, id);
+		// // Intent intent = new Intent(Intent.ACTION_VIEW, selectedPerson);
+		// // startActivity(intent);
+		// Intent intent = new Intent(this, DiscussionsActivity.class);
+		// intent.putExtra("id", ((Integer) users.get(position).get(Person._ID)).intValue());
 		// startActivity(intent);
-		Intent intent = new Intent(this, DiscussionsActivity.class);
-		intent.putExtra("id", ((Integer) users.get(position).get(Person._ID)).intValue());
-		startActivity(intent);
 	}
 
 	@Override
@@ -95,11 +91,11 @@ public class UsersActivity extends BaseListActivity implements OnItemClickListen
 
 	void updateListValues() {
 
-		users = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getUsers();
-		if (users.size() > 0) {
-			updateListValues(users, Person.NAME);
-		} else {
-			Toast.makeText(this, "No users on server. You can create a new one", Toast.LENGTH_LONG).show();
-		}
+		// users = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getUsers();
+		// if (users.size() > 0) {
+		// updateListValues(users, Person.NAME);
+		// } else {
+		// Toast.makeText(this, "No users on server. You can create a new one", Toast.LENGTH_LONG).show();
+		// }
 	}
 }

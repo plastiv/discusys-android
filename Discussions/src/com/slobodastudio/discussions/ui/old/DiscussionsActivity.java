@@ -1,20 +1,23 @@
-package com.slobodastudio.discussions.ui;
+package com.slobodastudio.discussions.ui.old;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.odata.DiscussionsTableShema.Discussion;
 import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataReadClient;
+import com.slobodastudio.discussions.data.odata.OdataSyncService;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussion;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 import org.odata4j.core.OEntity;
@@ -44,13 +47,14 @@ public class DiscussionsActivity extends BaseListActivity implements OnItemClick
 	public void onItemClick(final AdapterView<?> adView, final View target, final int position, final long id) {
 
 		Log.v(TAG, "in onItemClick with " + " Position = " + position + ". Id = "
-				+ discussions.get(position).get(Discussion._ID));
+				+ discussions.get(position).get(Discussion.Columns.DISCUSSION_ID));
 		// Uri selectedPerson = ContentUris.withAppendedId(People.CONTENT_URI, id);
 		// Intent intent = new Intent(Intent.ACTION_VIEW, selectedPerson);
 		// startActivity(intent);
 		Intent intent = new Intent(this, TopicsActivity.class);
-		intent.putExtra("id", ((Integer) discussions.get(position).get(Discussion._ID)).intValue());
-		intent.putExtra(UriParameterKey.PERSON_ID, getIntent().getIntExtra("id", -1));
+		intent.putExtra("id", ((Integer) discussions.get(position).get(Discussion.Columns.DISCUSSION_ID))
+				.intValue());
+		intent.putExtra(IntentParameterKeys.PERSON_ID, getIntent().getIntExtra("id", -1));
 		startActivity(intent);
 	}
 
@@ -95,12 +99,21 @@ public class DiscussionsActivity extends BaseListActivity implements OnItemClick
 
 		if (getIntent().hasExtra("id")) {
 			int userId = getIntent().getIntExtra("id", -1);
-			discussions = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getDiscussions(userId);
+			discussions = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getDiscussion(userId);
 		} else {
-			discussions = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getDiscussions();
+			// discussions = new OdataReadClient(ODataConstants.DISCUSSIONS_JAPAN).getDiscussions();
+			Log.v(TAG, "Call to download values");
+			OdataSyncService service = new OdataSyncService(ODataConstants.DISCUSSIONS_JAPAN, this);
+			service.downloadAllValues();
+			Cursor cur = managedQuery(Discussion.CONTENT_URI, null, null, null, null);
+			SimpleCursorAdapter curAdapter = new SimpleCursorAdapter(this,
+					android.R.layout.simple_list_item_1, cur, new String[] { Discussion.Columns.SUBJECT },
+					new int[] { android.R.id.text1 });
+			getListView().setAdapter(curAdapter);
+			return;
 		}
 		if (discussions.size() > 0) {
-			updateListValues(discussions, Discussion.SUBJECT);
+			updateListValues(discussions, Discussion.Columns.SUBJECT);
 		} else {
 			Toast.makeText(this,
 					"No assosiated discussions for this userId: " + getIntent().getIntExtra("id", -1),
