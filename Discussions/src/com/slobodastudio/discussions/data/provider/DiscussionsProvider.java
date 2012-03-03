@@ -4,6 +4,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussio
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Person;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Point;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topic;
+import com.slobodastudio.discussions.data.provider.DiscussionsDatabase.Tables;
 
 import android.app.Activity;
 import android.content.ContentProvider;
@@ -29,6 +30,7 @@ public class DiscussionsProvider extends ContentProvider {
 
 	private static final int DISCUSSIONS_DIR = 101;
 	private static final int DISCUSSIONS_ITEM = 100;
+	private static final int DISCUSSIONS_ITEM_TOPICS = 102;
 	private static final boolean LOGV = true;
 	private static final int PERSONS_DIR = 201;
 	private static final int PERSONS_ITEM = 200;
@@ -84,6 +86,8 @@ public class DiscussionsProvider extends ContentProvider {
 		final String authority = DiscussionsContract.CONTENT_AUTHORITY;
 		matcher.addURI(authority, Discussion.A_TABLE_PREFIX, DISCUSSIONS_DIR);
 		matcher.addURI(authority, Discussion.A_TABLE_PREFIX + "/*", DISCUSSIONS_ITEM);
+		matcher.addURI(authority, Discussion.A_TABLE_PREFIX + "/*/" + Topic.A_TABLE_PREFIX,
+				DISCUSSIONS_ITEM_TOPICS);
 		matcher.addURI(authority, Point.A_TABLE_PREFIX, POINTS_DIR);
 		matcher.addURI(authority, Point.A_TABLE_PREFIX + "/*", POINTS_ITEM);
 		matcher.addURI(authority, Person.A_TABLE_PREFIX, PERSONS_DIR);
@@ -136,6 +140,8 @@ public class DiscussionsProvider extends ContentProvider {
 				return Discussion.CONTENT_DIR_TYPE;
 			case DISCUSSIONS_ITEM:
 				return Discussion.CONTENT_ITEM_TYPE;
+			case DISCUSSIONS_ITEM_TOPICS:
+				return Topic.CONTENT_DIR_TYPE;
 			case POINTS_DIR:
 				return Point.CONTENT_DIR_TYPE;
 			case POINTS_ITEM:
@@ -216,6 +222,21 @@ public class DiscussionsProvider extends ContentProvider {
 			case DISCUSSIONS_ITEM:
 				builder.table(Discussion.TABLE_NAME);
 				break;
+//			// @formatter:off
+//			case DISCUSSIONS_ITEM_TOPICS: {
+//				final String valueId = Discussion.getValueId(uri);
+//				builder.table(Tables.DISCUSSIONS_JOIN_TOPICS)
+//						.mapToTable(BaseColumns._ID, Topic.TABLE_NAME)
+//						.mapToTable(Topic.Columns.DISCUSSION_ID, Topic.TABLE_NAME)
+//						.mapToTable(Topic.Columns.TOPIC_ID, Topic.TABLE_NAME)
+//						.where(Qualified.TOPIC_DISCUSSION_ID + "=?", valueId);
+//				return builder.query(db, projection, sortOrder);
+//			}// @formatter:on
+			case DISCUSSIONS_ITEM_TOPICS: {
+				final String valueId = Discussion.getValueId(uri);
+				builder.table(Topic.TABLE_NAME).where(Topic.Columns.DISCUSSION_ID + "=?", valueId);
+				return builder.query(db, projection, sortOrder);
+			}
 			case POINTS_DIR:
 			case POINTS_ITEM:
 				builder.table(Point.TABLE_NAME);
@@ -247,5 +268,29 @@ public class DiscussionsProvider extends ContentProvider {
 		int rowCount = builder.where(selection, selectionArgs).update(db, values);
 		getContext().getContentResolver().notifyChange(uri, null);
 		return rowCount;
+	}
+
+	/** Build an advanced {@link SelectionBuilder} to match the requested {@link Uri}. This is usually only
+	 * used by {@link #query}, since it performs table joins useful for {@link Cursor} data. */
+	private SelectionBuilder buildExpandedSelection(final Uri uri, final int match) {
+
+		final SelectionBuilder builder = new SelectionBuilder();
+		switch (match) {
+			case DISCUSSIONS_ITEM_TOPICS: {
+				final String valueId = Discussion.getValueId(uri);
+				return builder.table(Tables.DISCUSSIONS_JOIN_TOPICS).mapToTable(BaseColumns._ID,
+						Discussion.TABLE_NAME).mapToTable(Discussion.Columns.DISCUSSION_ID,
+						Discussion.TABLE_NAME).where(Qualified.TOPIC_DISCUSSION_ID + "=?", valueId);
+			}
+			default:
+				throw new IllegalArgumentException("Unknown uri: " + uri);
+		}
+	}
+
+	/** {@link ScheduleContract} fields that are fully qualified with a specific parent {@link Tables}. Used
+	 * when needed to work around SQL ambiguity. */
+	private interface Qualified {
+
+		String TOPIC_DISCUSSION_ID = Topic.TABLE_NAME + "." + Topic.Columns.DISCUSSION_ID;
 	}
 }

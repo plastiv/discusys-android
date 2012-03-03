@@ -16,7 +16,7 @@ public class DiscussionsTableTest extends ProviderTestCase2<DiscussionsProvider>
 		super(DiscussionsProvider.class, DiscussionsProvider.class.getName());
 	}
 
-	private static ContentValues getTestValue() {
+	public static ContentValues getTestValue() {
 
 		final ContentValues cv = new ContentValues();
 		cv.put(Discussion.Columns.DISCUSSION_ID, Integer.valueOf(1123));

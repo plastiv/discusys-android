@@ -17,7 +17,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 5;
+	private static final int DATABASE_VERSION = 8;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -50,7 +50,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ Topic.Columns.TOPIC_ID + " INTEGER NOT NULL,"
 				+ Topic.Columns.NAME + " TEXT NOT NULL,"
-				+ Topic.Columns.DISCUSSION_ID + " INTEGER NOT NULL,"
+				+ Topic.Columns.DISCUSSION_ID + " INTEGER NOT NULL " + References.DISCUSSION_ID +" ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ " UNIQUE (" + Topic.Columns.TOPIC_ID + ") ON CONFLICT REPLACE)");
 		
 		db.execSQL("CREATE TABLE " + Point.TABLE_NAME + " (" 
@@ -67,7 +67,24 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Point.Columns.SHARED_TO_PUBLIC + " INTEGER NOT NULL,"
 				+ Point.Columns.SIDE_CODE + " INTEGER NOT NULL,"
 				+ " UNIQUE (" + Point.Columns.POINT_ID + ") ON CONFLICT REPLACE)");
+		
+		// many-to-many table
+		db.execSQL("CREATE TABLE " + Tables.TOPIC_PERSON + " ("
+                + BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + TopicsPersons.PERSON_ID + " TEXT NOT NULL " + References.PERSON_ID + ","
+                + TopicsPersons.TOPIC_ID + " TEXT NOT NULL " + References.TOPIC_ID + ","
+                + "UNIQUE (" + TopicsPersons.PERSON_ID + "," + TopicsPersons.TOPIC_ID + ") ON CONFLICT REPLACE)");
 		// @formatter:on
+	}
+
+	@Override
+	public void onOpen(final SQLiteDatabase db) {
+
+		super.onOpen(db);
+		if (!db.isReadOnly()) {
+			// Enable foreign key constraints
+			db.execSQL("PRAGMA foreign_keys=ON;");
+		}
 	}
 
 	@Override
@@ -80,7 +97,37 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 			db.execSQL("DROP TABLE IF EXISTS " + Person.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Point.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Topic.TABLE_NAME);
+			db.execSQL("DROP TABLE IF EXISTS " + Tables.DISCUSSIONS_JOIN_TOPICS);
 			onCreate(db);
 		}
+	}
+
+	private interface Columns {
+
+		final String DISCUSSION_DISCUSSION_ID = Discussion.TABLE_NAME + "."
+				+ Discussion.Columns.DISCUSSION_ID;
+		final String TOPIC_DISCUSSION_ID = Topic.TABLE_NAME + "." + Topic.Columns.DISCUSSION_ID;
+	}
+
+	/** {@code REFERENCES} clauses. */
+	private interface References {
+
+		final String DISCUSSION_ID = "REFERENCES " + Discussion.TABLE_NAME + "("
+				+ Discussion.Columns.DISCUSSION_ID + ")";
+		final String PERSON_ID = "REFERENCES " + Person.TABLE_NAME + "(" + Person.Columns.PERSON_ID + ")";
+		final String TOPIC_ID = "REFERENCES " + Topic.TABLE_NAME + "(" + Topic.Columns.TOPIC_ID + ")";
+	}
+
+	private interface TopicsPersons {
+
+		final String PERSON_ID = Person.A_TABLE_PREFIX + "_id";
+		final String TOPIC_ID = Topic.A_TABLE_PREFIX + "_id";
+	}
+
+	interface Tables {
+
+		final String DISCUSSIONS_JOIN_TOPICS = Discussion.TABLE_NAME + " LEFT OUTER JOIN " + Topic.TABLE_NAME
+				+ " ON " + Columns.DISCUSSION_DISCUSSION_ID + "=" + Columns.TOPIC_DISCUSSION_ID;
+		final String TOPIC_PERSON = Topic.TABLE_NAME + "_" + Person.TABLE_NAME;
 	}
 }

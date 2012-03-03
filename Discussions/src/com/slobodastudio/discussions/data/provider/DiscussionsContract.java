@@ -66,6 +66,19 @@ public class DiscussionsContract {
 			return CONTENT_URI.buildUpon().appendPath(valueId).build();
 		}
 
+		/** Build {@link Uri} that references any {@link Topic} associated with the requested
+		 * {@link Columns#DISCUSSION_ID}.
+		 * 
+		 * @param discussionId
+		 *            {@link Columns#DISCUSSION_ID} value (from server, not primary key from database!) to
+		 *            fetch associated topics
+		 * 
+		 * @return a Uri for the given id */
+		public static Uri buildTopicUri(final String discussionId) {
+
+			return CONTENT_URI.buildUpon().appendPath(discussionId).appendPath(Topic.A_TABLE_PREFIX).build();
+		}
+
 		/** Read {@link Columns#_ID} from this table {@link Uri}.
 		 * 
 		 * @param uri
