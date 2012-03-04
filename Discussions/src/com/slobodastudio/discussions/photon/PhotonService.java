@@ -366,11 +366,11 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 
 	private void updateOnlineUsers(final HashMap<Byte, Object> actorsProperties) {
 
-		Iterator it = actorsProperties.entrySet().iterator();
+		Iterator<Entry<Byte, Object>> it = actorsProperties.entrySet().iterator();
 		while (it.hasNext()) {
-			Entry<Object, Object> pairs = (Entry<Object, Object>) it.next();
+			Entry<Byte, Object> pairs = it.next();
 			DiscussionUser newUser = new DiscussionUser();
-			newUser.setActorNumber((Integer) pairs.getKey());
+			newUser.setActorNumber(pairs.getKey().intValue());
 			HashMap<Byte, Object> actorProperties = (HashMap<Byte, Object>) pairs.getValue();
 			newUser.setUserId((Integer) actorProperties.get(Byte.valueOf((byte) 2)));
 			newUser.setUserName((String) actorProperties.get(Byte.valueOf((byte) 1)));

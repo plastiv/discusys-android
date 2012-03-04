@@ -1,8 +1,7 @@
 package com.slobodastudio.discussions.data.provider.test;
 
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 
@@ -13,72 +12,39 @@ import android.database.sqlite.SQLiteConstraintException;
 import android.net.Uri;
 import android.test.ProviderTestCase2;
 
-public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
+public class PointsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
-	private static final int DISCUSSION_ID = 13333;
+	private static final int GROUP_ID = 343;
 	private static final int PERSON_ID = 1123;
-	private static final Uri tableUri = Topics.CONTENT_URI;
+	private static final Uri tableUri = Points.CONTENT_URI;
+	private static final int TOPIC_ID = 105;
 
-	public TopicsTableTest() {
+	public PointsTableTest() {
 
 		super(DiscussionsProvider.class, DiscussionsProvider.class.getName());
 	}
 
-	static ContentValues getTestPersonTopicValue(final int personId, final int topicId) {
-
-		final ContentValues cv = new ContentValues();
-		cv.put(PersonsTopics.Columns.TOPIC_ID, Integer.valueOf(topicId));
-		cv.put(PersonsTopics.Columns.PERSON_ID, Integer.valueOf(personId));
-		return cv;
-	}
-
-	static ContentValues getTestValue(final int topicId, final int discussionId) {
-
-		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.TOPIC_ID, Integer.valueOf(topicId));
-		cv.put(Topics.Columns.NAME, "name");
-		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(discussionId));
-		return cv;
-	}
-
 	static Uri insertValidValue(final int valueId, final ContentProvider provider) {
 
-		DiscussionsTableTest.insertValidValue(DISCUSSION_ID, provider);
-		PersonsTableTest.insertValidValue(PERSON_ID, provider);
-		provider.insert(PersonsTopics.CONTENT_URI, getTestPersonTopicValue(PERSON_ID, valueId));
+		TopicsTableTest.insertValidValue(TOPIC_ID, provider);
 		return provider.insert(tableUri, getTestValue(valueId));
 	}
 
-	static Uri insertValidValue(final int topicId, final int discussionId, final int personId,
-			final ContentProvider provider) {
-
-		DiscussionsTableTest.insertValidValue(discussionId, provider);
-		PersonsTableTest.insertValidValue(personId, provider);
-		provider.insert(PersonsTopics.CONTENT_URI, getTestPersonTopicValue(personId, topicId));
-		return provider.insert(tableUri, getTestValue(topicId, discussionId));
-	}
-
-	private static ContentValues getTestValue(final int topicId) {
+	private static ContentValues getTestValue(final int valueId) {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.TOPIC_ID, Integer.valueOf(topicId));
-		cv.put(Topics.Columns.NAME, "name");
-		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(DISCUSSION_ID));
+		cv.put(Points.Columns.POINT_ID, Integer.valueOf(valueId));
+		cv.put(Points.Columns.AGREEMENT_CODE, 0);
+		cv.put(Points.Columns.EXPANDED, false);
+		cv.put(Points.Columns.GROUP_ID, GROUP_ID);
+		cv.put(Points.Columns.NUMBERED_POINT, "112");
+		cv.put(Points.Columns.PERSON_ID, Integer.valueOf(PERSON_ID));
+		cv.put(Points.Columns.POINT_NAME, "My point");
+		cv.put(Points.Columns.SHARED_TO_PUBLIC, true);
+		cv.put(Points.Columns.SIDE_CODE, 1);
+		cv.put(Points.Columns.TOPIC_ID, Integer.valueOf(TOPIC_ID));
+		cv.put(Points.Columns.DRAWING, new byte[] {});
 		return cv;
-	}
-
-	public void testDeleteFromDiscussion() {
-
-		insertValidValue(1);
-		// delete associated discussion
-		getProvider().delete(Discussions.CONTENT_URI, null, null);
-		// check if topic was deleted too
-		final Cursor cursor = getProvider().query(tableUri, null, null, null, null);
-		if (cursor.moveToFirst()) {
-			fail("Didnt delete assosiated row");
-		} else {
-			assertTrue(true);
-		}
 	}
 
 	public void testDeleteFromPerson() {
@@ -96,6 +62,20 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		}
 	}
 
+	public void testDeleteFromTopic() {
+
+		insertValidValue(1);
+		// delete associated discussion
+		getProvider().delete(Topics.CONTENT_URI, null, null);
+		// check if topic was deleted too
+		final Cursor cursor = getProvider().query(tableUri, null, null, null, null);
+		if (cursor.moveToFirst()) {
+			fail("Didnt delete assosiated row");
+		} else {
+			assertTrue(true);
+		}
+	}
+
 	public void testInsert() {
 
 		insertValidValue(1);
@@ -104,13 +84,6 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 			assertTrue(true);
 		} else {
 			fail("Didnt insert test value in table");
-		}
-		cursor = getProvider()
-				.query(Persons.buildTopicUri(String.valueOf(PERSON_ID)), null, null, null, null);
-		if (cursor.moveToFirst()) {
-			assertTrue(true);
-		} else {
-			fail("Didnt insert relationship between Topics and Persons");
 		}
 		assertEquals("Should be one associated value, was: " + cursor.getCount(), 1, cursor.getCount());
 	}
@@ -131,13 +104,21 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	public void testInsertWrongValue() {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.TOPIC_ID, Integer.valueOf(1));
-		cv.put(Topics.Columns.NAME, "name");
-		// not valid disscussion id
-		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(DISCUSSION_ID - 1));
+		cv.put(Points.Columns.POINT_ID, Integer.valueOf(1));
+		cv.put(Points.Columns.AGREEMENT_CODE, 0);
+		cv.put(Points.Columns.EXPANDED, false);
+		cv.put(Points.Columns.GROUP_ID, 1);
+		cv.put(Points.Columns.NUMBERED_POINT, "");
+		// wrong person_id
+		cv.put(Points.Columns.PERSON_ID, Integer.valueOf(2));
+		cv.put(Points.Columns.POINT_NAME, "My point");
+		cv.put(Points.Columns.SHARED_TO_PUBLIC, true);
+		cv.put(Points.Columns.SIDE_CODE, 1);
+		cv.put(Points.Columns.TOPIC_ID, Integer.valueOf(1));
+		cv.put(Points.Columns.DRAWING, new byte[] {});
 		try {
 			getProvider().insert(tableUri, cv);
-			fail();
+			fail("Wrong value as inserted");
 		} catch (SQLiteConstraintException e) {
 			assertTrue(true);
 		}
@@ -165,24 +146,22 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		}
 	}
 
-	public void testQueryFromDiscussion() {
-
-		insertValidValue(1);
-		getProvider().insert(tableUri, getTestValue(2));
-		Cursor cursor = getProvider().query(Discussions.buildTopicUri(String.valueOf(DISCUSSION_ID)), null,
-				null, null, null);
-		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
-	}
-
 	public void testQueryFromPersons() {
 
 		insertValidValue(1);
 		getProvider().insert(tableUri, getTestValue(2));
-		getProvider().insert(PersonsTopics.CONTENT_URI, getTestPersonTopicValue(PERSON_ID, 2));
-		Cursor cursor = getProvider().query(Persons.buildTopicUri(String.valueOf(PERSON_ID)), null, null,
+		Cursor cursor = getProvider().query(Persons.buildPointUri(String.valueOf(PERSON_ID)), null, null,
 				null, null);
 		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
-		assertEquals("Should be 4 table columns, was: " + cursor.getCount(), 4, cursor.getColumnCount());
+	}
+
+	public void testQueryFromTopics() {
+
+		insertValidValue(1);
+		getProvider().insert(tableUri, getTestValue(2));
+		Cursor cursor = getProvider().query(Topics.buildPointUri(String.valueOf(TOPIC_ID)), null, null, null,
+				null);
+		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 
 	@Override

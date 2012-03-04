@@ -1,9 +1,9 @@
 package com.slobodastudio.discussions.data.odata;
 
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussion;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Point;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topic;
-import com.slobodastudio.discussions.tool.MyLog;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
+import com.slobodastudio.discussions.tools.MyLog;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -41,13 +41,13 @@ public class OdataSyncService {
 
 		final ContentValues cv = new ContentValues();
 		Log.v(TAG, entity.getProperties().toString());
-		for (OProperty property : entity.getProperties()) {
+		for (OProperty<?> property : entity.getProperties()) {
 			if (LOGV) {
 				MyLog.v(TAG, property.getName() + ":" + property.getType() + ":" + property.getValue());
 			}
 			// FIXME: this is brutal hack
-			if (property.getName().equals(Point.Columns.GROUP_ID_SERVER)) {
-				cv.put(Point.Columns.GROUP_ID, (Integer) property.getValue());
+			if (property.getName().equals(Points.Columns.GROUP_ID_SERVER)) {
+				cv.put(Points.Columns.GROUP_ID, (Integer) property.getValue());
 			} else {
 				put(cv, property);
 			}
@@ -55,10 +55,10 @@ public class OdataSyncService {
 		return cv;
 	}
 
-	private static ContentValues put(final ContentValues cv, final OProperty property) {
+	private static ContentValues put(final ContentValues cv, final OProperty<?> property) {
 
-		EdmSimpleType type = (EdmSimpleType) property.getType();
-		Class classType = type.getCanonicalJavaType();
+		EdmSimpleType<?> type = (EdmSimpleType<?>) property.getType();
+		Class<? extends Object> classType = type.getCanonicalJavaType();
 		if (classType.equals(Integer.class)) {
 			cv.put(property.getName(), (Integer) property.getValue());
 		} else if (classType.equals(String.class)) {
@@ -77,23 +77,23 @@ public class OdataSyncService {
 
 	public void downloadAllValues() {
 
-		downloadValues(Discussion.TABLE_NAME, Discussion.CONTENT_URI);
+		downloadValues(Discussions.TABLE_NAME, Discussions.CONTENT_URI);
 	}
 
 	public void downloadTopics() {
 
 		final ContentResolver provider = context.getContentResolver();
-		for (OEntity entity : consumer.getEntities(Topic.TABLE_NAME).execute()) {
+		for (OEntity entity : consumer.getEntities(Topics.TABLE_NAME).execute()) {
 			ContentValues cv = OEntityToContentValue(entity);
-			cv.put(Topic.Columns.DISCUSSION_ID, getNavigationPropertyId(entity, Topic.Columns.DISCUSSION_ID,
-					Discussion.Columns.DISCUSSION_ID));
+			cv.put(Topics.Columns.DISCUSSION_ID, getNavigationPropertyId(entity, Topics.Columns.DISCUSSION_ID,
+					Discussions.Columns.DISCUSSION_ID));
 			// cv.put(Topic.Columns.PERSON_ID, getNavigationPropertyIds(entity, Topic.Columns.PERSON_ID,
 			// Person.Columns.PERSON_ID).toString());
 			if (LOGV) {
 				MyLog.v(TAG, "Content value: " + cv.toString());
 			}
 			try {
-				provider.insert(Topic.CONTENT_URI, cv);
+				provider.insert(Topics.CONTENT_URI, cv);
 			} catch (SQLiteException e) {
 				throw new RuntimeException("Cant insert value: " + cv.toString(), e);
 			}

@@ -1,11 +1,11 @@
 package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussion;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Person;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Point;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topic;
-import com.slobodastudio.discussions.tool.MyLog;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
+import com.slobodastudio.discussions.tools.MyLog;
 
 import android.database.Cursor;
 import android.net.Uri;
@@ -130,18 +130,18 @@ public class BaseListFragment extends ListFragment implements LoaderManager.Load
 	private void setTableSpecificValues(final Uri uri) {
 
 		String mimeType = getActivity().getContentResolver().getType(uri);
-		if (mimeType.equals(Person.CONTENT_DIR_TYPE)) {
+		if (mimeType.equals(Persons.CONTENT_DIR_TYPE)) {
 			mEmptyListStringId = R.string.fragment_empty_persons;
-			mShownColumnName = Person.Columns.NAME;
-		} else if (mimeType.equals(Discussion.CONTENT_DIR_TYPE)) {
+			mShownColumnName = Persons.Columns.NAME;
+		} else if (mimeType.equals(Discussions.CONTENT_DIR_TYPE)) {
 			mEmptyListStringId = R.string.fragment_empty_discussions;
-			mShownColumnName = Discussion.Columns.SUBJECT;
-		} else if (mimeType.equals(Topic.CONTENT_DIR_TYPE)) {
+			mShownColumnName = Discussions.Columns.SUBJECT;
+		} else if (mimeType.equals(Topics.CONTENT_DIR_TYPE)) {
 			mEmptyListStringId = R.string.fragment_empty_topics;
-			mShownColumnName = Topic.Columns.NAME;
-		} else if (mimeType.equals(Point.CONTENT_DIR_TYPE)) {
+			mShownColumnName = Topics.Columns.NAME;
+		} else if (mimeType.equals(Points.CONTENT_DIR_TYPE)) {
 			mEmptyListStringId = R.string.fragment_empty_points;
-			mShownColumnName = Point.Columns.POINT_NAME;
+			mShownColumnName = Points.Columns.POINT_NAME;
 		} else {
 			throw new IllegalAccessError("Unknown uri: " + uri);
 		}

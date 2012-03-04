@@ -2,9 +2,9 @@ package com.slobodastudio.discussions.data.odata.test;
 
 import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataSyncService;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussion;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Person;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Point;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 
 import android.test.AndroidTestCase;
 
@@ -12,25 +12,25 @@ public class OdataReadClientTest extends AndroidTestCase {
 
 	public void testDiscussions() {
 
-		OdataSyncService service = new OdataSyncService(ODataConstants.DISCUSSIONS_JAPAN, getContext());
-		service.downloadValues(Discussion.TABLE_NAME, Discussion.CONTENT_URI);
+		OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, getContext());
+		service.downloadValues(Discussions.TABLE_NAME, Discussions.CONTENT_URI);
 	}
 
 	public void testPersons() {
 
-		OdataSyncService service = new OdataSyncService(ODataConstants.DISCUSSIONS_JAPAN, getContext());
-		service.downloadValues(Person.TABLE_NAME, Person.CONTENT_URI);
+		OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, getContext());
+		service.downloadValues(Persons.TABLE_NAME, Persons.CONTENT_URI);
 	}
 
 	public void testPoints() {
 
-		OdataSyncService service = new OdataSyncService(ODataConstants.DISCUSSIONS_JAPAN, getContext());
-		service.downloadValues(Point.TABLE_NAME, Point.CONTENT_URI);
+		OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, getContext());
+		service.downloadValues(Points.TABLE_NAME, Points.CONTENT_URI);
 	}
 
 	public void testTopics() {
 
-		OdataSyncService service = new OdataSyncService(ODataConstants.DISCUSSIONS_JAPAN, getContext());
+		OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, getContext());
 		service.downloadTopics();
 	}
 

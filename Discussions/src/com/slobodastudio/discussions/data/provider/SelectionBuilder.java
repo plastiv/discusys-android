@@ -16,7 +16,7 @@ import java.util.Map;
 public class SelectionBuilder {
 
 	private static final boolean LOGV = false;
-	private static final String TAG = "SelectionBuilder";
+	private static final String TAG = SelectionBuilder.class.getSimpleName();
 	private final Map<String, String> mProjectionMap = new HashMap<String, String>();
 	private final StringBuilder mSelection = new StringBuilder();
 	private final ArrayList<String> mSelectionArgs = new ArrayList<String>();

@@ -1,5 +1,7 @@
 package com.slobodastudio.discussions.data.provider;
 
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+
 import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -10,7 +12,7 @@ import android.provider.BaseColumns;
  * The backing {@link android.content.ContentProvider} assumes that {@link Uri} are generated using stronger
  * {@link String} identifiers, instead of {@code int} {@link BaseColumns#_ID} values, which are prone to
  * shuffle during sync. */
-public class DiscussionsContract {
+public final class DiscussionsContract {
 
 	/** A domain name for the {@link DiscussionsProvider} */
 	public static final String CONTENT_AUTHORITY = "com.slobodastudio.discussions";
@@ -23,7 +25,7 @@ public class DiscussionsContract {
 	}
 
 	/** Describes discussion's table. Discussion is an abstraction of room. */
-	public static class Discussion {
+	public static final class Discussions {
 
 		/** Table name in lower case. */
 		public static final String A_TABLE_PREFIX = "discussion";
@@ -41,7 +43,7 @@ public class DiscussionsContract {
 		public static final String TABLE_NAME = "Discussion";
 
 		/** A private Constructor prevents class from instantiating. */
-		private Discussion() {
+		private Discussions() {
 
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
 		}
@@ -66,7 +68,7 @@ public class DiscussionsContract {
 			return CONTENT_URI.buildUpon().appendPath(valueId).build();
 		}
 
-		/** Build {@link Uri} that references any {@link Topic} associated with the requested
+		/** Build {@link Uri} that references any {@link Topics} associated with the requested
 		 * {@link Columns#DISCUSSION_ID}.
 		 * 
 		 * @param discussionId
@@ -76,7 +78,7 @@ public class DiscussionsContract {
 		 * @return a Uri for the given id */
 		public static Uri buildTopicUri(final String discussionId) {
 
-			return CONTENT_URI.buildUpon().appendPath(discussionId).appendPath(Topic.A_TABLE_PREFIX).build();
+			return CONTENT_URI.buildUpon().appendPath(discussionId).appendPath(Topics.A_TABLE_PREFIX).build();
 		}
 
 		/** Read {@link Columns#_ID} from this table {@link Uri}.
@@ -90,17 +92,24 @@ public class DiscussionsContract {
 		}
 
 		/** List of columns names. */
-		public class Columns implements BaseColumns {
+		public static final class Columns implements BaseColumns {
 
 			/** Type Int32. */
 			public static final String DISCUSSION_ID = "Id";
 			/** Type String. */
 			public static final String SUBJECT = "Subject";
 		}
+
+		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
+		 * needed to work around SQL ambiguity. */
+		static final class Qualified {
+
+			static final String DISCUSSION_ID = TABLE_NAME + "." + Columns.DISCUSSION_ID;
+		}
 	}
 
 	/** Describes group's table. */
-	public static class Group {
+	public static final class Group {
 
 		/** Server's database table name */
 		public static final String TABLE_NAME = "Group";
@@ -112,7 +121,7 @@ public class DiscussionsContract {
 		}
 
 		/** List of columns names. */
-		public class Columns implements BaseColumns {
+		public static final class Columns implements BaseColumns {
 
 			/** Type Int32. */
 			public static final String GROUP_ID = "Id";
@@ -122,7 +131,7 @@ public class DiscussionsContract {
 	}
 
 	/** Describes person's table. Basically users for discussions. */
-	public static class Person {
+	public static final class Persons {
 
 		/** Table name in lower case. */
 		public static final String A_TABLE_PREFIX = "person";
@@ -140,7 +149,114 @@ public class DiscussionsContract {
 		public static final String TABLE_NAME = "Person";
 
 		/** A private Constructor prevents class from instantiating. */
-		private Person() {
+		private Persons() {
+
+			throw new UnsupportedOperationException("Class is prevented from instantiation");
+		}
+
+		/** Build {@link Uri} that references any {@link Discussions} associated with the requested
+		 * {@link Persons}.
+		 * 
+		 * @param valueId
+		 *            foreign key value (from server, not primary key from database!) to fetch associated
+		 *            table
+		 * 
+		 * @return a Uri for the given id */
+		public static Uri buildDiscussionsUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).appendPath(Discussions.A_TABLE_PREFIX).build();
+		}
+
+		/** Build {@link Uri} that references any {@link Points} associated with the requested
+		 * {@link Points.Columns#PERSON_ID}.
+		 * 
+		 * @param valueId
+		 *            foreign key value (from server, not primary key from database!) to fetch associated
+		 *            table
+		 * 
+		 * @return a Uri for the given id */
+		public static Uri buildPointUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).appendPath(Points.A_TABLE_PREFIX).build();
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique value identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final long valueId) {
+
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique row identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		/** Build {@link Uri} that references any {@link Topics} associated with the requested
+		 * {@link Points.Columns#PERSON_ID}.
+		 * 
+		 * @param valueId
+		 *            foreign key value (from server, not primary key from database!) to fetch associated
+		 *            table
+		 * 
+		 * @return a Uri for the given id */
+		public static Uri buildTopicUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).appendPath(Topics.A_TABLE_PREFIX).build();
+		}
+
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
+		 * 
+		 * @param uri
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
+
+			return uri.getPathSegments().get(1);
+		}
+
+		/** List of columns names. */
+		public static final class Columns implements BaseColumns {
+
+			/** Type Int32. */
+			public static final String COLOR = "Color";
+			/** Type String. */
+			public static final String EMAIL = "Email";
+			/** Type String. */
+			public static final String NAME = "Name";
+			/** Type Bit. */
+			public static final String ONLINE = "Online";
+			/** Type Int32. */
+			public static final String PERSON_ID = "Id";
+		}
+	}
+
+	/** Many-to-many relationship table between {@link Persons} and {@link Topics}. */
+	public static final class PersonsTopics {
+
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "persons_topics";
+		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The MIME type of {@link #CONTENT_URI} providing a single point */
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The content:// style URL for this table */
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
+		/** Server's database table name */
+		public static final String TABLE_NAME = Persons.TABLE_NAME + Topics.TABLE_NAME;
+
+		/** A private Constructor prevents class from instantiating. */
+		private PersonsTopics() {
 
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
 		}
@@ -176,23 +292,25 @@ public class DiscussionsContract {
 		}
 
 		/** List of columns names. */
-		public class Columns implements BaseColumns {
+		public static final class Columns implements BaseColumns {
 
-			/** Type Int32. */
-			public static final String COLOR = "Color";
-			/** Type String. */
-			public static final String EMAIL = "Email";
-			/** Type String. */
-			public static final String NAME = "Name";
-			/** Type Bit. */
-			public static final String ONLINE = "Online";
-			/** Type Int32. */
-			public static final String PERSON_ID = "Id";
+			/** Type Int32. Foreign key. */
+			public static final String PERSON_ID = Persons.A_TABLE_PREFIX + "_id";
+			/** Type Int32. Foreign key. */
+			public static final String TOPIC_ID = Topics.A_TABLE_PREFIX + "_id";
+		}
+
+		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
+		 * needed to work around SQL ambiguity. */
+		static final class Qualified {
+
+			static final String PERSON_ID = TABLE_NAME + "." + Columns.PERSON_ID;
 		}
 	}
 
-	/** Describes point's table. Each point is associated with a {@link Topic}, {@link Person}, {@link Group}. */
-	public static class Point {
+	/** Describes point's table. Each point is associated with a {@link Topics}, {@link Persons}, {@link Group}
+	 * . */
+	public static final class Points {
 
 		/** Table name in lower case. */
 		public static final String A_TABLE_PREFIX = "point";
@@ -210,7 +328,7 @@ public class DiscussionsContract {
 		public static final String TABLE_NAME = "ArgPoint";
 
 		/** A private Constructor prevents class from instantiating. */
-		private Point() {
+		private Points() {
 
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
 		}
@@ -246,7 +364,7 @@ public class DiscussionsContract {
 		}
 
 		/** List of columns names. */
-		public class Columns implements BaseColumns {
+		public static final class Columns implements BaseColumns {
 
 			/** Type Int32. 0-not agreed */
 			public static final String AGREEMENT_CODE = "AgreementCode";
@@ -275,8 +393,8 @@ public class DiscussionsContract {
 		}
 	}
 
-	/** Describes topic's table. Each topic is associated with a {@link Discussion}. */
-	public static class Topic {
+	/** Describes topic's table. Each topic is associated with a {@link Discussions}. */
+	public static final class Topics {
 
 		/** Table name in lower case. */
 		public static final String A_TABLE_PREFIX = "topic";
@@ -294,9 +412,22 @@ public class DiscussionsContract {
 		public static final String TABLE_NAME = "Topic";
 
 		/** A private Constructor prevents class from instantiating. */
-		private Topic() {
+		private Topics() {
 
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
+		}
+
+		/** Build {@link Uri} that references any {@link Points} associated with the requested
+		 * {@link Points.Columns#TOPIC_ID}.
+		 * 
+		 * @param valueId
+		 *            foreign key value (from server, not primary key from database!) to fetch associated
+		 *            table
+		 * 
+		 * @return a Uri for the given id */
+		public static Uri buildPointUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).appendPath(Points.A_TABLE_PREFIX).build();
 		}
 
 		/** Build {@link Uri} for requested {@link Columns#_ID}.
@@ -330,16 +461,23 @@ public class DiscussionsContract {
 		}
 
 		/** List of columns names. */
-		public class Columns implements BaseColumns {
+		public static final class Columns implements BaseColumns {
 
 			/** Type Int32. Foreign key. */
 			public static final String DISCUSSION_ID = "Discussion";
 			/** Type String. */
 			public static final String NAME = "Name";
-			/** Type Int32. */
+			/** Type Int32. Should be used only by servers data. */
 			public static final String PERSON_ID = "Person";
 			/** Type Int32. */
 			public static final String TOPIC_ID = "Id";
+		}
+
+		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
+		 * needed to work around SQL ambiguity. */
+		static final class Qualified {
+
+			static final String TOPIC_ID = TABLE_NAME + "." + Columns.TOPIC_ID;
 		}
 	}
 }

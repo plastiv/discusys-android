@@ -1,9 +1,9 @@
 package com.slobodastudio.discussions.data.odata;
 
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussion;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Person;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Point;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topic;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntity;
@@ -28,8 +28,8 @@ public class OdataWriteClient {
 	public OEntity insertDiscussion(final String subject) {
 
 		// @formatter:off
-		return consumer.createEntity(Discussion.TABLE_NAME)
-				.properties(OProperties.string(Discussion.Columns.SUBJECT, subject))
+		return consumer.createEntity(Discussions.TABLE_NAME)
+				.properties(OProperties.string(Discussions.Columns.SUBJECT, subject))
 				.execute();
 		// @formatter:on
 	}
@@ -38,11 +38,11 @@ public class OdataWriteClient {
 			final boolean online) {
 
 		// @formatter:off
-		return consumer.createEntity(Person.TABLE_NAME)
-				.properties(OProperties.string(Person.Columns.NAME, name))
-				.properties(OProperties.string(Person.Columns.EMAIL, email))
-				.properties(OProperties.int32(Person.Columns.COLOR, color))
-				.properties(OProperties.boolean_(Person.Columns.ONLINE, online))
+		return consumer.createEntity(Persons.TABLE_NAME)
+				.properties(OProperties.string(Persons.Columns.NAME, name))
+				.properties(OProperties.string(Persons.Columns.EMAIL, email))
+				.properties(OProperties.int32(Persons.Columns.COLOR, color))
+				.properties(OProperties.boolean_(Persons.Columns.ONLINE, online))
 				.execute();
 		// @formatter:on
 	}
@@ -52,17 +52,17 @@ public class OdataWriteClient {
 			final boolean sharedToPublic, final int sideCode, final int topicId) {
 
 		// @formatter:off
-		return consumer.createEntity(Point.TABLE_NAME)
-				.properties(OProperties.int32(Point.Columns.AGREEMENT_CODE, Integer.valueOf(agreementCode)))
-				.properties(OProperties.binary(Point.Columns.DRAWING, drawing))
-				.properties(OProperties.boolean_(Point.Columns.EXPANDED, Boolean.valueOf(expanded)))
-				.link(Point.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(groupId)))
-				.properties(OProperties.string(Point.Columns.NUMBERED_POINT, numberedPoint))
-				.link(Point.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
-				.properties(OProperties.string(Point.Columns.POINT_NAME, pointName))
-				.properties(OProperties.boolean_(Point.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(sharedToPublic)))
-				.properties(OProperties.int32(Point.Columns.SIDE_CODE, Integer.valueOf(sideCode)))		
-				.link(Point.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(topicId)))
+		return consumer.createEntity(Points.TABLE_NAME)
+				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, Integer.valueOf(agreementCode)))
+				.properties(OProperties.binary(Points.Columns.DRAWING, drawing))
+				.properties(OProperties.boolean_(Points.Columns.EXPANDED, Boolean.valueOf(expanded)))
+				.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(groupId)))
+				.properties(OProperties.string(Points.Columns.NUMBERED_POINT, numberedPoint))
+				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
+				.properties(OProperties.string(Points.Columns.POINT_NAME, pointName))
+				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(sharedToPublic)))
+				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(sideCode)))		
+				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(topicId)))
 				.execute();
 		// @formatter:on
 	}
@@ -70,10 +70,10 @@ public class OdataWriteClient {
 	public OEntity insertTopic(final String topicName, final int discussionId, final int personId) {
 
 		// @formatter:off
-		return consumer.createEntity(Topic.TABLE_NAME)
-				.properties(OProperties.int32(Topic.Columns.DISCUSSION_ID, Integer.valueOf(discussionId)))
-				.properties(OProperties.string(Topic.Columns.NAME, topicName))	
-				.link(Topic.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
+		return consumer.createEntity(Topics.TABLE_NAME)
+				.properties(OProperties.int32(Topics.Columns.DISCUSSION_ID, Integer.valueOf(discussionId)))
+				.properties(OProperties.string(Topics.Columns.NAME, topicName))	
+				.link(Topics.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
 				.execute();
 		// @formatter:on
 	}
