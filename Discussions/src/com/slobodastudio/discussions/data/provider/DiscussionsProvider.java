@@ -1,12 +1,10 @@
 package com.slobodastudio.discussions.data.provider;
 
-import com.slobodastudio.discussions.data.odata.OdataSyncService;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
-import com.slobodastudio.discussions.tools.MyLog;
 
 import android.app.Activity;
 import android.content.ContentProvider;
@@ -22,12 +20,13 @@ import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/** Provider that stores {@link DiscussionsContract} data. Data is usually inserted by {@link OdataSyncService}
- * , and queried by various {@link Activity} instances. */
+/** Provider that stores {@link DiscussionsContract} data. Data is usually inserted by SyncService , and
+ * queried by various {@link Activity} instances. */
 public class DiscussionsProvider extends ContentProvider {
 
 	private static final int DISCUSSIONS_DIR = 101;
@@ -140,7 +139,7 @@ public class DiscussionsProvider extends ContentProvider {
 	public int delete(final Uri uri, final String selection, final String[] selectionArgs) {
 
 		if (LOGV) {
-			MyLog.v(TAG, "delete(uri=" + uri + ")");
+			Log.v(TAG, "delete(uri=" + uri + ")");
 		}
 		final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		final SelectionBuilder builder = buildSimpleSelection(uri);
@@ -189,7 +188,7 @@ public class DiscussionsProvider extends ContentProvider {
 	public Uri insert(final Uri uri, final ContentValues values) {
 
 		if (LOGV) {
-			MyLog.v(TAG, "insert(uri=" + uri + ", values=" + values.toString() + ")");
+			Log.v(TAG, "insert(uri=" + uri + ", values=" + values.toString() + ")");
 		}
 		final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		final int match = sUriMatcher.match(uri);
@@ -246,7 +245,7 @@ public class DiscussionsProvider extends ContentProvider {
 			final String[] selectionArgs, final String sortOrder) {
 
 		if (LOGV) {
-			MyLog.v(TAG, "query(uri=" + uri + ", proj=" + Arrays.toString(projection) + ")");
+			Log.v(TAG, "query(uri=" + uri + ", proj=" + Arrays.toString(projection) + ")");
 		}
 		final SQLiteDatabase db = mOpenHelper.getReadableDatabase();
 		final SelectionBuilder builder = new SelectionBuilder();
@@ -317,7 +316,7 @@ public class DiscussionsProvider extends ContentProvider {
 			final String[] selectionArgs) {
 
 		if (LOGV) {
-			MyLog.v(TAG, "update(uri=" + uri + ", values=" + values.toString() + ")");
+			Log.v(TAG, "update(uri=" + uri + ", values=" + values.toString() + ")");
 		}
 		final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		final SelectionBuilder builder = buildSimpleSelection(uri);

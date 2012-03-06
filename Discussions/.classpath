@@ -15,5 +15,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/android-support-v4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/plastiv/workspace/Discussions/Discussions/lib/libGoogleAnalytics.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

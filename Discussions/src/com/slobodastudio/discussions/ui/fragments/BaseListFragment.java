@@ -1,7 +1,7 @@
 package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.tools.MyLog;
+import com.slobodastudio.discussions.utils.MyLog;
 
 import android.database.Cursor;
 import android.net.Uri;
@@ -98,6 +98,9 @@ public class BaseListFragment extends ListFragment implements LoaderManager.Load
 		// First, pick the base URI to use depending on whether we are
 		// currently filtering.
 		Uri baseUri = getActivity().getIntent().getData();
+		if (baseUri == null) {
+			throw new IllegalStateException("Fragment was called without content_uri");
+		}
 		// Now create and return a CursorLoader that will take care of
 		// creating a Cursor for the data being displayed.
 		return new CursorLoader(getActivity(), baseUri, null, null, null, null);

@@ -5,7 +5,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
-import com.slobodastudio.discussions.tools.MyLog;
+import com.slobodastudio.discussions.utils.MyLog;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;

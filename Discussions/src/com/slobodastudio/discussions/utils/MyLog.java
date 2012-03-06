@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.tools;
+package com.slobodastudio.discussions.utils;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 

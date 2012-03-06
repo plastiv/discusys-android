@@ -2,7 +2,7 @@ package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
-import com.slobodastudio.discussions.tools.MyLog;
+import com.slobodastudio.discussions.utils.MyLog;
 
 import android.content.Intent;
 import android.view.View;

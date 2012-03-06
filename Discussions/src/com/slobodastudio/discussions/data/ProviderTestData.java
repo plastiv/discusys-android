@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.data.provider;
+package com.slobodastudio.discussions.data;
 
 import com.slobodastudio.discussions.data.model.Discussion;
 import com.slobodastudio.discussions.data.model.Person;
@@ -6,6 +6,7 @@ import com.slobodastudio.discussions.data.model.PersonTopic;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.Topic;
 import com.slobodastudio.discussions.data.model.Value;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -15,7 +16,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Color;
 
-public class TablesTestData {
+public class ProviderTestData {
 
 	public static void generateData(final Context context) {
 

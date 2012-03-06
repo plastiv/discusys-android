@@ -1,8 +1,11 @@
-package com.slobodastudio.discussions.data.odata;
+package com.slobodastudio.discussions.data;
+
+import com.slobodastudio.discussions.data.odata.ODataConstants;
+import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 
 import android.graphics.Color;
 
-public class GenerateTablesTestData {
+public class OdataTestData {
 
 	public static void generateDiscussions() {
 
