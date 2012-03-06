@@ -23,7 +23,7 @@ public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	static ContentValues getTestValue(final int valueId) {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Persons.Columns.PERSON_ID, Integer.valueOf(valueId));
+		cv.put(Persons.Columns.ID, Integer.valueOf(valueId));
 		cv.put(Persons.Columns.NAME, "person name");
 		cv.put(Persons.Columns.EMAIL, "person@mail");
 		cv.put(Persons.Columns.COLOR, Color.CYAN);
@@ -64,7 +64,7 @@ public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	public void testInsertWrongValue() {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Persons.Columns.PERSON_ID, Integer.valueOf(1));
+		cv.put(Persons.Columns.ID, Integer.valueOf(1));
 		// name required
 		// cv.put(Persons.Columns.NAME, "person name");
 		cv.put(Persons.Columns.EMAIL, "person@mail");

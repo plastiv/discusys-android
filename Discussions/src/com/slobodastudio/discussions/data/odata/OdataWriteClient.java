@@ -59,7 +59,7 @@ public class OdataWriteClient {
 				.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(groupId)))
 				.properties(OProperties.string(Points.Columns.NUMBERED_POINT, numberedPoint))
 				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
-				.properties(OProperties.string(Points.Columns.POINT_NAME, pointName))
+				.properties(OProperties.string(Points.Columns.NAME, pointName))
 				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(sharedToPublic)))
 				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(sideCode)))		
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(topicId)))
@@ -71,7 +71,7 @@ public class OdataWriteClient {
 
 		// @formatter:off
 		return consumer.createEntity(Topics.TABLE_NAME)
-				.properties(OProperties.int32(Topics.Columns.DISCUSSION_ID, Integer.valueOf(discussionId)))
+				.link(Topics.Columns.DISCUSSION_ID, OEntityKey.parse(String.valueOf(discussionId)))
 				.properties(OProperties.string(Topics.Columns.NAME, topicName))	
 				.link(Topics.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
 				.execute();

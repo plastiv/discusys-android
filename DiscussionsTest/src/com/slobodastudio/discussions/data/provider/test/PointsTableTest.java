@@ -33,13 +33,13 @@ public class PointsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	private static ContentValues getTestValue(final int valueId) {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Points.Columns.POINT_ID, Integer.valueOf(valueId));
+		cv.put(Points.Columns.ID, Integer.valueOf(valueId));
 		cv.put(Points.Columns.AGREEMENT_CODE, 0);
 		cv.put(Points.Columns.EXPANDED, false);
 		cv.put(Points.Columns.GROUP_ID, GROUP_ID);
 		cv.put(Points.Columns.NUMBERED_POINT, "112");
 		cv.put(Points.Columns.PERSON_ID, Integer.valueOf(PERSON_ID));
-		cv.put(Points.Columns.POINT_NAME, "My point");
+		cv.put(Points.Columns.NAME, "My point");
 		cv.put(Points.Columns.SHARED_TO_PUBLIC, true);
 		cv.put(Points.Columns.SIDE_CODE, 1);
 		cv.put(Points.Columns.TOPIC_ID, Integer.valueOf(TOPIC_ID));
@@ -104,14 +104,14 @@ public class PointsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	public void testInsertWrongValue() {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Points.Columns.POINT_ID, Integer.valueOf(1));
+		cv.put(Points.Columns.ID, Integer.valueOf(1));
 		cv.put(Points.Columns.AGREEMENT_CODE, 0);
 		cv.put(Points.Columns.EXPANDED, false);
 		cv.put(Points.Columns.GROUP_ID, 1);
 		cv.put(Points.Columns.NUMBERED_POINT, "");
 		// wrong person_id
 		cv.put(Points.Columns.PERSON_ID, Integer.valueOf(2));
-		cv.put(Points.Columns.POINT_NAME, "My point");
+		cv.put(Points.Columns.NAME, "My point");
 		cv.put(Points.Columns.SHARED_TO_PUBLIC, true);
 		cv.put(Points.Columns.SIDE_CODE, 1);
 		cv.put(Points.Columns.TOPIC_ID, Integer.valueOf(1));
@@ -159,8 +159,7 @@ public class PointsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
 		insertValidValue(1);
 		getProvider().insert(tableUri, getTestValue(2));
-		Cursor cursor = getProvider().query(Topics.buildPointUri(String.valueOf(TOPIC_ID)), null, null, null,
-				null);
+		Cursor cursor = getProvider().query(Topics.buildPointUri(TOPIC_ID), null, null, null, null);
 		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 

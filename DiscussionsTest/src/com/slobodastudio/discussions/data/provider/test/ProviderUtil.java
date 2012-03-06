@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.data.provider.test;
 
 import android.content.ContentProvider;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
@@ -12,6 +13,12 @@ public class ProviderUtil {
 	public static void fetchTable(final Uri tableUri, final ContentProvider provider) {
 
 		Cursor cursor = provider.query(tableUri, null, null, null, null);
+		logCursor(cursor);
+	}
+
+	public static void fetchTable(final Uri tableUri, final Context context) {
+
+		Cursor cursor = context.getContentResolver().query(tableUri, null, null, null, null);
 		logCursor(cursor);
 	}
 

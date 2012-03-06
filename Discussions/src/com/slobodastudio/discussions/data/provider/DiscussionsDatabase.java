@@ -40,23 +40,23 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 		
 		db.execSQL("CREATE TABLE " + Persons.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ Persons.Columns.PERSON_ID + " INTEGER NOT NULL,"
+				+ Persons.Columns.ID + " INTEGER NOT NULL,"
 				+ Persons.Columns.NAME + " TEXT NOT NULL,"
 				+ Persons.Columns.EMAIL + " TEXT NOT NULL,"
 				+ Persons.Columns.COLOR + " INTEGER NOT NULL,"
 				+ Persons.Columns.ONLINE + " INTEGER NOT NULL,"
-				+ " UNIQUE (" + Persons.Columns.PERSON_ID + ") ON CONFLICT REPLACE)");
+				+ " UNIQUE (" + Persons.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		db.execSQL("CREATE TABLE " + Topics.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ Topics.Columns.TOPIC_ID + " INTEGER NOT NULL,"
+				+ Topics.Columns.ID + " INTEGER NOT NULL,"
 				+ Topics.Columns.NAME + " TEXT NOT NULL,"
 				+ Topics.Columns.DISCUSSION_ID + " INTEGER NOT NULL " + References.DISCUSSION_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
-				+ " UNIQUE (" + Topics.Columns.TOPIC_ID + ") ON CONFLICT REPLACE)");
+				+ " UNIQUE (" + Topics.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		db.execSQL("CREATE TABLE " + Points.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ Points.Columns.POINT_ID + " INTEGER NOT NULL,"
+				+ Points.Columns.ID + " INTEGER NOT NULL,"
 				+ Points.Columns.PERSON_ID + " INTEGER NOT NULL " + References.PERSON_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ Points.Columns.TOPIC_ID + " INTEGER NOT NULL " + References.TOPIC_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 			    + Points.Columns.GROUP_ID + " INTEGER NOT NULL,"
@@ -64,10 +64,10 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Points.Columns.DRAWING + " TEXT NOT NULL,"
 				+ Points.Columns.EXPANDED + " INTEGER NOT NULL,"
 				+ Points.Columns.NUMBERED_POINT + " TEXT NOT NULL,"
-				+ Points.Columns.POINT_NAME + " TEXT NOT NULL,"
+				+ Points.Columns.NAME + " TEXT NOT NULL,"
 				+ Points.Columns.SHARED_TO_PUBLIC + " INTEGER NOT NULL,"
 				+ Points.Columns.SIDE_CODE + " INTEGER NOT NULL,"
-				+ " UNIQUE (" + Points.Columns.POINT_ID + ") ON CONFLICT REPLACE)");
+				+ " UNIQUE (" + Points.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		// many-to-many table
 		db.execSQL("CREATE TABLE " + PersonsTopics.TABLE_NAME + " ("
@@ -79,7 +79,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 		db.execSQL("CREATE TRIGGER " + Triggers.PERSONS_DELETE_TOPICS 
 				+ " AFTER DELETE ON " + PersonsTopics.TABLE_NAME + " FOR EACH ROW "
 				+ " BEGIN DELETE FROM " + Topics.TABLE_NAME  
-				+ " WHERE " + Topics.Columns.TOPIC_ID + "=OLD." + PersonsTopics.Columns.TOPIC_ID + ";"
+				+ " WHERE " + Topics.Columns.ID + "=OLD." + PersonsTopics.Columns.TOPIC_ID + ";"
                 + " END;");
 		// @formatter:on
 	}
@@ -120,9 +120,9 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 
 		static final String DISCUSSION_ID = "REFERENCES " + Discussions.TABLE_NAME + "("
 				+ Discussions.Columns.DISCUSSION_ID + ")";
-		static final String PERSON_ID = "REFERENCES " + Persons.TABLE_NAME + "(" + Persons.Columns.PERSON_ID
+		static final String PERSON_ID = "REFERENCES " + Persons.TABLE_NAME + "(" + Persons.Columns.ID
 				+ ")";
-		static final String TOPIC_ID = "REFERENCES " + Topics.TABLE_NAME + "(" + Topics.Columns.TOPIC_ID
+		static final String TOPIC_ID = "REFERENCES " + Topics.TABLE_NAME + "(" + Topics.Columns.ID
 				+ ")";
 	}
 }

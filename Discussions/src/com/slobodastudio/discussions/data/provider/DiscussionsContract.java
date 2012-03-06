@@ -76,9 +76,10 @@ public final class DiscussionsContract {
 		 *            fetch associated topics
 		 * 
 		 * @return a Uri for the given id */
-		public static Uri buildTopicUri(final String discussionId) {
+		public static Uri buildTopicUri(final int discussionId) {
 
-			return CONTENT_URI.buildUpon().appendPath(discussionId).appendPath(Topics.A_TABLE_PREFIX).build();
+			return CONTENT_URI.buildUpon().appendPath(String.valueOf(discussionId)).appendPath(
+					Topics.A_TABLE_PREFIX).build();
 		}
 
 		/** Read {@link Columns#_ID} from this table {@link Uri}.
@@ -162,9 +163,10 @@ public final class DiscussionsContract {
 		 *            table
 		 * 
 		 * @return a Uri for the given id */
-		public static Uri buildDiscussionsUri(final String valueId) {
+		public static Uri buildDiscussionsUri(final long valueId) {
 
-			return CONTENT_URI.buildUpon().appendPath(valueId).appendPath(Discussions.A_TABLE_PREFIX).build();
+			return CONTENT_URI.buildUpon().appendPath(String.valueOf(valueId)).appendPath(
+					Discussions.A_TABLE_PREFIX).build();
 		}
 
 		/** Build {@link Uri} that references any {@link Points} associated with the requested
@@ -230,65 +232,25 @@ public final class DiscussionsContract {
 			public static final String COLOR = "Color";
 			/** Type String. */
 			public static final String EMAIL = "Email";
+			/** Type Int32. */
+			public static final String ID = "Id";
 			/** Type String. */
 			public static final String NAME = "Name";
 			/** Type Bit. */
 			public static final String ONLINE = "Online";
-			/** Type Int32. */
-			public static final String PERSON_ID = "Id";
 		}
 	}
 
-	/** Many-to-many relationship table between {@link Persons} and {@link Topics}. */
+	/** Internal Many-to-many relationship table between {@link Persons} and {@link Topics}. */
 	public static final class PersonsTopics {
 
-		/** Table name in lower case. */
-		public static final String A_TABLE_PREFIX = "persons_topics";
-		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
-		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
-				+ A_TABLE_PREFIX;
-		/** The MIME type of {@link #CONTENT_URI} providing a single point */
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
-				+ A_TABLE_PREFIX;
-		/** The content:// style URL for this table */
-		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
 		/** Server's database table name */
-		public static final String TABLE_NAME = Persons.TABLE_NAME + Topics.TABLE_NAME;
+		static final String TABLE_NAME = Persons.TABLE_NAME + Topics.TABLE_NAME;
 
 		/** A private Constructor prevents class from instantiating. */
 		private PersonsTopics() {
 
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
-		}
-
-		/** Build {@link Uri} for requested {@link Columns#_ID}.
-		 * 
-		 * @param valueId
-		 *            unique value identifier
-		 * @return a Uri for the given id */
-		public static Uri buildTableUri(final long valueId) {
-
-			return ContentUris.withAppendedId(CONTENT_URI, valueId);
-		}
-
-		/** Build {@link Uri} for requested {@link Columns#_ID}.
-		 * 
-		 * @param valueId
-		 *            unique row identifier
-		 * @return a Uri for the given id */
-		public static Uri buildTableUri(final String valueId) {
-
-			return CONTENT_URI.buildUpon().appendPath(valueId).build();
-		}
-
-		/** Read {@link Columns#_ID} from this table {@link Uri}.
-		 * 
-		 * @param uri
-		 *            a uri that contains value id
-		 * @return a unique identifier provided by table uri */
-		public static String getValueId(final Uri uri) {
-
-			return uri.getPathSegments().get(1);
 		}
 
 		/** List of columns names. */
@@ -323,7 +285,7 @@ public final class DiscussionsContract {
 		/** The content:// style URL for this table */
 		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
 		/** Default "ORDER BY" clause. */
-		public static final String DEFAULT_SORT = Columns.POINT_NAME + " ASC";
+		public static final String DEFAULT_SORT = Columns.NAME + " ASC";
 		/** Server's database table name */
 		public static final String TABLE_NAME = "ArgPoint";
 
@@ -381,9 +343,9 @@ public final class DiscussionsContract {
 			/** Type Int32. */
 			public static final String PERSON_ID = "Person";
 			/** Type Int32. */
-			public static final String POINT_ID = "Id";
+			public static final String ID = "Id";
 			/** Type String. */
-			public static final String POINT_NAME = "Point";
+			public static final String NAME = "Point";
 			/** Type Boolean. */
 			public static final String SHARED_TO_PUBLIC = "SharedToPublic";
 			/** Type Int32. */
@@ -425,9 +387,10 @@ public final class DiscussionsContract {
 		 *            table
 		 * 
 		 * @return a Uri for the given id */
-		public static Uri buildPointUri(final String valueId) {
+		public static Uri buildPointUri(final int valueId) {
 
-			return CONTENT_URI.buildUpon().appendPath(valueId).appendPath(Points.A_TABLE_PREFIX).build();
+			return CONTENT_URI.buildUpon().appendPath(String.valueOf(valueId)).appendPath(
+					Points.A_TABLE_PREFIX).build();
 		}
 
 		/** Build {@link Uri} for requested {@link Columns#_ID}.
@@ -470,14 +433,14 @@ public final class DiscussionsContract {
 			/** Type Int32. Should be used only by servers data. */
 			public static final String PERSON_ID = "Person";
 			/** Type Int32. */
-			public static final String TOPIC_ID = "Id";
+			public static final String ID = "Id";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
 		 * needed to work around SQL ambiguity. */
 		static final class Qualified {
 
-			static final String TOPIC_ID = TABLE_NAME + "." + Columns.TOPIC_ID;
+			static final String TOPIC_ID = TABLE_NAME + "." + Columns.ID;
 		}
 	}
 }

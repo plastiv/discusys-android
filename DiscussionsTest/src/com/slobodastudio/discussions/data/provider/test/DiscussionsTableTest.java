@@ -2,7 +2,6 @@ package com.slobodastudio.discussions.data.provider.test;
 
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 
@@ -101,14 +100,15 @@ public class DiscussionsTableTest extends ProviderTestCase2<DiscussionsProvider>
 		getProvider().insert(tableUri, getTestValue(100));
 		getProvider().insert(Persons.CONTENT_URI, PersonsTableTest.getTestValue(123));
 		getProvider().insert(Topics.CONTENT_URI, TopicsTableTest.getTestValue(400, 100));
-		getProvider().insert(PersonsTopics.CONTENT_URI, TopicsTableTest.getTestPersonTopicValue(123, 400));
+		getProvider().insert(Persons.buildTopicUri("not important"),
+				TopicsTableTest.getTestPersonTopicValue(123, 400));
 		// insert 2nd valid value
 		getProvider().insert(tableUri, getTestValue(200));
 		getProvider().insert(Topics.CONTENT_URI, TopicsTableTest.getTestValue(500, 200));
-		getProvider().insert(PersonsTopics.CONTENT_URI, TopicsTableTest.getTestPersonTopicValue(123, 500));
+		getProvider().insert(Persons.buildTopicUri("not important"),
+				TopicsTableTest.getTestPersonTopicValue(123, 500));
 		// queue values
-		Cursor cursor = getProvider().query(Persons.buildDiscussionsUri(String.valueOf(123)), null, null,
-				null, null);
+		Cursor cursor = getProvider().query(Persons.buildDiscussionsUri(123), null, null, null, null);
 		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 		assertEquals("Should be 3 table columns, was: " + cursor.getCount(), 3, cursor.getColumnCount());
 	}

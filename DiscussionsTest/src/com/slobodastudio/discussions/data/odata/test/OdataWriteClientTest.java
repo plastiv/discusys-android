@@ -23,6 +23,8 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		OEntity entity = odata.insertDiscussion(expectedSubject);
 		String actualSubject = (String) entity.getProperty(Discussions.Columns.SUBJECT).getValue();
 		assertEquals(expectedSubject, actualSubject);
+		int discussionId = (Integer) entity.getProperty(Discussions.Columns.DISCUSSION_ID).getValue();
+		assertEquals(true, discussionId > 0);
 	}
 
 	public static void testInsertPerson() {
@@ -72,6 +74,7 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		assertEquals(expectedExpanded, actualExpanded);
 		// group id
 		OEntity groupEntity = odataRead.getRelatedEntity(entity, Points.Columns.GROUP_ID_SERVER);
+		assertNotNull(groupEntity);
 		int actualGroupId = (Integer) groupEntity.getProperty(Group.Columns.GROUP_ID).getValue();
 		assertEquals(expectedGroupId, actualGroupId);
 		// numbered point
@@ -79,10 +82,10 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		assertEquals(expectedNumberedPoint, actualNumberedPoint);
 		// person id
 		OEntity personEntity = odataRead.getRelatedEntity(entity, Points.Columns.PERSON_ID);
-		int actualPersonId = (Integer) personEntity.getProperty(Persons.Columns.PERSON_ID).getValue();
+		int actualPersonId = (Integer) personEntity.getProperty(Persons.Columns.ID).getValue();
 		assertEquals(expectedPersonId, actualPersonId);
 		// point name
-		String actualPointName = (String) entity.getProperty(Points.Columns.POINT_NAME).getValue();
+		String actualPointName = (String) entity.getProperty(Points.Columns.NAME).getValue();
 		assertEquals(expectedPointName, actualPointName);
 		// shared to public
 		boolean actualSharedToPublic = (Boolean) entity.getProperty(Points.Columns.SHARED_TO_PUBLIC)
@@ -93,7 +96,7 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		assertEquals(expectedSideCode, actualSideCode);
 		// topic id
 		OEntity topicEntity = odataRead.getRelatedEntity(entity, Points.Columns.TOPIC_ID);
-		int actualTopicId = (Integer) topicEntity.getProperty(Topics.Columns.TOPIC_ID).getValue();
+		int actualTopicId = (Integer) topicEntity.getProperty(Topics.Columns.ID).getValue();
 		assertEquals(expectedTopicId, actualTopicId);
 	}
 
@@ -116,7 +119,7 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		assertEquals(expectedDiscussionId, actualDiscussionId);
 		// person
 		OEntity personEntity = odataRead.getRelatedEntity(entity, Topics.Columns.PERSON_ID);
-		int actualPersonId = (Integer) personEntity.getProperty(Persons.Columns.PERSON_ID).getValue();
+		int actualPersonId = (Integer) personEntity.getProperty(Persons.Columns.ID).getValue();
 		assertEquals(expectedPersonId, actualPersonId);
 	}
 

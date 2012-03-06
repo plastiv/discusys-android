@@ -1,0 +1,27 @@
+package com.slobodastudio.discussions.data.model;
+
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
+
+import android.content.ContentValues;
+
+public class PersonTopic implements Value {
+
+	private final int personId;
+	private final int topicId;
+
+	public PersonTopic(final int personId, final int topicId) {
+
+		super();
+		this.personId = personId;
+		this.topicId = topicId;
+	}
+
+	@Override
+	public ContentValues toContentValues() {
+
+		ContentValues cv = new ContentValues();
+		cv.put(PersonsTopics.Columns.PERSON_ID, personId);
+		cv.put(PersonsTopics.Columns.TOPIC_ID, topicId);
+		return cv;
+	}
+}

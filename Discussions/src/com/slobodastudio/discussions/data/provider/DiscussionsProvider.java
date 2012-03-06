@@ -18,6 +18,7 @@ import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
@@ -38,8 +39,6 @@ public class DiscussionsProvider extends ContentProvider {
 	private static final int PERSONS_ITEM_DISCUSSIONS_DIR = 204;
 	private static final int PERSONS_ITEM_POINTS_DIR = 202;
 	private static final int PERSONS_ITEM_TOPICS_DIR = 203;
-	private static final int PERSONS_TOPICS_DIR = 500;
-	private static final int PERSONS_TOPICS_ITEM = 501;
 	private static final int POINTS_DIR = 301;
 	private static final int POINTS_ITEM = 300;
 	private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -80,12 +79,6 @@ public class DiscussionsProvider extends ContentProvider {
 				final String valueId = Topics.getValueId(uri);
 				return builder.table(Topics.TABLE_NAME).where(BaseColumns._ID + "=?", valueId);
 			}
-			case PERSONS_TOPICS_DIR:
-				return builder.table(PersonsTopics.TABLE_NAME);
-			case PERSONS_TOPICS_ITEM: {
-				final String valueId = PersonsTopics.getValueId(uri);
-				return builder.table(PersonsTopics.TABLE_NAME).where(BaseColumns._ID + "=?", valueId);
-			}
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -119,9 +112,6 @@ public class DiscussionsProvider extends ContentProvider {
 		matcher.addURI(authority, Topics.A_TABLE_PREFIX + "/*", TOPICS_ITEM);
 		matcher.addURI(authority, Topics.A_TABLE_PREFIX + "/*/" + Points.A_TABLE_PREFIX,
 				TOPICS_ITEM_POINTS_DIR);
-		// persons_topic
-		matcher.addURI(authority, PersonsTopics.A_TABLE_PREFIX, PERSONS_TOPICS_DIR);
-		matcher.addURI(authority, PersonsTopics.A_TABLE_PREFIX + "/*", PERSONS_TOPICS_ITEM);
 		return matcher;
 	}
 
@@ -190,10 +180,6 @@ public class DiscussionsProvider extends ContentProvider {
 				return Topics.CONTENT_ITEM_TYPE;
 			case TOPICS_ITEM_POINTS_DIR:
 				return Points.CONTENT_DIR_TYPE;
-			case PERSONS_TOPICS_DIR:
-				return PersonsTopics.CONTENT_DIR_TYPE;
-			case PERSONS_TOPICS_ITEM:
-				return PersonsTopics.CONTENT_ITEM_TYPE;
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -209,33 +195,33 @@ public class DiscussionsProvider extends ContentProvider {
 		final int match = sUriMatcher.match(uri);
 		final long insertedId;
 		final Uri insertedUri;
-		switch (match) {
-			case DISCUSSIONS_DIR:
-				insertedId = db.insertOrThrow(Discussions.TABLE_NAME, null, values);
-				insertedUri = Discussions.buildTableUri(insertedId);
-				break;
-			case POINTS_DIR:
-				insertedId = db.insertOrThrow(Points.TABLE_NAME, null, values);
-				insertedUri = Points.buildTableUri(insertedId);
-				break;
-			case PERSONS_DIR:
-				insertedId = db.insertOrThrow(Persons.TABLE_NAME, null, values);
-				insertedUri = Persons.buildTableUri(insertedId);
-				break;
-			case PERSONS_ITEM_TOPICS_DIR:
-				insertedId = db.insertOrThrow(PersonsTopics.TABLE_NAME, null, values);
-				insertedUri = Persons.buildTableUri(insertedId);
-				break;
-			case TOPICS_DIR:
-				insertedId = db.insertOrThrow(Topics.TABLE_NAME, null, values);
-				insertedUri = Topics.buildTableUri(insertedId);
-				break;
-			case PERSONS_TOPICS_DIR:
-				insertedId = db.insertOrThrow(PersonsTopics.TABLE_NAME, null, values);
-				insertedUri = PersonsTopics.buildTableUri(insertedId);
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown uri: " + uri);
+		try {
+			switch (match) {
+				case DISCUSSIONS_DIR:
+					insertedId = db.insertOrThrow(Discussions.TABLE_NAME, null, values);
+					insertedUri = Discussions.buildTableUri(insertedId);
+					break;
+				case POINTS_DIR:
+					insertedId = db.insertOrThrow(Points.TABLE_NAME, null, values);
+					insertedUri = Points.buildTableUri(insertedId);
+					break;
+				case PERSONS_DIR:
+					insertedId = db.insertOrThrow(Persons.TABLE_NAME, null, values);
+					insertedUri = Persons.buildTableUri(insertedId);
+					break;
+				case PERSONS_ITEM_TOPICS_DIR:
+					insertedId = db.insertOrThrow(PersonsTopics.TABLE_NAME, null, values);
+					insertedUri = Persons.buildTableUri(insertedId);
+					break;
+				case TOPICS_DIR:
+					insertedId = db.insertOrThrow(Topics.TABLE_NAME, null, values);
+					insertedUri = Topics.buildTableUri(insertedId);
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown uri: " + uri);
+			}
+		} catch (SQLiteException e) {
+			throw new RuntimeException("Unable to insert uri: " + uri + ", value: " + values.toString(), e);
 		}
 		getContext().getContentResolver().notifyChange(uri, null);
 		return insertedUri;
@@ -291,10 +277,10 @@ public class DiscussionsProvider extends ContentProvider {
 			case PERSONS_ITEM_TOPICS_DIR: {
 				final String valueId = Persons.getValueId(uri);
 				builder.table(PersonsTopics.TABLE_NAME + "," + Topics.TABLE_NAME).mapToTable(BaseColumns._ID,
-						Topics.TABLE_NAME).mapToTable(Topics.Columns.TOPIC_ID, Topics.TABLE_NAME).where(
+						Topics.TABLE_NAME).mapToTable(Topics.Columns.ID, Topics.TABLE_NAME).where(
 						PersonsTopics.Columns.PERSON_ID + "=? AND " + PersonsTopics.Columns.TOPIC_ID + "="
-								+ Topics.Columns.TOPIC_ID, valueId);
-				return builder.query(db, new String[] { BaseColumns._ID, Topics.Columns.TOPIC_ID,
+								+ Topics.Columns.ID, valueId);
+				return builder.query(db, new String[] { BaseColumns._ID, Topics.Columns.ID,
 						Topics.Columns.NAME, Topics.Columns.DISCUSSION_ID }, sortOrder);
 			}
 			case PERSONS_ITEM_DISCUSSIONS_DIR: {

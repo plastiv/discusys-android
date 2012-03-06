@@ -1,10 +1,6 @@
 package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.tools.MyLog;
 
 import android.database.Cursor;
@@ -27,9 +23,20 @@ import android.widget.ListView;
 public class BaseListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
 	// This is the Adapter being used to display the list's data.
-	SimpleCursorAdapter mAdapter;
-	int mEmptyListStringId;
-	String mShownColumnName;
+	private SimpleCursorAdapter mAdapter;
+	private final int mEmptyListStringId;
+	private final String mShownColumnName;
+
+	protected BaseListFragment(final int emptyListStringId, final String shownColumnName) {
+
+		mEmptyListStringId = emptyListStringId;
+		mShownColumnName = shownColumnName;
+	}
+
+	public SimpleCursorAdapter getAdapter() {
+
+		return mAdapter;
+	}
 
 	@Override
 	public void onActivityCreated(final Bundle savedInstanceState) {
@@ -38,14 +45,13 @@ public class BaseListFragment extends ListFragment implements LoaderManager.Load
 		registerForContextMenu(getListView());
 		// Give some text to display if there is no data. In a real
 		// application this would come from a resource.
-		setTableSpecificValues(getActivity().getIntent().getData());
 		String emptyText = getResources().getString(mEmptyListStringId);
 		setEmptyText(emptyText);
 		// We have a menu item to show in action bar.
 		setHasOptionsMenu(true);
 		// Create an empty adapter we will use to display the loaded data.
-		mAdapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null,
-				new String[] { mShownColumnName }, new int[] { android.R.id.text1 }, 0);
+		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.simple_list_item, null,
+				new String[] { mShownColumnName }, new int[] { R.id.list_item_text }, 0);
 		setListAdapter(mAdapter);
 		// Start out with a progress indicator.
 		setListShown(false);
@@ -124,26 +130,6 @@ public class BaseListFragment extends ListFragment implements LoaderManager.Load
 			setListShown(true);
 		} else {
 			setListShownNoAnimation(true);
-		}
-	}
-
-	private void setTableSpecificValues(final Uri uri) {
-
-		String mimeType = getActivity().getContentResolver().getType(uri);
-		if (mimeType.equals(Persons.CONTENT_DIR_TYPE)) {
-			mEmptyListStringId = R.string.fragment_empty_persons;
-			mShownColumnName = Persons.Columns.NAME;
-		} else if (mimeType.equals(Discussions.CONTENT_DIR_TYPE)) {
-			mEmptyListStringId = R.string.fragment_empty_discussions;
-			mShownColumnName = Discussions.Columns.SUBJECT;
-		} else if (mimeType.equals(Topics.CONTENT_DIR_TYPE)) {
-			mEmptyListStringId = R.string.fragment_empty_topics;
-			mShownColumnName = Topics.Columns.NAME;
-		} else if (mimeType.equals(Points.CONTENT_DIR_TYPE)) {
-			mEmptyListStringId = R.string.fragment_empty_points;
-			mShownColumnName = Points.Columns.POINT_NAME;
-		} else {
-			throw new IllegalAccessError("Unknown uri: " + uri);
 		}
 	}
 }

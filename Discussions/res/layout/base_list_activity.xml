@@ -3,11 +3,10 @@
     android:layout_height="match_parent"
     android:orientation="horizontal" >
 
-    <fragment
-        android:id="@+id/base_list_frament"
+    <FrameLayout
+        android:id="@+id/frament_frame_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        class="com.slobodastudio.discussions.ui.fragments.BaseListFragment" />
+        android:layout_height="match_parent" >
+    </FrameLayout>
 
 </LinearLayout>

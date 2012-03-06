@@ -35,7 +35,7 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	static ContentValues getTestValue(final int topicId, final int discussionId) {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.TOPIC_ID, Integer.valueOf(topicId));
+		cv.put(Topics.Columns.ID, Integer.valueOf(topicId));
 		cv.put(Topics.Columns.NAME, "name");
 		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(discussionId));
 		return cv;
@@ -45,7 +45,7 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
 		DiscussionsTableTest.insertValidValue(DISCUSSION_ID, provider);
 		PersonsTableTest.insertValidValue(PERSON_ID, provider);
-		provider.insert(PersonsTopics.CONTENT_URI, getTestPersonTopicValue(PERSON_ID, valueId));
+		provider.insert(Persons.buildTopicUri("not important"), getTestPersonTopicValue(PERSON_ID, valueId));
 		return provider.insert(tableUri, getTestValue(valueId));
 	}
 
@@ -54,14 +54,14 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
 		DiscussionsTableTest.insertValidValue(discussionId, provider);
 		PersonsTableTest.insertValidValue(personId, provider);
-		provider.insert(PersonsTopics.CONTENT_URI, getTestPersonTopicValue(personId, topicId));
+		provider.insert(Persons.buildTopicUri("not important"), getTestPersonTopicValue(personId, topicId));
 		return provider.insert(tableUri, getTestValue(topicId, discussionId));
 	}
 
 	private static ContentValues getTestValue(final int topicId) {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.TOPIC_ID, Integer.valueOf(topicId));
+		cv.put(Topics.Columns.ID, Integer.valueOf(topicId));
 		cv.put(Topics.Columns.NAME, "name");
 		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(DISCUSSION_ID));
 		return cv;
@@ -131,7 +131,7 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	public void testInsertWrongValue() {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.TOPIC_ID, Integer.valueOf(1));
+		cv.put(Topics.Columns.ID, Integer.valueOf(1));
 		cv.put(Topics.Columns.NAME, "name");
 		// not valid disscussion id
 		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(DISCUSSION_ID - 1));
@@ -169,8 +169,7 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
 		insertValidValue(1);
 		getProvider().insert(tableUri, getTestValue(2));
-		Cursor cursor = getProvider().query(Discussions.buildTopicUri(String.valueOf(DISCUSSION_ID)), null,
-				null, null, null);
+		Cursor cursor = getProvider().query(Discussions.buildTopicUri(DISCUSSION_ID), null, null, null, null);
 		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 
@@ -178,7 +177,7 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
 		insertValidValue(1);
 		getProvider().insert(tableUri, getTestValue(2));
-		getProvider().insert(PersonsTopics.CONTENT_URI, getTestPersonTopicValue(PERSON_ID, 2));
+		getProvider().insert(Persons.buildTopicUri("not important"), getTestPersonTopicValue(PERSON_ID, 2));
 		Cursor cursor = getProvider().query(Persons.buildTopicUri(String.valueOf(PERSON_ID)), null, null,
 				null, null);
 		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
