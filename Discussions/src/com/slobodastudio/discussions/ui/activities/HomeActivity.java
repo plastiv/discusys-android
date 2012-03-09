@@ -13,8 +13,9 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.service.SyncService;
+import com.slobodastudio.discussions.ui.activities.base.BaseActivity;
 import com.slobodastudio.discussions.utils.AnalyticsUtils;
 import com.slobodastudio.discussions.utils.DetachableResultReceiver;
 
@@ -24,8 +25,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.actionbarsherlock.view.MenuItem;
 
 /** Front-door {@link Activity} that displays high-level features the schedule application offers to users.
  * Depending on whether the device is a phone or an Android 3.0+ tablet, different layouts will be used. For
@@ -38,7 +40,7 @@ public class HomeActivity extends BaseActivity {
 
 	private static void startNextActivity(final Activity activity) {
 
-		Intent intent = new Intent(Intent.ACTION_VIEW, Persons.CONTENT_URI);
+		Intent intent = new Intent(Intent.ACTION_VIEW, Discussions.CONTENT_URI);
 		activity.startActivity(intent);
 		// activity.finish();
 	}
@@ -70,6 +72,13 @@ public class HomeActivity extends BaseActivity {
 		}
 	}
 
+	@Override
+	protected Fragment onCreatePane() {
+
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	private void triggerRefresh() {
 
 		final Intent intent = new Intent(Intent.ACTION_SYNC, null, this, SyncService.class);
@@ -79,7 +88,8 @@ public class HomeActivity extends BaseActivity {
 
 	private void updateRefreshStatus(final boolean refreshing) {
 
-		getActionBarHelper().setRefreshActionItemState(refreshing);
+		// TODO: stop rolling on second activity
+		setSupportProgressBarIndeterminateVisibility(refreshing);
 	}
 
 	/** A non-UI fragment, retained across configuration changes, that updates its activity's UI when sync

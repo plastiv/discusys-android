@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.slobodastudio.discussions"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="14" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:hardwareAccelerated="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".ui.activities.HomeActivity"
+            android:label="@string/activity_name_home" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- persons -->
+        <activity
+            android:name=".ui.activities.PersonsActivity"
+            android:label="@string/activity_name_persons" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.person" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activities.PersonsDetailsActivity"
+            android:label="@string/activity_name_points" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.person" />
+            </intent-filter>
+        </activity>
+        <!-- discussions -->
+        <activity
+            android:name=".ui.activities.DiscussionsActivity"
+            android:label="@string/activity_name_discussions" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.discussion" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activities.DiscussionsDetailsActivity"
+            android:label="@string/activity_name_points" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.discussion" />
+            </intent-filter>
+        </activity>
+        <!-- topics -->
+        <activity
+            android:name=".ui.activities.TopicsActivity"
+            android:label="@string/activity_name_topics" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.topic" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activities.TopicsDetailsActivity"
+            android:label="@string/activity_name_points" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.topic" />
+            </intent-filter>
+        </activity>
+        <!-- point -->
+        <activity
+            android:name=".ui.activities.PointsActivity"
+            android:label="@string/activity_name_points" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.point" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activities.PointsDetailsActivity"
+            android:label="@string/activity_name_points" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.point" />
+            </intent-filter>
+        </activity>
+
+        <service android:name=".photon.PhotonService" />
+        <service android:name=".service.SyncService" />
+
+        <provider
+            android:name=".data.provider.DiscussionsProvider"
+            android:authorities="com.slobodastudio.discussions"
+            android:exported="false" />
+    </application>
+
+</manifest>

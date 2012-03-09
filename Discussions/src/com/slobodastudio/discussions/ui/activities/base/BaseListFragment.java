@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.ui.fragments;
+package com.slobodastudio.discussions.ui.activities.base;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.utils.MyLog;
@@ -9,22 +9,22 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public abstract class BaseListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+import com.actionbarsherlock.app.SherlockListFragment;
+
+public abstract class BaseListFragment extends SherlockListFragment implements
+		LoaderManager.LoaderCallbacks<Cursor> {
 
 	protected final String mColumnId;
 	private final Uri baseUri;
@@ -87,7 +87,7 @@ public abstract class BaseListFragment extends ListFragment implements LoaderMan
 	}
 
 	@Override
-	public boolean onContextItemSelected(final MenuItem item) {
+	public boolean onContextItemSelected(final android.view.MenuItem item) {
 
 		MyLog.v("Fragment", (String) item.getTitle());
 		switch (item.getItemId()) {
@@ -136,7 +136,7 @@ public abstract class BaseListFragment extends ListFragment implements LoaderMan
 		}
 		int columnIndex = cursor.getColumnIndexOrThrow(mColumnName);
 		menu.setHeaderTitle(cursor.getString(columnIndex));// if your table name is name
-		MenuInflater inflater = getActivity().getMenuInflater();
+		android.view.MenuInflater inflater = getActivity().getMenuInflater();
 		inflater.inflate(R.menu.list_context_menu, menu);
 	}
 
@@ -205,11 +205,11 @@ public abstract class BaseListFragment extends ListFragment implements LoaderMan
 		if (mDualPane) {
 			// We can display everything in-place with fragments, so update
 			// the list to highlight the selected item and show the data.
-			if (valueId != BaseDetailsFragment.NO_SELECTION_ID) {
+			if (valueId != BaseDetailFragment.NO_SELECTION_ID) {
 				getListView().setItemChecked(position, true);
 			}
 			// Check what fragment is currently shown, replace if needed.
-			BaseDetailsFragment details = (BaseDetailsFragment) getFragmentManager().findFragmentById(
+			BaseDetailFragment details = (BaseDetailFragment) getFragmentManager().findFragmentById(
 					R.id.frame_layout_details);
 			if ((details == null) || (details.getShownId() != valueId)) {
 				// Make new fragment to show this selection.
@@ -231,9 +231,9 @@ public abstract class BaseListFragment extends ListFragment implements LoaderMan
 		}
 	}
 
-	protected abstract BaseDetailsFragment getDetailFragment();
+	protected abstract BaseDetailFragment getDetailFragment();
 
-	protected int getItemId(final MenuItem item) {
+	protected int getItemId(final android.view.MenuItem item) {
 
 		AdapterView.AdapterContextMenuInfo info;
 		try {

@@ -1,9 +1,10 @@
-package com.slobodastudio.discussions.ui.fragments;
+package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.model.Discussion;
 import com.slobodastudio.discussions.data.model.Value;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.ui.activities.base.BaseDetailFragment;
 
 import android.database.Cursor;
 import android.os.Bundle;
@@ -12,11 +13,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class PointsDetailsFragment extends BaseDetailsFragment {
+public class DiscussionsDetailFragment extends BaseDetailFragment {
 
-	public PointsDetailsFragment() {
+	public DiscussionsDetailFragment() {
 
-		super(Points.CONTENT_URI);
+		super(Discussions.CONTENT_URI);
 	}
 
 	@Override
@@ -34,12 +35,12 @@ public class PointsDetailsFragment extends BaseDetailsFragment {
 			return null;
 		}
 		TextView text = (TextView) inflater.inflate(R.layout.details_item, null);
-		if (getShownId() == NO_SELECTION_ID) {
+		if (getShownId() == BaseDetailFragment.NO_SELECTION_ID) {
 			// TODO: move string to resources
 			text.setText("Select item to show details");
 		} else {
 			Cursor cursor = getActivity().getContentResolver().query(getDetailsUri(), null, null, null, null);
-			Value value = new Point(cursor);
+			Value value = new Discussion(cursor);
 			text.setText(value.toMyString());
 		}
 		return text;

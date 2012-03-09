@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.ui;
+package com.slobodastudio.discussions.ui.activities;
 
 public class IntentExtrasKey {
 

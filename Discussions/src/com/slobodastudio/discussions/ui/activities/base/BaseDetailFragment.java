@@ -1,6 +1,6 @@
-package com.slobodastudio.discussions.ui.fragments;
+package com.slobodastudio.discussions.ui.activities.base;
 
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.activities.IntentExtrasKey;
 
 import android.content.ContentUris;
 import android.net.Uri;
@@ -11,13 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 /** Override onCreate view to add your own details view. */
-public abstract class BaseDetailsFragment extends Fragment {
+public abstract class BaseDetailFragment extends Fragment {
 
-	static final int NO_SELECTION_ID = -1;
-	private static final String TAG = BaseDetailsFragment.class.getSimpleName();
+	protected static final int NO_SELECTION_ID = -1;
 	private final Uri baseUri;
 
-	public BaseDetailsFragment(final Uri baseUri) {
+	public BaseDetailFragment(final Uri baseUri) {
 
 		super();
 		this.baseUri = baseUri;
