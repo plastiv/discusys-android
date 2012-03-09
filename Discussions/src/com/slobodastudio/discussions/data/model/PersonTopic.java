@@ -24,4 +24,13 @@ public class PersonTopic implements Value {
 		cv.put(PersonsTopics.Columns.TOPIC_ID, topicId);
 		return cv;
 	}
+
+	@Override
+	public String toMyString() {
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(PersonsTopics.Columns.PERSON_ID).append(':').append(personId).append('\n');
+		sb.append(PersonsTopics.Columns.TOPIC_ID).append(':').append(topicId).append('\n');
+		return sb.toString();
+	}
 }

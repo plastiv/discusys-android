@@ -118,6 +118,10 @@ public class OdataSyncService {
 
 		OEntity linkedEntity = consumer.getEntity(entity.getLink(navPropertyName, ORelatedEntityLink.class))
 				.execute();
+		if (linkedEntity == null) {
+			// FIXME: bad behavior
+			return 1;
+		}
 		return (Integer) linkedEntity.getProperty(originalPropertyName).getValue();
 	}
 
@@ -147,7 +151,7 @@ public class OdataSyncService {
 				MyLog.v(TAG, "Content value: " + cv.toString());
 			}
 			try {
-				context.getContentResolver().insert(Persons.buildTopicUri("insert"), cv);
+				context.getContentResolver().insert(Persons.buildTopicUri(1231231), cv);
 			} catch (SQLiteException e) {
 				throw new RuntimeException("Cant insert value: " + cv.toString(), e);
 			}
@@ -189,7 +193,7 @@ public class OdataSyncService {
 		ContentValues cv = OEntityToContentValue(topic);
 		// get navigation id
 		cv.put(Topics.Columns.DISCUSSION_ID, getNavigationPropertyId(topic, Topics.Columns.DISCUSSION_ID,
-				Discussions.Columns.DISCUSSION_ID));
+				Discussions.Columns.ID));
 		// insert into topic table
 		if (LOGV) {
 			MyLog.v(TAG, "Content value: " + cv.toString());

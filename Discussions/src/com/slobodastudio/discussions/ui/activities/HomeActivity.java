@@ -33,13 +33,21 @@ import android.widget.Toast;
  * {@link DashboardFragment} and a {@link TagStreamFragment} are displayed. */
 public class HomeActivity extends BaseActivity {
 
-	private static final String TAG = "HomeActivity";
+	private static final String TAG = HomeActivity.class.getSimpleName();
 	private SyncStatusUpdaterFragment mSyncStatusUpdaterFragment;
+
+	private static void startNextActivity(final Activity activity) {
+
+		Intent intent = new Intent(Intent.ACTION_VIEW, Persons.CONTENT_URI);
+		activity.startActivity(intent);
+		// activity.finish();
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		if (item.getItemId() == R.id.menu_refresh) {
+			updateRefreshStatus(true);
 			triggerRefresh();
 			return true;
 		}
@@ -60,9 +68,6 @@ public class HomeActivity extends BaseActivity {
 			fm.beginTransaction().add(mSyncStatusUpdaterFragment, SyncStatusUpdaterFragment.TAG).commit();
 			triggerRefresh();
 		}
-		Intent intent = new Intent(Intent.ACTION_VIEW, Persons.CONTENT_URI);
-		startActivity(intent);
-		finish();
 	}
 
 	private void triggerRefresh() {
@@ -117,6 +122,7 @@ public class HomeActivity extends BaseActivity {
 				}
 				case SyncService.STATUS_FINISHED: {
 					mSyncing = false;
+					startNextActivity(activity);
 					break;
 				}
 				case SyncService.STATUS_ERROR: {

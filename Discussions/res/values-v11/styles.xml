@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="listViewActivatedStyle">
+        <item name="android:background">?android:attr/activatedBackgroundIndicator</item>
+    </style>
+
+    <style name="listViewBackgroundStyle">
+        <item name="android:background">?android:attr/detailsElementBackground</item>
+    </style>
+
+</resources>

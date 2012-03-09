@@ -5,10 +5,14 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 
 public class PointsListFragment extends BaseListFragment {
 
-	private static final String TAG = PointsListFragment.class.getSimpleName();
-
 	public PointsListFragment() {
 
-		super(R.string.fragment_empty_points, Points.Columns.NAME);
+		super(R.string.fragment_empty_points, Points.Columns.NAME, Points.Columns.ID, Points.CONTENT_URI);
+	}
+
+	@Override
+	protected BaseDetailsFragment getDetailFragment() {
+
+		return new PointsDetailsFragment();
 	}
 }

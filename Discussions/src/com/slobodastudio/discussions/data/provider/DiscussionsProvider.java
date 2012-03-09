@@ -58,25 +58,25 @@ public class DiscussionsProvider extends ContentProvider {
 				return builder.table(Discussions.TABLE_NAME);
 			case DISCUSSIONS_ITEM: {
 				final String valueId = Discussions.getValueId(uri);
-				return builder.table(Discussions.TABLE_NAME).where(BaseColumns._ID + "=?", valueId);
+				return builder.table(Discussions.TABLE_NAME).where(Discussions.Columns.ID + "=?", valueId);
 			}
 			case POINTS_DIR:
 				return builder.table(Points.TABLE_NAME);
 			case POINTS_ITEM: {
 				final String valueId = Points.getValueId(uri);
-				return builder.table(Points.TABLE_NAME).where(BaseColumns._ID + "=?", valueId);
+				return builder.table(Points.TABLE_NAME).where(Points.Columns.ID + "=?", valueId);
 			}
 			case PERSONS_DIR:
 				return builder.table(Persons.TABLE_NAME);
 			case PERSONS_ITEM: {
 				final String valueId = Persons.getValueId(uri);
-				return builder.table(Persons.TABLE_NAME).where(BaseColumns._ID + "=?", valueId);
+				return builder.table(Persons.TABLE_NAME).where(Persons.Columns.ID + "=?", valueId);
 			}
 			case TOPICS_DIR:
 				return builder.table(Topics.TABLE_NAME);
 			case TOPICS_ITEM: {
 				final String valueId = Topics.getValueId(uri);
-				return builder.table(Topics.TABLE_NAME).where(BaseColumns._ID + "=?", valueId);
+				return builder.table(Topics.TABLE_NAME).where(Topics.Columns.ID + "=?", valueId);
 			}
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
@@ -248,30 +248,18 @@ public class DiscussionsProvider extends ContentProvider {
 			Log.v(TAG, "query(uri=" + uri + ", proj=" + Arrays.toString(projection) + ")");
 		}
 		final SQLiteDatabase db = mOpenHelper.getReadableDatabase();
-		final SelectionBuilder builder = new SelectionBuilder();
+		SelectionBuilder builder = new SelectionBuilder();
 		final int match = sUriMatcher.match(uri);
 		switch (match) {
-			case DISCUSSIONS_DIR:
-			case DISCUSSIONS_ITEM:
-				builder.table(Discussions.TABLE_NAME);
-				break;
 			case DISCUSSIONS_ITEM_TOPICS_DIR: {
 				final String valueId = Discussions.getValueId(uri);
 				builder.table(Topics.TABLE_NAME).where(Topics.Columns.DISCUSSION_ID + "=?", valueId);
-				return builder.query(db, projection, sortOrder);
+				break;
 			}
-			case POINTS_DIR:
-			case POINTS_ITEM:
-				builder.table(Points.TABLE_NAME);
-				break;
-			case PERSONS_DIR:
-			case PERSONS_ITEM:
-				builder.table(Persons.TABLE_NAME);
-				break;
 			case PERSONS_ITEM_POINTS_DIR: {
 				final String valueId = Persons.getValueId(uri);
 				builder.table(Points.TABLE_NAME).where(Points.Columns.PERSON_ID + "=?", valueId);
-				return builder.query(db, projection, sortOrder);
+				break;
 			}
 			case PERSONS_ITEM_TOPICS_DIR: {
 				final String valueId = Persons.getValueId(uri);
@@ -287,27 +275,22 @@ public class DiscussionsProvider extends ContentProvider {
 				builder.table(
 						PersonsTopics.TABLE_NAME + "," + Topics.TABLE_NAME + "," + Discussions.TABLE_NAME)
 						.mapToTable(BaseColumns._ID, Discussions.TABLE_NAME).mapToTable(
-								Discussions.Columns.DISCUSSION_ID, Discussions.TABLE_NAME).where(
+								Discussions.Columns.ID, Discussions.TABLE_NAME).where(
 								PersonsTopics.Columns.PERSON_ID + "=? AND " + PersonsTopics.Columns.TOPIC_ID
 										+ "=" + Topics.Qualified.TOPIC_ID + " AND "
 										+ Topics.Columns.DISCUSSION_ID + "="
 										+ Discussions.Qualified.DISCUSSION_ID, valueId);
-				return builder.query(db, new String[] { BaseColumns._ID, Discussions.Columns.DISCUSSION_ID,
+				return builder.query(db, new String[] { BaseColumns._ID, Discussions.Columns.ID,
 						Discussions.Columns.SUBJECT }, sortOrder);
 			}
-			case TOPICS_DIR:
-			case TOPICS_ITEM:
-				builder.table(Topics.TABLE_NAME);
-				break;
 			case TOPICS_ITEM_POINTS_DIR: {
 				final String valueId = Topics.getValueId(uri);
 				builder.table(Points.TABLE_NAME).where(Points.Columns.TOPIC_ID + "=?", valueId);
-				return builder.query(db, projection, sortOrder);
+				break;
 			}
 			default:
-				throw new IllegalArgumentException("Unknown uri: " + uri);
+				builder = buildSimpleSelection(uri);
 		}
-		builder.where(selection, selectionArgs);
 		return builder.query(db, projection, sortOrder);
 	}
 

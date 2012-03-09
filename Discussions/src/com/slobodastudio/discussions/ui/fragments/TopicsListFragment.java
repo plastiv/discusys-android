@@ -2,11 +2,10 @@ package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
-import com.slobodastudio.discussions.utils.MyLog;
 
 import android.content.Intent;
-import android.view.View;
-import android.widget.ListView;
+import android.net.Uri;
+import android.view.MenuItem;
 
 public class TopicsListFragment extends BaseListFragment {
 
@@ -14,23 +13,28 @@ public class TopicsListFragment extends BaseListFragment {
 
 	public TopicsListFragment() {
 
-		super(R.string.fragment_empty_topics, Topics.Columns.NAME);
+		super(R.string.fragment_empty_topics, Topics.Columns.NAME, Topics.Columns.ID, Topics.CONTENT_URI);
 	}
 
 	@Override
-	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
+	public boolean onContextItemSelected(final MenuItem item) {
 
-		super.onListItemClick(l, v, position, id);
-		getAdapter().getCursor().moveToPosition(position);
-		int valueIdIndex = getAdapter().getCursor().getColumnIndexOrThrow(Topics.Columns.ID);
-		int valueId = getAdapter().getCursor().getInt(valueIdIndex);
-		MyLog.v(TAG, String.valueOf(valueId));
-		showAssociatedTable(valueId);
+		switch (item.getItemId()) {
+			case R.id.menu_points:
+				// Otherwise we need to launch a new activity to display
+				// the dialog fragment with selected text.
+				Uri uri = Topics.buildPointUri(getItemId(item));
+				Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+				startActivity(intent);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
 	}
 
-	private void showAssociatedTable(final int valueId) {
+	@Override
+	protected BaseDetailsFragment getDetailFragment() {
 
-		Intent intent = new Intent(Intent.ACTION_VIEW, Topics.buildPointUri(valueId));
-		startActivity(intent);
+		return new TopicsDetailFragment();
 	}
 }

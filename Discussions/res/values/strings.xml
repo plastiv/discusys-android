@@ -10,13 +10,16 @@
     <string name="menu_refresh">Refresh</string>
     <string name="menu_new">New</string>
     <string name="menu_details">Details</string>
-    <string name="menu_select">Select</string>
+    <string name="menu_discussions">Discussion</string>
+    <string name="menu_persons">Person</string>
+    <string name="menu_points">Point</string>
+    <string name="menu_topics">Topic</string>
     <string name="menu_edit">Edit</string>
     <string name="menu_delete">Delete</string>
-    <string name="fragment_empty_persons">No persons on server</string>
-    <string name="fragment_empty_points">No points on server</string>
-    <string name="fragment_empty_discussions">No discussions on server</string>
-    <string name="fragment_empty_topics">No topics on server</string>
+    <string name="fragment_empty_persons">No persons found</string>
+    <string name="fragment_empty_points">No points found</string>
+    <string name="fragment_empty_discussions">No discussions found</string>
+    <string name="fragment_empty_topics">No topics found</string>
     <string name="toast_sync_error">Sync error: <xliff:g id="error">%1$s</xliff:g></string>
 
 </resources>

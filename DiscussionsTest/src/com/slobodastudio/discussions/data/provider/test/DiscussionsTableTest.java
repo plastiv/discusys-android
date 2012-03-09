@@ -8,7 +8,6 @@ import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
 import android.net.Uri;
 import android.test.ProviderTestCase2;
 
@@ -29,7 +28,7 @@ public class DiscussionsTableTest extends ProviderTestCase2<DiscussionsProvider>
 	private static ContentValues getTestValue(final int discussionId) {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Discussions.Columns.DISCUSSION_ID, Integer.valueOf(discussionId));
+		cv.put(Discussions.Columns.ID, Integer.valueOf(discussionId));
 		cv.put(Discussions.Columns.SUBJECT, "Discussion subject");
 		return cv;
 	}
@@ -62,12 +61,12 @@ public class DiscussionsTableTest extends ProviderTestCase2<DiscussionsProvider>
 	public void testInsertWrongValue() {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Discussions.Columns.DISCUSSION_ID, Integer.valueOf(1));
+		cv.put(Discussions.Columns.ID, Integer.valueOf(1));
 		// subject required
 		try {
 			getProvider().insert(tableUri, cv);
 			fail();
-		} catch (SQLiteConstraintException e) {
+		} catch (RuntimeException e) {
 			assertTrue(true);
 		}
 	}
@@ -91,6 +90,16 @@ public class DiscussionsTableTest extends ProviderTestCase2<DiscussionsProvider>
 			fail();
 		} catch (IllegalArgumentException e) {
 			assertTrue(true);
+		}
+		insertValidValue(1);
+		getProvider().insert(tableUri, getTestValue(123));
+		cursor = getProvider().query(Discussions.buildTableUri(123), null, null, null, null);
+		if (cursor.moveToFirst()) {
+			int index = cursor.getColumnIndexOrThrow(Discussions.Columns.ID);
+			int id = cursor.getInt(index);
+			assertEquals(123, id);
+		} else {
+			fail("couldnt read value 123");
 		}
 	}
 

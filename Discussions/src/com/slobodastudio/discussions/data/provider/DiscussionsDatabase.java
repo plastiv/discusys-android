@@ -34,9 +34,9 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 		// @formatter:off
 		db.execSQL("CREATE TABLE " + Discussions.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ Discussions.Columns.DISCUSSION_ID + " INTEGER NOT NULL,"
+				+ Discussions.Columns.ID + " INTEGER NOT NULL,"
 				+ Discussions.Columns.SUBJECT + " TEXT NOT NULL,"
-				+ " UNIQUE (" + Discussions.Columns.DISCUSSION_ID + ") ON CONFLICT REPLACE)");
+				+ " UNIQUE (" + Discussions.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		db.execSQL("CREATE TABLE " + Persons.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -119,7 +119,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private interface References {
 
 		static final String DISCUSSION_ID = "REFERENCES " + Discussions.TABLE_NAME + "("
-				+ Discussions.Columns.DISCUSSION_ID + ")";
+				+ Discussions.Columns.ID + ")";
 		static final String PERSON_ID = "REFERENCES " + Persons.TABLE_NAME + "(" + Persons.Columns.ID
 				+ ")";
 		static final String TOPIC_ID = "REFERENCES " + Topics.TABLE_NAME + "(" + Topics.Columns.ID

@@ -8,7 +8,6 @@ import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
 import android.net.Uri;
 import android.test.ProviderTestCase2;
 
@@ -119,7 +118,7 @@ public class PointsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		try {
 			getProvider().insert(tableUri, cv);
 			fail("Wrong value as inserted");
-		} catch (SQLiteConstraintException e) {
+		} catch (RuntimeException e) {
 			assertTrue(true);
 		}
 	}
@@ -143,6 +142,16 @@ public class PointsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 			fail();
 		} catch (IllegalArgumentException e) {
 			assertTrue(true);
+		}
+		insertValidValue(1);
+		getProvider().insert(tableUri, getTestValue(4323));
+		cursor = getProvider().query(Points.buildTableUri(4323), null, null, null, null);
+		if (cursor.moveToFirst()) {
+			int index = cursor.getColumnIndexOrThrow(Points.Columns.ID);
+			int id = cursor.getInt(index);
+			assertEquals(4323, id);
+		} else {
+			fail("couldnt read value 4323");
 		}
 	}
 

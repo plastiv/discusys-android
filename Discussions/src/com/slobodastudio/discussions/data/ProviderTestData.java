@@ -6,7 +6,6 @@ import com.slobodastudio.discussions.data.model.PersonTopic;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.Topic;
 import com.slobodastudio.discussions.data.model.Value;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -18,13 +17,20 @@ import android.graphics.Color;
 
 public class ProviderTestData {
 
-	public static void generateData(final Context context) {
+	private static final int JUST_FOR_NEW_URI = Integer.MIN_VALUE;
+
+	public static void deleteData(final Context context) {
 
 		ContentResolver cr = context.getContentResolver();
 		cr.delete(Discussions.CONTENT_URI, null, null);
 		cr.delete(Persons.CONTENT_URI, null, null);
 		cr.delete(Topics.CONTENT_URI, null, null);
 		cr.delete(Points.CONTENT_URI, null, null);
+	}
+
+	public static void generateData(final Context context) {
+
+		ContentResolver cr = context.getContentResolver();
 		generateDiscussions(cr);
 		generatePersons(cr);
 		generateTopics(cr);
@@ -256,46 +262,46 @@ public class ProviderTestData {
 		Topic topic = new Topic(1, 1, "Abortion pro and cons");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		Value personsTopic = new PersonTopic(2, 1);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 		//
 		topic = new Topic(2, 2, "Observers slam Russian vote as Putin declares victory");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		personsTopic = new PersonTopic(2, 2);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 		//
 		topic = new Topic(2, 3, "Crowley: Super Tuesday looms larger for Gingrich than anyone else");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		personsTopic = new PersonTopic(2, 3);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 		//
 		topic = new Topic(2, 4, "Child found in field after tornado dies");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		personsTopic = new PersonTopic(2, 4);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 		//
 		topic = new Topic(2, 5, "Grief, resilience after storms rip through states, killing 39");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		personsTopic = new PersonTopic(2, 5);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 		//
 		topic = new Topic(2, 6, "Lindsay Lohan parties hearty after 'Today'");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		personsTopic = new PersonTopic(2, 6);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 		//
 		topic = new Topic(2, 7, "Obama'a day: Meeting Netanyahu");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		personsTopic = new PersonTopic(2, 7);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 		//
 		topic = new Topic(2, 8, "Al Qaeda Blamed for Attack in Yemen");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		personsTopic = new PersonTopic(2, 8);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 		//
 		topic = new Topic(2, 9, "Poland mourns train crash victims");
 		cr.insert(Topics.CONTENT_URI, topic.toContentValues());
 		personsTopic = new PersonTopic(2, 9);
-		cr.insert(Persons.buildTopicUri("input this"), personsTopic.toContentValues());
+		cr.insert(Persons.buildTopicUri(JUST_FOR_NEW_URI), personsTopic.toContentValues());
 	}
 }

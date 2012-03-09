@@ -69,11 +69,11 @@ public final class DiscussionsContract {
 		}
 
 		/** Build {@link Uri} that references any {@link Topics} associated with the requested
-		 * {@link Columns#DISCUSSION_ID}.
+		 * {@link Columns#ID}.
 		 * 
 		 * @param discussionId
-		 *            {@link Columns#DISCUSSION_ID} value (from server, not primary key from database!) to
-		 *            fetch associated topics
+		 *            {@link Columns#ID} value (from server, not primary key from database!) to fetch
+		 *            associated topics
 		 * 
 		 * @return a Uri for the given id */
 		public static Uri buildTopicUri(final int discussionId) {
@@ -96,7 +96,7 @@ public final class DiscussionsContract {
 		public static final class Columns implements BaseColumns {
 
 			/** Type Int32. */
-			public static final String DISCUSSION_ID = "Id";
+			public static final String ID = "Id";
 			/** Type String. */
 			public static final String SUBJECT = "Subject";
 		}
@@ -105,7 +105,7 @@ public final class DiscussionsContract {
 		 * needed to work around SQL ambiguity. */
 		static final class Qualified {
 
-			static final String DISCUSSION_ID = TABLE_NAME + "." + Columns.DISCUSSION_ID;
+			static final String DISCUSSION_ID = TABLE_NAME + "." + Columns.ID;
 		}
 	}
 
@@ -177,9 +177,10 @@ public final class DiscussionsContract {
 		 *            table
 		 * 
 		 * @return a Uri for the given id */
-		public static Uri buildPointUri(final String valueId) {
+		public static Uri buildPointUri(final int valueId) {
 
-			return CONTENT_URI.buildUpon().appendPath(valueId).appendPath(Points.A_TABLE_PREFIX).build();
+			return CONTENT_URI.buildUpon().appendPath(String.valueOf(valueId)).appendPath(
+					Points.A_TABLE_PREFIX).build();
 		}
 
 		/** Build {@link Uri} for requested {@link Columns#_ID}.
@@ -210,9 +211,10 @@ public final class DiscussionsContract {
 		 *            table
 		 * 
 		 * @return a Uri for the given id */
-		public static Uri buildTopicUri(final String valueId) {
+		public static Uri buildTopicUri(final int valueId) {
 
-			return CONTENT_URI.buildUpon().appendPath(valueId).appendPath(Topics.A_TABLE_PREFIX).build();
+			return CONTENT_URI.buildUpon().appendPath(String.valueOf(valueId)).appendPath(
+					Topics.A_TABLE_PREFIX).build();
 		}
 
 		/** Read {@link Columns#_ID} from this table {@link Uri}.
@@ -338,14 +340,14 @@ public final class DiscussionsContract {
 			public static final String GROUP_ID = "Group_id";
 			/** Type Int32. */
 			public static final String GROUP_ID_SERVER = "Group";
-			/** Type String. */
-			public static final String NUMBERED_POINT = "NumberedPoint";
-			/** Type Int32. */
-			public static final String PERSON_ID = "Person";
 			/** Type Int32. */
 			public static final String ID = "Id";
 			/** Type String. */
 			public static final String NAME = "Point";
+			/** Type String. */
+			public static final String NUMBERED_POINT = "NumberedPoint";
+			/** Type Int32. */
+			public static final String PERSON_ID = "Person";
 			/** Type Boolean. */
 			public static final String SHARED_TO_PUBLIC = "SharedToPublic";
 			/** Type Int32. */
@@ -428,12 +430,12 @@ public final class DiscussionsContract {
 
 			/** Type Int32. Foreign key. */
 			public static final String DISCUSSION_ID = "Discussion";
+			/** Type Int32. */
+			public static final String ID = "Id";
 			/** Type String. */
 			public static final String NAME = "Name";
 			/** Type Int32. Should be used only by servers data. */
 			public static final String PERSON_ID = "Person";
-			/** Type Int32. */
-			public static final String ID = "Id";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when

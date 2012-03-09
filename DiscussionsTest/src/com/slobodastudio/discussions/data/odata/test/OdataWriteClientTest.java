@@ -23,7 +23,7 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		OEntity entity = odata.insertDiscussion(expectedSubject);
 		String actualSubject = (String) entity.getProperty(Discussions.Columns.SUBJECT).getValue();
 		assertEquals(expectedSubject, actualSubject);
-		int discussionId = (Integer) entity.getProperty(Discussions.Columns.DISCUSSION_ID).getValue();
+		int discussionId = (Integer) entity.getProperty(Discussions.Columns.ID).getValue();
 		assertEquals(true, discussionId > 0);
 	}
 
@@ -114,7 +114,7 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		assertEquals(expectedName, actualName);
 		// discussion
 		OEntity discussionEntity = odataRead.getRelatedEntity(entity, Topics.Columns.DISCUSSION_ID);
-		int actualDiscussionId = (Integer) discussionEntity.getProperty(Discussions.Columns.DISCUSSION_ID)
+		int actualDiscussionId = (Integer) discussionEntity.getProperty(Discussions.Columns.ID)
 				.getValue();
 		assertEquals(expectedDiscussionId, actualDiscussionId);
 		// person

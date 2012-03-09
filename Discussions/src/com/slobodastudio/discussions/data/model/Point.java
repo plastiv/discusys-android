@@ -3,6 +3,7 @@ package com.slobodastudio.discussions.data.model;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 
 public class Point implements Value {
 
@@ -17,6 +18,53 @@ public class Point implements Value {
 	private final boolean sharedToPublic;
 	private final int sideCode;
 	private final int topicId;
+
+	public Point(final Cursor cursor) {
+
+		super();
+		if (cursor.getCount() != 1) {
+			throw new IllegalArgumentException("Cursor shoud contain single value, was: " + cursor.getCount());
+		}
+		if (cursor.moveToFirst()) {
+			int agreementCodeIndex = cursor.getColumnIndexOrThrow(Points.Columns.AGREEMENT_CODE);
+			int drawingIndex = cursor.getColumnIndexOrThrow(Points.Columns.DRAWING);
+			int expandedIndex = cursor.getColumnIndexOrThrow(Points.Columns.EXPANDED);
+			int groupIdIndex = cursor.getColumnIndexOrThrow(Points.Columns.GROUP_ID);
+			int idIndex = cursor.getColumnIndexOrThrow(Points.Columns.ID);
+			int nameIndex = cursor.getColumnIndexOrThrow(Points.Columns.NAME);
+			int numberedPointIndex = cursor.getColumnIndexOrThrow(Points.Columns.NUMBERED_POINT);
+			int personIdIndex = cursor.getColumnIndexOrThrow(Points.Columns.PERSON_ID);
+			int sharedToPublicIndex = cursor.getColumnIndexOrThrow(Points.Columns.SHARED_TO_PUBLIC);
+			int sideCodeIndex = cursor.getColumnIndexOrThrow(Points.Columns.SIDE_CODE);
+			int topicIdIndex = cursor.getColumnIndexOrThrow(Points.Columns.TOPIC_ID);
+			agreementCode = cursor.getInt(agreementCodeIndex);
+			drawing = cursor.getBlob(drawingIndex);
+			if (cursor.getInt(expandedIndex) == 0) {
+				expanded = false;
+			} else if (cursor.getInt(expandedIndex) == 1) {
+				expanded = true;
+			} else {
+				throw new IllegalStateException("Point has unknown expanded: " + cursor.getInt(expandedIndex));
+			}
+			groupId = cursor.getInt(groupIdIndex);
+			id = cursor.getInt(idIndex);
+			name = cursor.getString(nameIndex);
+			numberedPoint = cursor.getString(numberedPointIndex);
+			personId = cursor.getInt(personIdIndex);
+			if (cursor.getInt(sharedToPublicIndex) == 0) {
+				sharedToPublic = false;
+			} else if (cursor.getInt(sharedToPublicIndex) == 1) {
+				sharedToPublic = true;
+			} else {
+				throw new IllegalStateException("Point has unknown shared to public: "
+						+ cursor.getInt(sharedToPublicIndex));
+			}
+			sideCode = cursor.getInt(sideCodeIndex);
+			topicId = cursor.getInt(topicIdIndex);
+		} else {
+			throw new IllegalArgumentException("Cursor was without value");
+		}
+	}
 
 	public Point(final int agreementCode, final byte[] drawing, final boolean expanded, final int groupId,
 			final int id, final String name, final String numberedPoint, final int personId,
@@ -55,5 +103,23 @@ public class Point implements Value {
 		cv.put(Points.Columns.SIDE_CODE, sideCode);
 		cv.put(Points.Columns.TOPIC_ID, topicId);
 		return cv;
+	}
+
+	@Override
+	public String toMyString() {
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(Points.Columns.AGREEMENT_CODE).append(':').append(agreementCode).append('\n');
+		sb.append(Points.Columns.DRAWING).append(':').append(drawing).append('\n');
+		sb.append(Points.Columns.EXPANDED).append(':').append(expanded).append('\n');
+		sb.append(Points.Columns.GROUP_ID).append(':').append(groupId).append('\n');
+		sb.append(Points.Columns.ID).append(':').append(id).append('\n');
+		sb.append(Points.Columns.NAME).append(':').append(name).append('\n');
+		sb.append(Points.Columns.NUMBERED_POINT).append(':').append(numberedPoint).append('\n');
+		sb.append(Points.Columns.PERSON_ID).append(':').append(personId).append('\n');
+		sb.append(Points.Columns.SHARED_TO_PUBLIC).append(':').append(sharedToPublic).append('\n');
+		sb.append(Points.Columns.SIDE_CODE).append(':').append(sideCode).append('\n');
+		sb.append(Points.Columns.TOPIC_ID).append(':').append(topicId).append('\n');
+		return sb.toString();
 	}
 }

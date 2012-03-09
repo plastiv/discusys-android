@@ -6,16 +6,16 @@
 
     <FrameLayout
         android:id="@+id/frame_layout_list"
+        style="@style/listViewBackgroundStyle"
         android:layout_width="0px"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:background="?android:attr/detailsElementBackground" />
+        android:layout_weight="1" />
 
     <FrameLayout
         android:id="@+id/frame_layout_details"
+        style="@style/listViewBackgroundStyle"
         android:layout_width="0px"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:background="?android:attr/detailsElementBackground" />
+        android:layout_weight="1" />
 
 </LinearLayout>
