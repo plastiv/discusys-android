@@ -1,36 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/tv_point_name"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Point name" />
 
     <EditText
-        android:id="@+id/ed_point_name"
+        android:id="@+id/et_point_name"
         android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tv_point_name" />
+        android:orientation="horizontal" >
 
-<!--     <TextView -->
-<!--         android:id="@+id/tv_point_agreement_code" -->
-<!--         android:layout_width="wrap_content" -->
-<!--         android:layout_height="wrap_content" -->
-<!--         android:layout_alignParentLeft="true" -->
-<!--         android:layout_below="@id/ed_point_name" -->
-<!--         android:layout_marginLeft="10dip" -->
-<!--         android:text="Please select agreement code:" /> -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Please select agreement code:" />
 
-<!--     <Spinner -->
-<!--         android:id="@+id/spinner_point_agreement_code" -->
-<!--         android:layout_width="wrap_content" -->
-<!--         android:layout_height="wrap_content" -->
-<!--         android:layout_alignTop="@id/tv_point_agreement_code" -->
-<!--         android:layout_toLeftOf="@id/tv_point_agreement_code" -->
-<!--         android:drawSelectorOnTop="true" -->
-<!--         android:prompt="@string/agreement_code_prompt" /> -->
+        <Spinner
+            android:id="@+id/spinner_point_agreement_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:dropDownSelector="@android:layout/simple_spinner_dropdown_item"
+            android:entries="@array/agreement_codes"
+            android:prompt="@string/agreement_code_prompt" >
+        </Spinner>
+    </LinearLayout>
 
-</RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Shared to public:" />
+
+        <CheckBox
+            android:id="@+id/chb_share_to_public"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+</LinearLayout>

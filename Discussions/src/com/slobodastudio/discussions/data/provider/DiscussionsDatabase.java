@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.data.provider;
 
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
@@ -18,7 +19,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 23;
+	private static final int DATABASE_VERSION = 24;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -54,6 +55,14 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Topics.Columns.DISCUSSION_ID + " INTEGER NOT NULL " + References.DISCUSSION_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ " UNIQUE (" + Topics.Columns.ID + ") ON CONFLICT REPLACE)");
 		
+		db.execSQL("CREATE TABLE " + Comments.TABLE_NAME + " (" 
+				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ Comments.Columns.ID + " INTEGER NOT NULL,"
+				+ Comments.Columns.NAME + " TEXT NOT NULL,"
+				+ Comments.Columns.PERSON_ID + " INTEGER NOT NULL " + References.PERSON_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
+				+ Comments.Columns.POINT_ID + " INTEGER NOT NULL " + References.POINT_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
+				+ " UNIQUE (" + Comments.Columns.ID + ") ON CONFLICT REPLACE)");
+		
 		db.execSQL("CREATE TABLE " + Points.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ Points.Columns.ID + " INTEGER NOT NULL,"
@@ -76,6 +85,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
                 + PersonsTopics.Columns.TOPIC_ID + " INTEGER NOT NULL, " //+ References.TOPIC_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
                 + "UNIQUE (" + PersonsTopics.Columns.PERSON_ID + "," + PersonsTopics.Columns.TOPIC_ID + ") ON CONFLICT REPLACE)");
 		
+		// triggers
 		db.execSQL("CREATE TRIGGER " + Triggers.PERSONS_DELETE_TOPICS 
 				+ " AFTER DELETE ON " + PersonsTopics.TABLE_NAME + " FOR EACH ROW "
 				+ " BEGIN DELETE FROM " + Topics.TABLE_NAME  
@@ -105,6 +115,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 			db.execSQL("DROP TABLE IF EXISTS " + Points.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Topics.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + PersonsTopics.TABLE_NAME);
+			db.execSQL("DROP TABLE IF EXISTS " + Comments.TABLE_NAME);
 			db.execSQL("DROP TRIGGER IF EXISTS " + Triggers.PERSONS_DELETE_TOPICS);
 			onCreate(db);
 		}
@@ -120,9 +131,8 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 
 		static final String DISCUSSION_ID = "REFERENCES " + Discussions.TABLE_NAME + "("
 				+ Discussions.Columns.ID + ")";
-		static final String PERSON_ID = "REFERENCES " + Persons.TABLE_NAME + "(" + Persons.Columns.ID
-				+ ")";
-		static final String TOPIC_ID = "REFERENCES " + Topics.TABLE_NAME + "(" + Topics.Columns.ID
-				+ ")";
+		static final String PERSON_ID = "REFERENCES " + Persons.TABLE_NAME + "(" + Persons.Columns.ID + ")";
+		static final String POINT_ID = "REFERENCES " + Points.TABLE_NAME + "(" + Points.Columns.ID + ")";
+		static final String TOPIC_ID = "REFERENCES " + Topics.TABLE_NAME + "(" + Topics.Columns.ID + ")";
 	}
 }

@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.ui.activities.base;
+package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
@@ -8,18 +8,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 import com.actionbarsherlock.view.Window;
 
 public abstract class BaseActivity extends SherlockFragmentActivity {
 
 	public static final boolean DEBUG = true | ApplicationConstants.DEBUG_MODE;
 	private static final String TAG = BaseActivity.class.getSimpleName();
-	private Fragment mFragment;
+	protected Fragment mFragment;
 
 	/** Invoke "home" action, returning to {@link HomeActivity}. */
 	public static void goHome() {
@@ -41,16 +38,6 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
-
-		MenuInflater menuInflater = getSupportMenuInflater();
-		menuInflater.inflate(R.menu.actionbar_menu, menu);
-		// Calling super after populating the menu is necessary here to ensure that the
-		// action bar helpers have a chance to handle this event.
-		return super.onCreateOptionsMenu(menu);
-	}
-
-	@Override
 	public boolean onKeyDown(final int keyCode, final KeyEvent event) {
 
 		if (keyCode == KeyEvent.KEYCODE_MENU) {
@@ -67,32 +54,6 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 			return true;
 		}
 		return false || super.onKeyLongPress(keyCode, event);
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(final MenuItem item) {
-
-		switch (item.getItemId()) {
-			case android.R.id.home:
-				Toast.makeText(this, "Tapped home", Toast.LENGTH_SHORT).show();
-				break;
-			case R.id.menu_refresh:
-				Toast.makeText(this, "Fake refreshing...", Toast.LENGTH_SHORT).show();
-				setSupportProgressBarIndeterminateVisibility(true);
-				getWindow().getDecorView().postDelayed(new Runnable() {
-
-					@Override
-					public void run() {
-
-						setSupportProgressBarIndeterminateVisibility(false);
-					}
-				}, 1000);
-				break;
-			case R.id.menu_new:
-				Toast.makeText(this, "Tapped new", Toast.LENGTH_SHORT).show();
-				break;
-		}
-		return super.onOptionsItemSelected(item);
 	}
 
 	@Override

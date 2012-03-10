@@ -16,6 +16,7 @@
     <string name="menu_topics">Topic</string>
     <string name="menu_edit">Edit</string>
     <string name="menu_delete">Delete</string>
+    <string name="menu_action_save">Save</string>
     <string name="fragment_empty_persons">No persons found</string>
     <string name="fragment_empty_points">No points found</string>
     <string name="fragment_empty_discussions">No discussions found</string>

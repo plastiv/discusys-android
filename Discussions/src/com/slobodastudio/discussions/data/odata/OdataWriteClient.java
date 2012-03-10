@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.data.odata;
 
+import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -67,6 +68,24 @@ public class OdataWriteClient {
 		// @formatter:on
 	}
 
+	public OEntity insertPoint(final Point point) {
+
+		// @formatter:off
+		return consumer.createEntity(Points.TABLE_NAME)
+				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, point.getAgreementCode()))
+				.properties(OProperties.binary(Points.Columns.DRAWING, point.getDrawing()))
+				.properties(OProperties.boolean_(Points.Columns.EXPANDED, point.isExpanded()))
+				//.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())))
+				.properties(OProperties.string(Points.Columns.NUMBERED_POINT, point.getNumberedPoint()))
+				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(point.getPersonId())))
+				.properties(OProperties.string(Points.Columns.NAME, point.getName()))
+				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(point.isSharedToPublic())))
+				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))		
+				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())))
+				.execute();
+		// @formatter:on
+	}
+
 	public OEntity insertTopic(final String topicName, final int discussionId, final int personId) {
 
 		// @formatter:off
@@ -74,6 +93,25 @@ public class OdataWriteClient {
 				.link(Topics.Columns.DISCUSSION_ID, OEntityKey.parse(String.valueOf(discussionId)))
 				.properties(OProperties.string(Topics.Columns.NAME, topicName))	
 				.link(Topics.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
+				.execute();
+		// @formatter:on
+	}
+
+	public boolean updatePoint(final Point point) {
+
+		// OEntity entity = consumer.getEntity(Points.TABLE_NAME, point.getId()).execute();
+		// @formatter:off
+		return consumer.mergeEntity(Points.TABLE_NAME, point.getId())
+				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, point.getAgreementCode()))
+				.properties(OProperties.binary(Points.Columns.DRAWING, point.getDrawing()))
+				.properties(OProperties.boolean_(Points.Columns.EXPANDED, point.isExpanded()))
+				//.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())))
+				.properties(OProperties.string(Points.Columns.NUMBERED_POINT, point.getNumberedPoint()))
+				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(point.getPersonId())))
+				.properties(OProperties.string(Points.Columns.NAME, point.getName()))
+				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(point.isSharedToPublic())))
+				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))		
+				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())))
 				.execute();
 		// @formatter:on
 	}

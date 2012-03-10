@@ -1,12 +1,12 @@
 package com.slobodastudio.discussions.data.provider;
 
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
-import android.app.Activity;
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -29,6 +29,8 @@ import java.util.Arrays;
  * queried by various {@link Activity} instances. */
 public class DiscussionsProvider extends ContentProvider {
 
+	private static final int COMMENTS_DIR = 500;
+	private static final int COMMENTS_ITEM = 501;
 	private static final int DISCUSSIONS_DIR = 101;
 	private static final int DISCUSSIONS_ITEM = 100;
 	private static final int DISCUSSIONS_ITEM_TOPICS_DIR = 102;
@@ -78,6 +80,12 @@ public class DiscussionsProvider extends ContentProvider {
 				final String valueId = Topics.getValueId(uri);
 				return builder.table(Topics.TABLE_NAME).where(Topics.Columns.ID + "=?", valueId);
 			}
+			case COMMENTS_DIR:
+				return builder.table(Comments.TABLE_NAME);
+			case COMMENTS_ITEM: {
+				final String valueId = Comments.getValueId(uri);
+				return builder.table(Comments.TABLE_NAME).where(Comments.Columns.ID + "=?", valueId);
+			}
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -111,6 +119,9 @@ public class DiscussionsProvider extends ContentProvider {
 		matcher.addURI(authority, Topics.A_TABLE_PREFIX + "/*", TOPICS_ITEM);
 		matcher.addURI(authority, Topics.A_TABLE_PREFIX + "/*/" + Points.A_TABLE_PREFIX,
 				TOPICS_ITEM_POINTS_DIR);
+		// comment
+		matcher.addURI(authority, Comments.A_TABLE_PREFIX, COMMENTS_DIR);
+		matcher.addURI(authority, Comments.A_TABLE_PREFIX + "/*", COMMENTS_ITEM);
 		return matcher;
 	}
 
@@ -179,6 +190,10 @@ public class DiscussionsProvider extends ContentProvider {
 				return Topics.CONTENT_ITEM_TYPE;
 			case TOPICS_ITEM_POINTS_DIR:
 				return Points.CONTENT_DIR_TYPE;
+			case COMMENTS_DIR:
+				return Comments.CONTENT_DIR_TYPE;
+			case COMMENTS_ITEM:
+				return Comments.CONTENT_ITEM_TYPE;
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -215,6 +230,10 @@ public class DiscussionsProvider extends ContentProvider {
 				case TOPICS_DIR:
 					insertedId = db.insertOrThrow(Topics.TABLE_NAME, null, values);
 					insertedUri = Topics.buildTableUri(insertedId);
+					break;
+				case COMMENTS_DIR:
+					insertedId = db.insertOrThrow(Comments.TABLE_NAME, null, values);
+					insertedUri = Comments.buildTableUri(insertedId);
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown uri: " + uri);

@@ -1,8 +1,10 @@
 package com.slobodastudio.discussions.data.provider.test;
 
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.model.Comment;
+import com.slobodastudio.discussions.data.model.Value;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 
@@ -12,80 +14,48 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.test.ProviderTestCase2;
 
-public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
+public class CommentsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
-	private static final int DISCUSSION_ID = 13333;
 	private static final int PERSON_ID = 1123;
-	private static final Uri tableUri = Topics.CONTENT_URI;
+	private static final int POINT_ID = 13333;
+	private static final int RANDOM_COMMENT_ID = 15345;
+	private static final Uri tableUri = Comments.CONTENT_URI;
 
-	public TopicsTableTest() {
+	public CommentsTableTest() {
 
 		super(DiscussionsProvider.class, DiscussionsProvider.class.getName());
 	}
 
-	static ContentValues getTestPersonTopicValue(final int personId, final int topicId) {
+	static ContentValues getTestValue(final int id, final int personId, final int pointId) {
 
-		final ContentValues cv = new ContentValues();
-		cv.put(PersonsTopics.Columns.TOPIC_ID, Integer.valueOf(topicId));
-		cv.put(PersonsTopics.Columns.PERSON_ID, Integer.valueOf(personId));
-		return cv;
-	}
-
-	static ContentValues getTestValue(final int topicId, final int discussionId) {
-
-		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.ID, Integer.valueOf(topicId));
-		cv.put(Topics.Columns.NAME, "name");
-		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(discussionId));
-		return cv;
+		Value value = new Comment(id, "New value", personId, pointId);
+		return value.toContentValues();
 	}
 
 	static Uri insertValidValue(final int valueId, final ContentProvider provider) {
 
-		DiscussionsTableTest.insertValidValue(DISCUSSION_ID, provider);
 		PersonsTableTest.insertValidValue(PERSON_ID, provider);
-		provider.insert(Persons.buildTopicUri(PersonsTopics.DEF_PERSON_VALUE), getTestPersonTopicValue(
-				PERSON_ID, valueId));
+		PointsTableTest.insertValidValue(POINT_ID, provider);
 		return provider.insert(tableUri, getTestValue(valueId));
 	}
 
-	static Uri insertValidValue(final int topicId, final int discussionId, final int personId,
+	static Uri insertValidValue(final int valueId, final int personId, final int pointId,
 			final ContentProvider provider) {
 
-		DiscussionsTableTest.insertValidValue(discussionId, provider);
 		PersonsTableTest.insertValidValue(personId, provider);
-		provider.insert(Persons.buildTopicUri(PersonsTopics.DEF_PERSON_VALUE), getTestPersonTopicValue(
-				personId, topicId));
-		return provider.insert(tableUri, getTestValue(topicId, discussionId));
+		PointsTableTest.insertValidValue(pointId, provider);
+		return provider.insert(tableUri, getTestValue(valueId, personId, pointId));
 	}
 
-	private static ContentValues getTestValue(final int topicId) {
+	private static ContentValues getTestValue(final int id) {
 
-		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.ID, Integer.valueOf(topicId));
-		cv.put(Topics.Columns.NAME, "name");
-		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(DISCUSSION_ID));
-		return cv;
-	}
-
-	public void testDeleteFromDiscussion() {
-
-		insertValidValue(1);
-		// delete associated discussion
-		getProvider().delete(Discussions.CONTENT_URI, null, null);
-		// check if topic was deleted too
-		final Cursor cursor = getProvider().query(tableUri, null, null, null, null);
-		if (cursor.moveToFirst()) {
-			fail("Didnt delete assosiated row");
-		} else {
-			assertTrue(true);
-		}
+		return getTestValue(id, PERSON_ID, POINT_ID);
 	}
 
 	public void testDeleteFromPerson() {
 
 		// insert valid value
-		insertValidValue(1);
+		insertValidValue(RANDOM_COMMENT_ID);
 		// delete associated table
 		getProvider().delete(Persons.CONTENT_URI, null, null);
 		// check if this table was deleted too
@@ -97,15 +67,32 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		}
 	}
 
+	public void testDeleteFromPoint() {
+
+		// insert valid value
+		insertValidValue(RANDOM_COMMENT_ID);
+		// delete associated table
+		getProvider().delete(Points.CONTENT_URI, null, null);
+		// check if this table was deleted too
+		Cursor cursor = getProvider().query(tableUri, null, null, null, null);
+		if (cursor.moveToFirst()) {
+			fail("Didnt delete assosiated row");
+		} else {
+			assertTrue(true);
+		}
+	}
+
 	public void testInsert() {
 
-		insertValidValue(1);
+		insertValidValue(RANDOM_COMMENT_ID);
 		Cursor cursor = getProvider().query(tableUri, null, null, null, null);
 		if (cursor.moveToFirst()) {
 			assertTrue(true);
 		} else {
 			fail("Didnt insert test value in table");
 		}
+		fail();
+		// test relationship
 		cursor = getProvider().query(Persons.buildTopicUri(PERSON_ID), null, null, null, null);
 		if (cursor.moveToFirst()) {
 			assertTrue(true);
@@ -118,23 +105,24 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	public void testInsertValueTwice() {
 
 		// same value should be overwrite
-		insertValidValue(1);
-		getProvider().insert(tableUri, getTestValue(1));
+		insertValidValue(RANDOM_COMMENT_ID);
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID));
 		Cursor cursor = getProvider().query(tableUri, null, null, null, null);
 		assertEquals(1, cursor.getCount());
 		// second value should writes into table
-		getProvider().insert(tableUri, getTestValue(2));
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID + 100));
 		cursor = getProvider().query(tableUri, null, null, null, null);
 		assertEquals(2, cursor.getCount());
 	}
 
 	public void testInsertWrongValue() {
 
-		final ContentValues cv = new ContentValues();
-		cv.put(Topics.Columns.ID, Integer.valueOf(1));
-		cv.put(Topics.Columns.NAME, "name");
-		// not valid disscussion id
-		cv.put(Topics.Columns.DISCUSSION_ID, Integer.valueOf(DISCUSSION_ID - 1));
+		ContentValues cv = new ContentValues();
+		cv.put(Comments.Columns.ID, RANDOM_COMMENT_ID);
+		cv.put(Comments.Columns.NAME, "cool name");
+		cv.put(Comments.Columns.PERSON_ID, PERSON_ID);
+		cv.put(Comments.Columns.POINT_ID, POINT_ID);
+		// no connected values
 		try {
 			getProvider().insert(tableUri, cv);
 			fail();
@@ -163,7 +151,8 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		} catch (IllegalArgumentException e) {
 			assertTrue(true);
 		}
-		insertValidValue(1);
+		insertValidValue(RANDOM_COMMENT_ID);
+		fail();
 		getProvider().insert(tableUri, getTestValue(4323));
 		cursor = getProvider().query(Topics.buildTableUri(4323), null, null, null, null);
 		if (cursor.moveToFirst()) {
@@ -175,23 +164,26 @@ public class TopicsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		}
 	}
 
-	public void testQueryFromDiscussion() {
-
-		insertValidValue(1);
-		getProvider().insert(tableUri, getTestValue(2));
-		Cursor cursor = getProvider().query(Discussions.buildTopicUri(DISCUSSION_ID), null, null, null, null);
-		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
-	}
-
 	public void testQueryFromPersons() {
 
-		insertValidValue(1);
-		getProvider().insert(tableUri, getTestValue(2));
-		getProvider().insert(Persons.buildTopicUri(PersonsTopics.DEF_PERSON_VALUE),
-				getTestPersonTopicValue(PERSON_ID, 2));
-		Cursor cursor = getProvider().query(Persons.buildTopicUri(PERSON_ID), null, null, null, null);
-		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
-		assertEquals("Should be 4 table columns, was: " + cursor.getCount(), 4, cursor.getColumnCount());
+		fail();
+		// insertValidValue(1);
+		// getProvider().insert(tableUri, getTestValue(2));
+		// getProvider().insert(Persons.buildTopicUri(PersonsTopics.DEF_PERSON_VALUE),
+		// getTestPersonTopicValue(PERSON_ID, 2));
+		// Cursor cursor = getProvider().query(Persons.buildTopicUri(PERSON_ID), null, null, null, null);
+		// assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
+		// assertEquals("Should be 4 table columns, was: " + cursor.getCount(), 4, cursor.getColumnCount());
+	}
+
+	public void testQueryFromPoint() {
+
+		fail();
+		// insertValidValue(1);
+		// getProvider().insert(tableUri, getTestValue(2));
+		// Cursor cursor = getProvider().query(Discussions.buildTopicUri(DISCUSSION_ID), null, null, null,
+		// null);
+		// assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 
 	@Override

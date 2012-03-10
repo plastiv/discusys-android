@@ -1,19 +1,10 @@
 package com.slobodastudio.discussions.ui.activities;
 
-import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
-import com.slobodastudio.discussions.ui.activities.base.BaseActivity;
-import com.slobodastudio.discussions.ui.activities.base.BaseDetailFragment;
-import com.slobodastudio.discussions.ui.activities.base.BaseListFragment;
+import com.slobodastudio.discussions.ui.fragments.DiscussionsListFragment;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.support.v4.app.Fragment;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ListView;
 
-public class DiscussionsActivity extends BaseActivity {
+public class DiscussionsActivity extends BaseListActivity {
 
 	private static final String TAG = DiscussionsActivity.class.getSimpleName();
 
@@ -21,46 +12,5 @@ public class DiscussionsActivity extends BaseActivity {
 	protected Fragment onCreatePane() {
 
 		return new DiscussionsListFragment();
-	}
-
-	public class DiscussionsListFragment extends BaseListFragment {
-
-		public DiscussionsListFragment() {
-
-			super(R.string.fragment_empty_discussions, Discussions.Columns.SUBJECT, Discussions.Columns.ID,
-					Discussions.CONTENT_URI);
-		}
-
-		@Override
-		public boolean onContextItemSelected(final MenuItem item) {
-
-			switch (item.getItemId()) {
-				case R.id.menu_topics: {
-					// Otherwise we need to launch a new activity to display
-					// the dialog fragment with selected text.
-					Uri uri = Discussions.buildTopicUri(getItemId(item));
-					Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-					startActivity(intent);
-					return true;
-				}
-				default:
-					return super.onContextItemSelected(item);
-			}
-		}
-
-		@Override
-		public void onListItemClick(final ListView l, final View v, final int position, final long id) {
-
-			super.onListItemClick(l, v, position, id);
-			Uri uri = Discussions.buildTopicUri(getItemId(position));
-			Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-			startActivity(intent);
-		}
-
-		@Override
-		protected BaseDetailFragment getDetailFragment() {
-
-			return new DiscussionsDetailFragment();
-		}
 	}
 }

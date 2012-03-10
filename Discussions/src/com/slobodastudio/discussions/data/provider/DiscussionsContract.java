@@ -22,6 +22,74 @@ public final class DiscussionsContract {
 		throw new UnsupportedOperationException("Class is prevented from instantiation");
 	}
 
+	/** Describes comment's table. Each comment is associated with a {@link Points} and {@link Persons}. */
+	public static final class Comments {
+
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "comment";
+		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The MIME type of {@link #CONTENT_URI} providing a single point */
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The content:// style URL for this table */
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
+		/** Default "ORDER BY" clause. */
+		public static final String DEFAULT_SORT = Columns.NAME + " ASC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "Comment";
+
+		/** A private Constructor prevents class from instantiating. */
+		private Comments() {
+
+			throw new UnsupportedOperationException("Class is prevented from instantiation");
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique value identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final long valueId) {
+
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique row identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
+		 * 
+		 * @param uri
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
+
+			return uri.getPathSegments().get(1);
+		}
+
+		/** List of columns names. */
+		public static final class Columns implements BaseColumns {
+
+			/** Type Int32. */
+			public static final String ID = "Id";
+			/** Type String. */
+			public static final String NAME = "Name";
+			/** Type Int32. Foreign key. */
+			public static final String PERSON_ID = "Person";
+			/** Type Int32. Foreign key. */
+			public static final String POINT_ID = "Point";
+		}
+	}
+
 	/** Describes discussion's table. Discussion is an abstraction of room. */
 	public static final class Discussions {
 
@@ -244,6 +312,7 @@ public final class DiscussionsContract {
 	/** Internal Many-to-many relationship table between {@link Persons} and {@link Topics}. */
 	public static final class PersonsTopics {
 
+		public static final int DEF_PERSON_VALUE = Integer.MIN_VALUE;
 		/** Server's database table name */
 		static final String TABLE_NAME = Persons.TABLE_NAME + Topics.TABLE_NAME;
 
@@ -328,9 +397,9 @@ public final class DiscussionsContract {
 		/** Agreement codes constants. */
 		public static final class AgreementCode {
 
-			public static final int CONS = 2;
-			public static final int NEUTRAL = 0;
-			public static final int PROS = 1;
+			public static final int CONS = 0;
+			public static final int NEUTRAL = 1;
+			public static final int PROS = 2;
 		}
 
 		/** List of columns names. */

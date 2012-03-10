@@ -1,10 +1,9 @@
-package com.slobodastudio.discussions.ui.activities;
+package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.model.Person;
+import com.slobodastudio.discussions.data.model.Topic;
 import com.slobodastudio.discussions.data.model.Value;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
-import com.slobodastudio.discussions.ui.activities.base.BaseDetailFragment;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.database.Cursor;
 import android.os.Bundle;
@@ -13,11 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class PersonsDetailFragment extends BaseDetailFragment {
+public class TopicsDetailFragment extends BaseDetailFragment {
 
-	public PersonsDetailFragment() {
+	public TopicsDetailFragment() {
 
-		super(Persons.CONTENT_URI);
+		super(Topics.CONTENT_URI);
 	}
 
 	@Override
@@ -40,7 +39,7 @@ public class PersonsDetailFragment extends BaseDetailFragment {
 			text.setText("Select item to show details");
 		} else {
 			Cursor cursor = getActivity().getContentResolver().query(getDetailsUri(), null, null, null, null);
-			Value value = new Person(cursor);
+			Value value = new Topic(cursor);
 			text.setText(value.toMyString());
 		}
 		return text;

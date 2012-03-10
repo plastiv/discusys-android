@@ -159,8 +159,7 @@ public class PointsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
 		insertValidValue(1);
 		getProvider().insert(tableUri, getTestValue(2));
-		Cursor cursor = getProvider().query(Persons.buildPointUri(String.valueOf(PERSON_ID)), null, null,
-				null, null);
+		Cursor cursor = getProvider().query(Persons.buildPointUri(PERSON_ID), null, null, null, null);
 		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 

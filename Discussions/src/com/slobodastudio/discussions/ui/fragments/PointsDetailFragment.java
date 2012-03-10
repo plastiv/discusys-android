@@ -1,16 +1,18 @@
-package com.slobodastudio.discussions.ui.activities;
+package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Point;
-import com.slobodastudio.discussions.data.model.Value;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.ui.activities.base.BaseDetailFragment;
 
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 public class PointsDetailFragment extends BaseDetailFragment {
@@ -34,15 +36,26 @@ public class PointsDetailFragment extends BaseDetailFragment {
 			// the view hierarchy; it would just never be used.
 			return null;
 		}
-		TextView text = (TextView) inflater.inflate(R.layout.details_item, null);
-		if (getShownId() == BaseDetailFragment.NO_SELECTION_ID) {
-			// TODO: move string to resources
-			text.setText("Select item to show details");
-		} else {
+		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.point_desctiption_item, null);
+		if (getArguments() != null) {
+			if (getShownId() == BaseDetailFragment.NO_SELECTION_ID) {
+				// TODO: move string to resources
+				TextView text = (TextView) inflater.inflate(R.layout.details_item, null);
+				text.setText("Select item to show details");
+				return text;
+			}
 			Cursor cursor = getActivity().getContentResolver().query(getDetailsUri(), null, null, null, null);
-			Value value = new Point(cursor);
-			text.setText(value.toMyString());
+			Point value = new Point(cursor);
+			// name
+			EditText editText = (EditText) layout.findViewById(R.id.et_point_name);
+			editText.setText(value.getName());
+			// agreement code
+			Spinner s = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
+			s.setSelection(value.getAgreementCode());
+			// shared to public
+			CheckBox checkBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
+			checkBox.setChecked(value.isSharedToPublic());
 		}
-		return text;
+		return layout;
 	}
 }

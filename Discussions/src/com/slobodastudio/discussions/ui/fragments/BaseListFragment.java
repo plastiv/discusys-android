@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.ui.activities.base;
+package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.utils.MyLog;
@@ -43,6 +43,17 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 		this.mColumnName = mColumnName;
 		this.mColumnId = mColumnId;
 		this.baseUri = baseUri;
+	}
+
+	public void actionAdd() {
+
+	}
+
+	public void actionEdit(final int valueId) {
+
+		Uri uri = ContentUris.withAppendedId(baseUri, valueId);
+		Intent intent = new Intent(Intent.ACTION_EDIT, uri);
+		startActivity(intent);
 	}
 
 	public SimpleCursorAdapter getAdapter() {
@@ -91,12 +102,13 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 
 		MyLog.v("Fragment", (String) item.getTitle());
 		switch (item.getItemId()) {
-			case R.id.menu_details:
+			case R.id.menu_details: {
 				AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
 						.getMenuInfo();
 				showDetails(info.position);
 				// Toast.makeText(getActivity(), "Details pressed", Toast.LENGTH_SHORT).show();
 				return true;
+			}
 			case R.id.menu_discussions:
 				Toast.makeText(getActivity(), "Discussions pressed", Toast.LENGTH_SHORT).show();
 				return true;
@@ -110,7 +122,9 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 				Toast.makeText(getActivity(), "Topics pressed", Toast.LENGTH_SHORT).show();
 				return true;
 			case R.id.menu_edit:
-				Toast.makeText(getActivity(), "Edit pressed", Toast.LENGTH_SHORT).show();
+				AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
+						.getMenuInfo();
+				actionEdit(getItemId(info.position));
 				return true;
 			case R.id.menu_delete:
 				Toast.makeText(getActivity(), "Delete pressed", Toast.LENGTH_SHORT).show();
@@ -193,6 +207,11 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 	}
 
 	protected abstract BaseDetailFragment getDetailFragment();
+
+	protected int getItemId() {
+
+		return getItemId(getSelectedItemPosition());
+	}
 
 	protected int getItemId(final android.view.MenuItem item) {
 

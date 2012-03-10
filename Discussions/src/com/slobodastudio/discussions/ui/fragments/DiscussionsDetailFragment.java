@@ -1,10 +1,9 @@
-package com.slobodastudio.discussions.ui.activities;
+package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Discussion;
 import com.slobodastudio.discussions.data.model.Value;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
-import com.slobodastudio.discussions.ui.activities.base.BaseDetailFragment;
 
 import android.database.Cursor;
 import android.os.Bundle;

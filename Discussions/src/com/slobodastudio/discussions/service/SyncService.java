@@ -12,6 +12,7 @@
  */
 package com.slobodastudio.discussions.service;
 
+import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.ProviderTestData;
 import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataSyncService;
@@ -30,7 +31,8 @@ public class SyncService extends IntentService {
 	public static final int STATUS_ERROR = 0x2;
 	public static final int STATUS_FINISHED = 0x3;
 	public static final int STATUS_RUNNING = 0x1;
-	private static final String TAG = "SyncService";
+	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
+	private static final String TAG = SyncService.class.getSimpleName();
 
 	public SyncService() {
 
@@ -46,10 +48,12 @@ public class SyncService extends IntentService {
 	@Override
 	protected void onHandleIntent(final Intent intent) {
 
-		Log.d(TAG, "onHandleIntent(intent=" + intent.toString() + ")");
 		final ResultReceiver receiver = intent.getParcelableExtra(EXTRA_STATUS_RECEIVER);
 		if (receiver != null) {
 			receiver.send(STATUS_RUNNING, Bundle.EMPTY);
+		}
+		if (DEBUG) {
+			Log.d(TAG, "[onHandleIntent] intent: " + intent.toString() + ", receiver: " + receiver);
 		}
 		try {
 			// Bulk of sync work, performed by executing several fetches from

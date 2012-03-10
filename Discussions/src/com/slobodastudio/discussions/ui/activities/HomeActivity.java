@@ -1,25 +1,12 @@
-/*
- * Copyright 2011 Google Inc.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License is
- * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and limitations under the License.
- */
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.service.SyncService;
-import com.slobodastudio.discussions.ui.activities.base.BaseActivity;
 import com.slobodastudio.discussions.utils.AnalyticsUtils;
 import com.slobodastudio.discussions.utils.DetachableResultReceiver;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,20 +17,14 @@ import android.widget.Toast;
 
 import com.actionbarsherlock.view.MenuItem;
 
-/** Front-door {@link Activity} that displays high-level features the schedule application offers to users.
- * Depending on whether the device is a phone or an Android 3.0+ tablet, different layouts will be used. For
- * example, on a phone, the primary content is a {@link DashboardFragment}, whereas on a tablet, both a
- * {@link DashboardFragment} and a {@link TagStreamFragment} are displayed. */
-public class HomeActivity extends BaseActivity {
+public class HomeActivity extends BaseListActivity {
 
-	private static final String TAG = HomeActivity.class.getSimpleName();
 	private SyncStatusUpdaterFragment mSyncStatusUpdaterFragment;
 
-	private static void startNextActivity(final Activity activity) {
+	private static void startNextActivity(final Context context) {
 
 		Intent intent = new Intent(Intent.ACTION_VIEW, Persons.CONTENT_URI);
-		activity.startActivity(intent);
-		// activity.finish();
+		context.startActivity(intent);
 	}
 
 	@Override
@@ -69,19 +50,18 @@ public class HomeActivity extends BaseActivity {
 		if (mSyncStatusUpdaterFragment == null) {
 			mSyncStatusUpdaterFragment = new SyncStatusUpdaterFragment();
 			fm.beginTransaction().add(mSyncStatusUpdaterFragment, SyncStatusUpdaterFragment.TAG).commit();
-			triggerRefresh();
 		}
 	}
 
 	@Override
 	protected Fragment onCreatePane() {
 
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	private void triggerRefresh() {
 
+		updateRefreshStatus(true);
 		final Intent intent = new Intent(Intent.ACTION_SYNC, null, this, SyncService.class);
 		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mSyncStatusUpdaterFragment.mReceiver);
 		startService(intent);
@@ -89,7 +69,6 @@ public class HomeActivity extends BaseActivity {
 
 	private void updateRefreshStatus(final boolean refreshing) {
 
-		// TODO: stop rolling on second activity
 		setSupportProgressBarIndeterminateVisibility(refreshing);
 	}
 
@@ -98,7 +77,7 @@ public class HomeActivity extends BaseActivity {
 	public static class SyncStatusUpdaterFragment extends Fragment implements
 			DetachableResultReceiver.Receiver {
 
-		public static final String TAG = SyncStatusUpdaterFragment.class.getName();
+		public static final String TAG = SyncStatusUpdaterFragment.class.getSimpleName();
 		private DetachableResultReceiver mReceiver;
 		private boolean mSyncing = false;
 
@@ -122,6 +101,7 @@ public class HomeActivity extends BaseActivity {
 			setRetainInstance(true);
 			mReceiver = new DetachableResultReceiver(new Handler());
 			mReceiver.setReceiver(this);
+			((HomeActivity) getActivity()).triggerRefresh();
 		}
 
 		/** {@inheritDoc} */
@@ -144,7 +124,7 @@ public class HomeActivity extends BaseActivity {
 				case SyncService.STATUS_FINISHED: {
 					mSyncing = false;
 					activity.updateRefreshStatus(mSyncing);
-					startNextActivity(activity);
+					HomeActivity.startNextActivity(activity);
 					break;
 				}
 				case SyncService.STATUS_ERROR: {

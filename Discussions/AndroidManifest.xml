@@ -114,10 +114,19 @@
 
                 <data android:mimeType="vnd.android.cursor.item/vnd.discussions.point" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.point" />
+            </intent-filter>
         </activity>
 
         <service android:name=".photon.PhotonService" />
         <service android:name=".service.SyncService" />
+        <service android:name=".service.InsertService" />
+        <service android:name=".service.UpdateService" />
 
         <provider
             android:name=".data.provider.DiscussionsProvider"

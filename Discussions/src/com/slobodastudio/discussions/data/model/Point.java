@@ -4,6 +4,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 public class Point implements Value {
 
@@ -18,6 +19,22 @@ public class Point implements Value {
 	private final boolean sharedToPublic;
 	private final int sideCode;
 	private final int topicId;
+
+	public Point(final Bundle bundle) {
+
+		super();
+		agreementCode = bundle.getInt(Points.Columns.AGREEMENT_CODE);
+		drawing = bundle.getByteArray(Points.Columns.DRAWING);
+		expanded = bundle.getBoolean(Points.Columns.EXPANDED);
+		groupId = bundle.getInt(Points.Columns.GROUP_ID);
+		id = bundle.getInt(Points.Columns.ID);
+		name = bundle.getString(Points.Columns.NAME);
+		numberedPoint = bundle.getString(Points.Columns.NUMBERED_POINT);
+		personId = bundle.getInt(Points.Columns.PERSON_ID);
+		sharedToPublic = bundle.getBoolean(Points.Columns.SHARED_TO_PUBLIC);
+		sideCode = bundle.getInt(Points.Columns.SIDE_CODE);
+		topicId = bundle.getInt(Points.Columns.TOPIC_ID);
+	}
 
 	public Point(final Cursor cursor) {
 
@@ -82,6 +99,78 @@ public class Point implements Value {
 		this.sharedToPublic = sharedToPublic;
 		this.sideCode = sideCode;
 		this.topicId = topicId;
+	}
+
+	public int getAgreementCode() {
+
+		return agreementCode;
+	}
+
+	public byte[] getDrawing() {
+
+		return drawing;
+	}
+
+	public int getGroupId() {
+
+		return groupId;
+	}
+
+	public int getId() {
+
+		return id;
+	}
+
+	public String getName() {
+
+		return name;
+	}
+
+	public String getNumberedPoint() {
+
+		return numberedPoint;
+	}
+
+	public int getPersonId() {
+
+		return personId;
+	}
+
+	public int getSideCode() {
+
+		return sideCode;
+	}
+
+	public int getTopicId() {
+
+		return topicId;
+	}
+
+	public boolean isExpanded() {
+
+		return expanded;
+	}
+
+	public boolean isSharedToPublic() {
+
+		return sharedToPublic;
+	}
+
+	public Bundle toBundle() {
+
+		Bundle bundle = new Bundle();
+		bundle.putInt(Points.Columns.AGREEMENT_CODE, agreementCode);
+		bundle.putByteArray(Points.Columns.DRAWING, drawing);
+		bundle.putBoolean(Points.Columns.EXPANDED, expanded);
+		bundle.putInt(Points.Columns.GROUP_ID, groupId);
+		bundle.putInt(Points.Columns.ID, id);
+		bundle.putString(Points.Columns.NAME, name);
+		bundle.putString(Points.Columns.NUMBERED_POINT, numberedPoint);
+		bundle.putInt(Points.Columns.PERSON_ID, personId);
+		bundle.putBoolean(Points.Columns.SHARED_TO_PUBLIC, sharedToPublic);
+		bundle.putInt(Points.Columns.SIDE_CODE, sideCode);
+		bundle.putInt(Points.Columns.TOPIC_ID, topicId);
+		return bundle;
 	}
 
 	@Override

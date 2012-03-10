@@ -1,17 +1,18 @@
-package com.slobodastudio.discussions.ui.activities.base;
+package com.slobodastudio.discussions.ui.fragments;
 
-import com.slobodastudio.discussions.ui.activities.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.IntentExtrasKey;
 
 import android.content.ContentUris;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.actionbarsherlock.app.SherlockFragment;
+
 /** Override onCreate view to add your own details view. */
-public abstract class BaseDetailFragment extends Fragment {
+public abstract class BaseDetailFragment extends SherlockFragment {
 
 	protected static final int NO_SELECTION_ID = -1;
 	private final Uri baseUri;
