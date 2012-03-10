@@ -21,5 +21,9 @@
     <string name="fragment_empty_discussions">No discussions found</string>
     <string name="fragment_empty_topics">No topics found</string>
     <string name="toast_sync_error">Sync error: <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="agreement_code_pros">Pros</string>
+    <string name="agreement_code_cons">Cons</string>
+    <string name="agreement_code_neutral">Neutral</string>
+    <string name="agreement_code_prompt">Choose a code</string>
 
 </resources>

@@ -13,6 +13,8 @@
 package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.data.ProviderTestData;
+import com.slobodastudio.discussions.data.odata.ODataConstants;
+import com.slobodastudio.discussions.data.odata.OdataSyncService;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -53,10 +55,10 @@ public class SyncService extends IntentService {
 			// Bulk of sync work, performed by executing several fetches from
 			// local and online sources.
 			// TODO: download values here
-			ProviderTestData.generateData(this);
-			// ProviderTestData.deleteData(this);
-			// OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, this);
-			// service.downloadAllValues();
+			// ProviderTestData.generateData(this);
+			ProviderTestData.deleteData(this);
+			OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, this);
+			service.downloadAllValues();
 		} catch (Exception e) {
 			Log.e(TAG, "Problem while syncing", e);
 			if (receiver != null) {

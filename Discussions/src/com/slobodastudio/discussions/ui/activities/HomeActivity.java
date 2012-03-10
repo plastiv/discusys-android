@@ -13,7 +13,7 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.service.SyncService;
 import com.slobodastudio.discussions.ui.activities.base.BaseActivity;
 import com.slobodastudio.discussions.utils.AnalyticsUtils;
@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.actionbarsherlock.view.MenuItem;
@@ -40,7 +41,7 @@ public class HomeActivity extends BaseActivity {
 
 	private static void startNextActivity(final Activity activity) {
 
-		Intent intent = new Intent(Intent.ACTION_VIEW, Discussions.CONTENT_URI);
+		Intent intent = new Intent(Intent.ACTION_VIEW, Persons.CONTENT_URI);
 		activity.startActivity(intent);
 		// activity.finish();
 	}
@@ -104,6 +105,9 @@ public class HomeActivity extends BaseActivity {
 		@Override
 		public void onActivityCreated(final Bundle savedInstanceState) {
 
+			if (DEBUG) {
+				Log.d(TAG, "[onActivityCreated] savedInstanceState: " + savedInstanceState);
+			}
 			super.onActivityCreated(savedInstanceState);
 			((HomeActivity) getActivity()).updateRefreshStatus(mSyncing);
 		}
@@ -111,6 +115,9 @@ public class HomeActivity extends BaseActivity {
 		@Override
 		public void onCreate(final Bundle savedInstanceState) {
 
+			if (DEBUG) {
+				Log.d(TAG, "[onCreate] savedInstanceState: " + savedInstanceState);
+			}
 			super.onCreate(savedInstanceState);
 			setRetainInstance(true);
 			mReceiver = new DetachableResultReceiver(new Handler());
@@ -121,6 +128,9 @@ public class HomeActivity extends BaseActivity {
 		@Override
 		public void onReceiveResult(final int resultCode, final Bundle resultData) {
 
+			if (DEBUG) {
+				Log.d(TAG, "[onReceiveResult] resultCode: " + resultCode + ", resultData: " + resultData);
+			}
 			HomeActivity activity = (HomeActivity) getActivity();
 			if (activity == null) {
 				return;
@@ -128,23 +138,25 @@ public class HomeActivity extends BaseActivity {
 			switch (resultCode) {
 				case SyncService.STATUS_RUNNING: {
 					mSyncing = true;
+					activity.updateRefreshStatus(mSyncing);
 					break;
 				}
 				case SyncService.STATUS_FINISHED: {
 					mSyncing = false;
+					activity.updateRefreshStatus(mSyncing);
 					startNextActivity(activity);
 					break;
 				}
 				case SyncService.STATUS_ERROR: {
 					// Error happened down in SyncService, show as toast.
 					mSyncing = false;
+					activity.updateRefreshStatus(mSyncing);
 					final String errorText = getString(R.string.toast_sync_error, resultData
 							.getString(Intent.EXTRA_TEXT));
 					Toast.makeText(activity, errorText, Toast.LENGTH_LONG).show();
 					break;
 				}
 			}
-			activity.updateRefreshStatus(mSyncing);
 		}
 	}
 }

@@ -17,7 +17,7 @@ import com.actionbarsherlock.view.Window;
 
 public abstract class BaseActivity extends SherlockFragmentActivity {
 
-	static final boolean DEBUG = true | ApplicationConstants.DEBUG_MODE;
+	public static final boolean DEBUG = true | ApplicationConstants.DEBUG_MODE;
 	private static final String TAG = BaseActivity.class.getSimpleName();
 	private Fragment mFragment;
 
@@ -103,7 +103,6 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		// This has to be called before setContentView and you must use the
 		// class in com.actionbarsherlock.view and NOT android.view
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		setSupportProgressBarIndeterminateVisibility(false);
 		setContentView(com.slobodastudio.discussions.R.layout.base_activity);
 		FragmentManager fm = getSupportFragmentManager();
 		if (DEBUG) {
@@ -120,6 +119,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 				fm.beginTransaction().add(R.id.frame_layout_list, mFragment).commit();
 			}
 		}
+		setSupportProgressBarIndeterminateVisibility(false);
 	}
 
 	/** Called in <code>onCreate</code> when the fragment constituting this activity is needed. The returned

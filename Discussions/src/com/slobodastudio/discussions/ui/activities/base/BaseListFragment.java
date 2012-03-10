@@ -92,7 +92,10 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 		MyLog.v("Fragment", (String) item.getTitle());
 		switch (item.getItemId()) {
 			case R.id.menu_details:
-				Toast.makeText(getActivity(), "Details pressed", Toast.LENGTH_SHORT).show();
+				AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
+						.getMenuInfo();
+				showDetails(info.position);
+				// Toast.makeText(getActivity(), "Details pressed", Toast.LENGTH_SHORT).show();
 				return true;
 			case R.id.menu_discussions:
 				Toast.makeText(getActivity(), "Discussions pressed", Toast.LENGTH_SHORT).show();
@@ -113,7 +116,7 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 				Toast.makeText(getActivity(), "Delete pressed", Toast.LENGTH_SHORT).show();
 				return true;
 			default:
-				return super.onOptionsItemSelected(item);
+				return super.onContextItemSelected(item);
 		}
 	}
 
@@ -156,7 +159,7 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
 
 		super.onListItemClick(l, v, position, id);
-		showDetails(position);
+		// showDetails(position);
 	}
 
 	@Override
@@ -189,9 +192,35 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 		outState.putInt("curChoice", mCurCheckPosition);
 	}
 
+	protected abstract BaseDetailFragment getDetailFragment();
+
+	protected int getItemId(final android.view.MenuItem item) {
+
+		AdapterView.AdapterContextMenuInfo info;
+		try {
+			// Casts the incoming data object into the type for AdapterView objects.
+			info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+		} catch (ClassCastException e) {
+			// If the menu object can't be cast, logs an error.
+			throw new RuntimeException("bad menuInfo: " + item.getMenuInfo(), e);
+		}
+		return getItemId(info.position);
+	}
+
+	protected int getItemId(final int position) {
+
+		Cursor cursor = (Cursor) getListAdapter().getItem(position);
+		if (cursor == null) {
+			// For some reason the requested item isn't available, do nothing
+			return -1;
+		}
+		int columnIndex = cursor.getColumnIndexOrThrow(mColumnId);
+		return cursor.getInt(columnIndex);
+	}
+
 	/** Helper function to show the details of a selected item, either by displaying a fragment in-place in the
 	 * current UI, or starting a whole new activity in which it is displayed. */
-	void showDetails(final int position) {
+	protected void showDetails(final int position) {
 
 		mCurCheckPosition = position;
 		int valueId;
@@ -229,26 +258,5 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 			Intent intent = new Intent(Intent.ACTION_VIEW, detailsUri);
 			startActivity(intent);
 		}
-	}
-
-	protected abstract BaseDetailFragment getDetailFragment();
-
-	protected int getItemId(final android.view.MenuItem item) {
-
-		AdapterView.AdapterContextMenuInfo info;
-		try {
-			// Casts the incoming data object into the type for AdapterView objects.
-			info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-		} catch (ClassCastException e) {
-			// If the menu object can't be cast, logs an error.
-			throw new RuntimeException("bad menuInfo: " + item.getMenuInfo(), e);
-		}
-		Cursor cursor = (Cursor) getListAdapter().getItem(info.position);
-		if (cursor == null) {
-			// For some reason the requested item isn't available, do nothing
-			return -1;
-		}
-		int columnIndex = cursor.getColumnIndexOrThrow(mColumnId);
-		return cursor.getInt(columnIndex);
 	}
 }

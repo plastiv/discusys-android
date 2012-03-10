@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <TextView
+        android:id="@+id/tv_point_name"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Point name" />
+
+    <EditText
+        android:id="@+id/ed_point_name"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_point_name" />
+
+<!--     <TextView -->
+<!--         android:id="@+id/tv_point_agreement_code" -->
+<!--         android:layout_width="wrap_content" -->
+<!--         android:layout_height="wrap_content" -->
+<!--         android:layout_alignParentLeft="true" -->
+<!--         android:layout_below="@id/ed_point_name" -->
+<!--         android:layout_marginLeft="10dip" -->
+<!--         android:text="Please select agreement code:" /> -->
+
+<!--     <Spinner -->
+<!--         android:id="@+id/spinner_point_agreement_code" -->
+<!--         android:layout_width="wrap_content" -->
+<!--         android:layout_height="wrap_content" -->
+<!--         android:layout_alignTop="@id/tv_point_agreement_code" -->
+<!--         android:layout_toLeftOf="@id/tv_point_agreement_code" -->
+<!--         android:drawSelectorOnTop="true" -->
+<!--         android:prompt="@string/agreement_code_prompt" /> -->
+
+</RelativeLayout>

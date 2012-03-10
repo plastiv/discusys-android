@@ -1,7 +1,5 @@
 package com.slobodastudio.discussions.data.provider;
 
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-
 import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -163,7 +161,7 @@ public final class DiscussionsContract {
 		 *            table
 		 * 
 		 * @return a Uri for the given id */
-		public static Uri buildDiscussionsUri(final long valueId) {
+		public static Uri buildDiscussionUri(final long valueId) {
 
 			return CONTENT_URI.buildUpon().appendPath(String.valueOf(valueId)).appendPath(
 					Discussions.A_TABLE_PREFIX).build();
@@ -325,6 +323,14 @@ public final class DiscussionsContract {
 		public static String getValueId(final Uri uri) {
 
 			return uri.getPathSegments().get(1);
+		}
+
+		/** Agreement codes constants. */
+		public static final class AgreementCode {
+
+			public static final int CONS = 2;
+			public static final int NEUTRAL = 0;
+			public static final int PROS = 1;
 		}
 
 		/** List of columns names. */
