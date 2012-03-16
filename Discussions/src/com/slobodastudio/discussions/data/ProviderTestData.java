@@ -53,31 +53,32 @@ public class ProviderTestData {
 
 	public static void generatePersons(final ContentResolver cr) {
 
-		Person person = new Person(Color.BLACK, "android@test.com", 1, "Isaac Newton", false);
+		Person person = new Person(new byte[] {}, Color.BLACK, "android@test.com", 1, "Isaac Newton", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.BLUE, "android@test.com", 2, "Muhammad", false);
+		person = new Person(new byte[] {}, Color.BLUE, "android@test.com", 2, "Muhammad", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.CYAN, "android@test.com", 3, "Jesus Christ", false);
+		person = new Person(new byte[] {}, Color.CYAN, "android@test.com", 3, "Jesus Christ", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.DKGRAY, "android@test.com", 4, "Buddha", false);
+		person = new Person(new byte[] {}, Color.DKGRAY, "android@test.com", 4, "Buddha", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.GRAY, "android@test.com", 5, "Confucius", false);
+		person = new Person(new byte[] {}, Color.GRAY, "android@test.com", 5, "Confucius", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.GREEN, "android@test.com", 6, "St. Paul", false);
+		person = new Person(new byte[] {}, Color.GREEN, "android@test.com", 6, "St. Paul", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.LTGRAY, "android@test.com", 7, "Cài Lún", false);
+		person = new Person(new byte[] {}, Color.LTGRAY, "android@test.com", 7, "Cài Lún", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.MAGENTA, "android@test.com", 8, "Johannes Gutenberg", false);
+		person = new Person(new byte[] {}, Color.MAGENTA, "android@test.com", 8, "Johannes Gutenberg", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.RED, "android@test.com", 9, "Christopher Columbus", false);
+		person = new Person(new byte[] {}, Color.RED, "android@test.com", 9, "Christopher Columbus", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.WHITE, "android@test.com", 10, "Albert Einstein", false);
+		person = new Person(new byte[] {}, Color.WHITE, "android@test.com", 10, "Albert Einstein", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.YELLOW, "android@test.com", 11, "Hillary Rodham Clinton", false);
+		person = new Person(new byte[] {}, Color.YELLOW, "android@test.com", 11, "Hillary Rodham Clinton",
+				false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.BLACK, "android@test.com", 12, "Bill Gates", false);
+		person = new Person(new byte[] {}, Color.BLACK, "android@test.com", 12, "Bill Gates", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
-		person = new Person(Color.BLUE, "android@test.com", 13, "Mark Zuckerberg", false);
+		person = new Person(new byte[] {}, Color.BLUE, "android@test.com", 13, "Mark Zuckerberg", false);
 		cr.insert(Persons.CONTENT_URI, person.toContentValues());
 	}
 

@@ -296,6 +296,8 @@ public final class DiscussionsContract {
 		/** List of columns names. */
 		public static final class Columns implements BaseColumns {
 
+			/** Type Binary. */
+			public static final String AVATAR = "Avatar";
 			/** Type Int32. */
 			public static final String COLOR = "Color";
 			/** Type String. */
@@ -394,12 +396,15 @@ public final class DiscussionsContract {
 			return uri.getPathSegments().get(1);
 		}
 
-		/** Agreement codes constants. */
-		public static final class AgreementCode {
+		/** Agreements codes constants. */
+		public static final class ArgreementCode {
 
-			public static final int CONS = 0;
-			public static final int NEUTRAL = 1;
-			public static final int PROS = 2;
+			public static final int AGREED = 1;
+			public static final int AGREED_GROUPED = 4;
+			public static final int DISAGREED = 2;
+			public static final int DISAGREED_GROUPED = 5;
+			public static final int UNSOLVED = 0;
+			public static final int UNSOLVED_GROUPED = 3;
 		}
 
 		/** List of columns names. */
@@ -429,6 +434,14 @@ public final class DiscussionsContract {
 			public static final String SIDE_CODE = "SideCode";
 			/** Type Int32. */
 			public static final String TOPIC_ID = "Topic";
+		}
+
+		/** Side codes constants. */
+		public static final class SideCode {
+
+			public static final int CONS = 2;
+			public static final int NEUTRAL = 0;
+			public static final int PROS = 1;
 		}
 	}
 

@@ -1,8 +1,12 @@
 package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.model.Value;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.utils.MyLog;
 
+import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
@@ -13,6 +17,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
@@ -26,6 +31,7 @@ import com.actionbarsherlock.app.SherlockListFragment;
 public abstract class BaseListFragment extends SherlockListFragment implements
 		LoaderManager.LoaderCallbacks<Cursor> {
 
+	private static final String TAG = BaseListFragment.class.getSimpleName();
 	protected final String mColumnId;
 	private final Uri baseUri;
 	// This is the Adapter being used to display the list's data.
@@ -47,12 +53,14 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 
 	public void actionAdd() {
 
+		Log.d(TAG, "[actionAdd]");
 	}
 
 	public void actionEdit(final int valueId) {
 
 		Uri uri = ContentUris.withAppendedId(baseUri, valueId);
 		Intent intent = new Intent(Intent.ACTION_EDIT, uri);
+		Log.d(TAG, "[actionEdit] id: " + valueId + ", intent: " + intent);
 		startActivity(intent);
 	}
 
@@ -65,6 +73,7 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
+		Log.v(TAG, "[onActivityCreared] saved state: " + savedInstanceState);
 		registerForContextMenu(getListView());
 		// Give some text to display if there is no data. In a real
 		// application this would come from a resource.
@@ -98,6 +107,13 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 	}
 
 	@Override
+	public void onAttach(final Activity activity) {
+
+		super.onAttach(activity);
+		Log.v(TAG, "[onAttach] activity:" + activity);
+	}
+
+	@Override
 	public boolean onContextItemSelected(final android.view.MenuItem item) {
 
 		MyLog.v("Fragment", (String) item.getTitle());
@@ -122,9 +138,15 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 				Toast.makeText(getActivity(), "Topics pressed", Toast.LENGTH_SHORT).show();
 				return true;
 			case R.id.menu_edit:
-				AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
-						.getMenuInfo();
-				actionEdit(getItemId(info.position));
+				// AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
+				// .getMenuInfo();
+				// actionEdit(getItemId(info.position));
+				final int groupId = 1;
+				final int personId = 2;
+				final int topicId = 1;
+				Value point = new Point(Points.ArgreementCode.UNSOLVED, null, false, groupId, 1124,
+						"Edit point", null, personId, true, Points.SideCode.NEUTRAL, topicId);
+				getActivity().getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
 				return true;
 			case R.id.menu_delete:
 				Toast.makeText(getActivity(), "Delete pressed", Toast.LENGTH_SHORT).show();

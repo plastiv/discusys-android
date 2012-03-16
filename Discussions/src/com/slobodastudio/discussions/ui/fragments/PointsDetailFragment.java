@@ -45,16 +45,18 @@ public class PointsDetailFragment extends BaseDetailFragment {
 				return text;
 			}
 			Cursor cursor = getActivity().getContentResolver().query(getDetailsUri(), null, null, null, null);
-			Point value = new Point(cursor);
-			// name
-			EditText editText = (EditText) layout.findViewById(R.id.et_point_name);
-			editText.setText(value.getName());
-			// agreement code
-			Spinner s = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
-			s.setSelection(value.getAgreementCode());
-			// shared to public
-			CheckBox checkBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
-			checkBox.setChecked(value.isSharedToPublic());
+			if (cursor.getCount() > 0) {
+				Point value = new Point(cursor);
+				// name
+				EditText editText = (EditText) layout.findViewById(R.id.et_point_name);
+				editText.setText(value.getName());
+				// agreement code
+				Spinner s = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
+				s.setSelection(value.getAgreementCode());
+				// shared to public
+				CheckBox checkBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
+				checkBox.setChecked(value.isSharedToPublic());
+			}
 		}
 		return layout;
 	}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-    <string name="app_name">Discussions</string>
+    <string name="app_name">Discusys</string>
     <string name="activity_name_persons">Persons</string>
     <string name="activity_name_discussions">Discussions</string>
     <string name="activity_name_topics">Topics</string>
@@ -17,6 +17,7 @@
     <string name="menu_edit">Edit</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_action_save">Save</string>
+    <string name="menu_action_cancel">Cancel</string>
     <string name="fragment_empty_persons">No persons found</string>
     <string name="fragment_empty_points">No points found</string>
     <string name="fragment_empty_discussions">No discussions found</string>

@@ -22,6 +22,7 @@ public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	static ContentValues getTestValue(final int valueId) {
 
 		final ContentValues cv = new ContentValues();
+		cv.put(Persons.Columns.AVATAR, new byte[] {});
 		cv.put(Persons.Columns.ID, Integer.valueOf(valueId));
 		cv.put(Persons.Columns.NAME, "person name");
 		cv.put(Persons.Columns.EMAIL, "person@mail");

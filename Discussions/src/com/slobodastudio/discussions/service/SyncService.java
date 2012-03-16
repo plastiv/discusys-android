@@ -59,6 +59,7 @@ public class SyncService extends IntentService {
 			// Bulk of sync work, performed by executing several fetches from
 			// local and online sources.
 			// TODO: download values here
+			// ProviderTestData.deleteData(this);
 			// ProviderTestData.generateData(this);
 			ProviderTestData.deleteData(this);
 			OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, this);

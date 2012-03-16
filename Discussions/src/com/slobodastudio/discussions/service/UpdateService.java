@@ -16,6 +16,7 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -43,7 +44,11 @@ public class UpdateService extends IntentService {
 			// Bulk of sync work, performed by executing several fetches from
 			// local and online sources.
 			OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
-			odataWrite.updatePoint(new Point(intent.getExtras()));
+			Point point = new Point(intent.getExtras());
+			odataWrite.updatePoint(point);
+			String where = Points.Columns.ID + "=?";
+			String[] args = new String[] { String.valueOf(point.getId()) };
+			getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where, args);
 		} catch (Exception e) {
 			Log.e(TAG, "Problem while syncing", e);
 		}

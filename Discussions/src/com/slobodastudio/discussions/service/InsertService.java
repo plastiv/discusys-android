@@ -15,11 +15,14 @@ package com.slobodastudio.discussions.service;
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.odata.ODataConstants;
+import com.slobodastudio.discussions.data.odata.OdataSyncService;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 
 import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
+
+import org.odata4j.core.OEntity;
 
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. Reads data from both
  * local {@link Resources} and from remote sources, such as a spreadsheet. */
@@ -43,7 +46,10 @@ public class InsertService extends IntentService {
 			// Bulk of sync work, performed by executing several fetches from
 			// local and online sources.
 			OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
-			odataWrite.insertPoint(new Point(intent.getExtras()));
+			OEntity insertedItem = odataWrite.insertPoint(new Point(intent.getExtras()));
+			OdataSyncService odataSync = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN,
+					getBaseContext());
+			odataSync.insertPoint(insertedItem);
 		} catch (Exception e) {
 			Log.e(TAG, "Problem while syncing", e);
 		}

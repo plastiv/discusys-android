@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.data.provider;
 
+import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
@@ -34,7 +35,7 @@ public class DiscussionsProvider extends ContentProvider {
 	private static final int DISCUSSIONS_DIR = 101;
 	private static final int DISCUSSIONS_ITEM = 100;
 	private static final int DISCUSSIONS_ITEM_TOPICS_DIR = 102;
-	private static final boolean LOGV = true;
+	private static final boolean LOGV = true && ApplicationConstants.DEBUG_MODE;
 	private static final int PERSONS_DIR = 201;
 	private static final int PERSONS_ITEM = 200;
 	private static final int PERSONS_ITEM_DISCUSSIONS_DIR = 204;
@@ -268,16 +269,19 @@ public class DiscussionsProvider extends ContentProvider {
 		}
 		final SQLiteDatabase db = mOpenHelper.getReadableDatabase();
 		SelectionBuilder builder = new SelectionBuilder();
+		Uri notificationUri;
 		final int match = sUriMatcher.match(uri);
 		switch (match) {
 			case DISCUSSIONS_ITEM_TOPICS_DIR: {
 				final String valueId = Discussions.getValueId(uri);
 				builder.table(Topics.TABLE_NAME).where(Topics.Columns.DISCUSSION_ID + "=?", valueId);
+				notificationUri = Topics.CONTENT_URI;
 				break;
 			}
 			case PERSONS_ITEM_POINTS_DIR: {
 				final String valueId = Persons.getValueId(uri);
 				builder.table(Points.TABLE_NAME).where(Points.Columns.PERSON_ID + "=?", valueId);
+				notificationUri = Points.CONTENT_URI;
 				break;
 			}
 			case PERSONS_ITEM_TOPICS_DIR: {
@@ -286,8 +290,11 @@ public class DiscussionsProvider extends ContentProvider {
 						Topics.TABLE_NAME).mapToTable(Topics.Columns.ID, Topics.TABLE_NAME).where(
 						PersonsTopics.Columns.PERSON_ID + "=? AND " + PersonsTopics.Columns.TOPIC_ID + "="
 								+ Topics.Columns.ID, valueId);
-				return builder.query(db, new String[] { BaseColumns._ID, Topics.Columns.ID,
+				notificationUri = Discussions.CONTENT_URI;
+				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Topics.Columns.ID,
 						Topics.Columns.NAME, Topics.Columns.DISCUSSION_ID }, sortOrder);
+				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+				return c;
 			}
 			case PERSONS_ITEM_DISCUSSIONS_DIR: {
 				final String valueId = Persons.getValueId(uri);
@@ -299,18 +306,26 @@ public class DiscussionsProvider extends ContentProvider {
 										+ "=" + Topics.Qualified.TOPIC_ID + " AND "
 										+ Topics.Columns.DISCUSSION_ID + "="
 										+ Discussions.Qualified.DISCUSSION_ID, valueId);
-				return builder.query(db, new String[] { BaseColumns._ID, Discussions.Columns.ID,
-						Discussions.Columns.SUBJECT }, sortOrder);
+				notificationUri = Discussions.CONTENT_URI;
+				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Discussions.Columns.ID,
+						Discussions.Columns.SUBJECT }, Discussions.Qualified.DISCUSSION_ID, null, sortOrder,
+						null);
+				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+				return c;
 			}
 			case TOPICS_ITEM_POINTS_DIR: {
 				final String valueId = Topics.getValueId(uri);
 				builder.table(Points.TABLE_NAME).where(Points.Columns.TOPIC_ID + "=?", valueId);
+				notificationUri = Points.CONTENT_URI;
 				break;
 			}
 			default:
+				notificationUri = uri;
 				builder = buildSimpleSelection(uri);
 		}
-		return builder.query(db, projection, sortOrder);
+		Cursor c = builder.query(db, projection, sortOrder);
+		c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+		return c;
 	}
 
 	@Override

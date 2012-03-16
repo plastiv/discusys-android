@@ -12,7 +12,8 @@
     <EditText
         android:id="@+id/et_point_name"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:inputType="text" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +23,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Please select agreement code:" />
+            android:text="Please select side code:" />
 
         <Spinner
             android:id="@+id/spinner_point_agreement_code"
@@ -47,7 +48,8 @@
         <CheckBox
             android:id="@+id/chb_share_to_public"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:checked="true" />
     </LinearLayout>
 
 </LinearLayout>

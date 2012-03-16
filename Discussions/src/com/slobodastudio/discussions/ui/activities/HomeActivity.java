@@ -8,6 +8,7 @@ import com.slobodastudio.discussions.utils.DetachableResultReceiver;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -51,6 +52,13 @@ public class HomeActivity extends BaseListActivity {
 			mSyncStatusUpdaterFragment = new SyncStatusUpdaterFragment();
 			fm.beginTransaction().add(mSyncStatusUpdaterFragment, SyncStatusUpdaterFragment.TAG).commit();
 		}
+		String versionName;
+		try {
+			versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+		} catch (NameNotFoundException e) {
+			throw new RuntimeException();
+		}
+		Toast.makeText(this, "version " + versionName, Toast.LENGTH_LONG).show();
 	}
 
 	@Override

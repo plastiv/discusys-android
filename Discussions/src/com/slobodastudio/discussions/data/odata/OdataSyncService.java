@@ -113,6 +113,35 @@ public class OdataSyncService {
 		}
 	}
 
+	public Uri insertPoint(final OEntity point) {
+
+		// get properties
+		ContentValues cv = OEntityToContentValue(point);
+		// get navigation id
+		cv.put(Points.Columns.PERSON_ID, getNavigationPropertyId(point, Points.Columns.PERSON_ID,
+				Persons.Columns.ID));
+		cv.put(Points.Columns.TOPIC_ID, getNavigationPropertyId(point, Points.Columns.TOPIC_ID,
+				Topics.Columns.ID));
+		// insert into topic table
+		// if (!cv.containsKey(Points.Columns.NUMBERED_POINT)) {
+		// cv.put(Points.Columns.NUMBERED_POINT, "default numbered point");
+		// }
+		// if (!cv.containsKey(Points.Columns.DRAWING)) {
+		// cv.put(Points.Columns.DRAWING, new byte[] { 2, 3 });
+		// }
+		cv.put(Points.Columns.NUMBERED_POINT, "default numbered point");
+		cv.put(Points.Columns.DRAWING, new byte[] { 2, 3 });
+		cv.put(Points.Columns.GROUP_ID, 1);
+		if (LOGV) {
+			MyLog.v(TAG, "Content value: " + cv.toString());
+		}
+		try {
+			return context.getContentResolver().insert(Points.CONTENT_URI, cv);
+		} catch (SQLiteException e) {
+			throw new RuntimeException("Cant insert value: " + cv.toString(), e);
+		}
+	}
+
 	private int getNavigationPropertyId(final OEntity entity, final String navPropertyName,
 			final String originalPropertyName) {
 
@@ -155,35 +184,6 @@ public class OdataSyncService {
 			} catch (SQLiteException e) {
 				throw new RuntimeException("Cant insert value: " + cv.toString(), e);
 			}
-		}
-	}
-
-	private Uri insertPoint(final OEntity point) {
-
-		// get properties
-		ContentValues cv = OEntityToContentValue(point);
-		// get navigation id
-		cv.put(Points.Columns.PERSON_ID, getNavigationPropertyId(point, Points.Columns.PERSON_ID,
-				Persons.Columns.ID));
-		cv.put(Points.Columns.TOPIC_ID, getNavigationPropertyId(point, Points.Columns.TOPIC_ID,
-				Topics.Columns.ID));
-		// insert into topic table
-		// if (!cv.containsKey(Points.Columns.NUMBERED_POINT)) {
-		// cv.put(Points.Columns.NUMBERED_POINT, "default numbered point");
-		// }
-		// if (!cv.containsKey(Points.Columns.DRAWING)) {
-		// cv.put(Points.Columns.DRAWING, new byte[] { 2, 3 });
-		// }
-		cv.put(Points.Columns.NUMBERED_POINT, "default numbered point");
-		cv.put(Points.Columns.DRAWING, new byte[] { 2, 3 });
-		cv.put(Points.Columns.GROUP_ID, 1);
-		if (LOGV) {
-			MyLog.v(TAG, "Content value: " + cv.toString());
-		}
-		try {
-			return context.getContentResolver().insert(Points.CONTENT_URI, cv);
-		} catch (SQLiteException e) {
-			throw new RuntimeException("Cant insert value: " + cv.toString(), e);
 		}
 	}
 

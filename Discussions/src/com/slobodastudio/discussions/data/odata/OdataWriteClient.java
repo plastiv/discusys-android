@@ -99,7 +99,6 @@ public class OdataWriteClient {
 
 	public boolean updatePoint(final Point point) {
 
-		// OEntity entity = consumer.getEntity(Points.TABLE_NAME, point.getId()).execute();
 		// @formatter:off
 		return consumer.mergeEntity(Points.TABLE_NAME, point.getId())
 				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, point.getAgreementCode()))
