@@ -70,7 +70,7 @@ public class HomeActivity extends BaseListActivity {
 	private void triggerRefresh() {
 
 		updateRefreshStatus(true);
-		final Intent intent = new Intent(Intent.ACTION_SYNC, null, this, SyncService.class);
+		final Intent intent = new Intent(SyncService.ACTION_SYNC);
 		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mSyncStatusUpdaterFragment.mReceiver);
 		startService(intent);
 	}

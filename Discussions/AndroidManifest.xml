@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
     android:versionCode="1"
-    android:versionName="0.1.2" >
+    android:versionName="0.1.3" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -105,10 +105,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activities.PointsDetailsActivity"
+            android:name=".ui.activities.PointDetailsActivity"
             android:label="@string/activity_name_points" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.point" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
 
                 <category android:name="android.intent.category.DEFAULT" />
 
@@ -124,9 +131,23 @@
         </activity>
 
         <service android:name=".photon.PhotonService" />
-        <service android:name=".service.SyncService" />
-        <service android:name=".service.InsertService" />
-        <service android:name=".service.UpdateService" />
+        <service android:name=".service.SyncService" >
+            <intent-filter>
+                <action android:name="com.slobodastudio.action.sync" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.slobodastudio.action.insert" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.slobodastudio.action.update" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
 
         <provider
             android:name=".data.provider.DiscussionsProvider"

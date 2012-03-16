@@ -67,7 +67,8 @@ public class DiscussionsProvider extends ContentProvider {
 				return builder.table(Points.TABLE_NAME);
 			case POINTS_ITEM: {
 				final String valueId = Points.getValueId(uri);
-				return builder.table(Points.TABLE_NAME).where(Points.Columns.ID + "=?", valueId);
+				// NOTE: this select where is different column by _id, not a Id
+				return builder.table(Points.TABLE_NAME).where(BaseColumns._ID + "=?", valueId);
 			}
 			case PERSONS_DIR:
 				return builder.table(Persons.TABLE_NAME);
@@ -265,7 +266,9 @@ public class DiscussionsProvider extends ContentProvider {
 			final String[] selectionArgs, final String sortOrder) {
 
 		if (LOGV) {
-			Log.v(TAG, "query(uri=" + uri + ", proj=" + Arrays.toString(projection) + ")");
+			Log.v(TAG, "query(uri=" + uri + ", proj=" + Arrays.toString(projection) + ", selection="
+					+ selection + ", selectArg=" + Arrays.toString(selectionArgs) + ", sortOrder="
+					+ sortOrder + ")");
 		}
 		final SQLiteDatabase db = mOpenHelper.getReadableDatabase();
 		SelectionBuilder builder = new SelectionBuilder();
@@ -322,6 +325,7 @@ public class DiscussionsProvider extends ContentProvider {
 			default:
 				notificationUri = uri;
 				builder = buildSimpleSelection(uri);
+				builder.where(selection, selectionArgs);
 		}
 		Cursor c = builder.query(db, projection, sortOrder);
 		c.setNotificationUri(getContext().getContentResolver(), notificationUri);

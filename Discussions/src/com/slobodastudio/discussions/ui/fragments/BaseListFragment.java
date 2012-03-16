@@ -6,7 +6,6 @@ import com.slobodastudio.discussions.data.model.Value;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.utils.MyLog;
 
-import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
@@ -104,13 +103,6 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 			// Make sure our UI is in the correct state.
 			showDetails(mCurCheckPosition);
 		}
-	}
-
-	@Override
-	public void onAttach(final Activity activity) {
-
-		super.onAttach(activity);
-		Log.v(TAG, "[onAttach] activity:" + activity);
 	}
 
 	@Override
