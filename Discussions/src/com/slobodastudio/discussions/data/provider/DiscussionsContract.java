@@ -445,6 +445,75 @@ public final class DiscussionsContract {
 		}
 	}
 
+	/** Describes description's table. Each description is associated with a {@link Points} or
+	 * {@link Discussions}. */
+	public static final class RichText {
+
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "rich_text";
+		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The MIME type of {@link #CONTENT_URI} providing a single point */
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The content:// style URL for this table */
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
+		/** Default "ORDER BY" clause. */
+		public static final String DEFAULT_SORT = Columns.TEXT + " ASC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "RichText";
+
+		/** A private Constructor prevents class from instantiating. */
+		private RichText() {
+
+			throw new UnsupportedOperationException("Class is prevented from instantiation");
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique value identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final long valueId) {
+
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique row identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
+		 * 
+		 * @param uri
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
+
+			return uri.getPathSegments().get(1);
+		}
+
+		/** List of columns names. */
+		public static final class Columns implements BaseColumns {
+
+			/** Type Int32. Foreign key. */
+			public static final String DISCUSSION_ID = "Discussion";
+			/** Type Int32. */
+			public static final String ID = "Id";
+			/** Type Int32. Foreign key. */
+			public static final String POINT_ID = "Point";
+			/** Type String. */
+			public static final String TEXT = "Text";
+		}
+	}
+
 	/** Describes topic's table. Each topic is associated with a {@link Discussions}. */
 	public static final class Topics {
 

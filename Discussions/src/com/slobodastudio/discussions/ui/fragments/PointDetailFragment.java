@@ -25,8 +25,12 @@ import com.actionbarsherlock.app.SherlockFragment;
 
 public class PointDetailFragment extends SherlockFragment {
 
+	public static final int INVALID_POINT_ID = Integer.MIN_VALUE;
 	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
-	private static final int INVALID_POINT_ID = Integer.MIN_VALUE;
+	private static final String EXTRA_ACTION = "extra_key_action";
+	private static final String EXTRA_PERSON_ID = IntentExtrasKey.PERSON_ID;
+	private static final String EXTRA_TOPIC_ID = IntentExtrasKey.TOPIC_ID;
+	private static final String EXTRA_URI = "extra_key_uri";
 	private static final String TAG = PointDetailFragment.class.getSimpleName();
 	private static final int TYPE_DIR = 1;
 	private static final int TYPE_ITEM = 0;
@@ -37,6 +41,66 @@ public class PointDetailFragment extends SherlockFragment {
 	private int pointId = INVALID_POINT_ID;
 	private int topicId;
 	private int typeId;
+
+	/** Converts an intent into a {@link Bundle} suitable for use as fragment arguments. */
+	public static Bundle intentToFragmentArguments(final Intent intent) {
+
+		Bundle arguments = new Bundle();
+		if (intent == null) {
+			return arguments;
+		}
+		final Uri data = intent.getData();
+		if (data != null) {
+			arguments.putParcelable(EXTRA_URI, data);
+		}
+		final String action = intent.getAction();
+		if (action != null) {
+			arguments.putString(EXTRA_ACTION, action);
+		}
+		final Bundle extras = intent.getExtras();
+		if (extras != null) {
+			arguments.putAll(intent.getExtras());
+		}
+		return arguments;
+	}
+
+	public int getPointId() {
+
+		return pointId;
+	}
+
+	public void onActionCancel() {
+
+		// discard changes
+		String action = getArguments().getString(EXTRA_ACTION);
+		if (action.equals(Intent.ACTION_EDIT)) {
+			switch (typeId) {
+				case TYPE_DIR:
+					throw new UnsupportedOperationException();
+				case TYPE_ITEM: {
+					Uri uri = getArguments().getParcelable(EXTRA_URI);
+					Cursor cursor = getActivity().getContentResolver().query(uri, null, null, null, null);
+					if (cursor.getCount() == 1) {
+						Point value = new Point(cursor);
+						pointId = value.getId();
+						personId = value.getPersonId();
+						topicId = value.getTopicId();
+						mNameEditText.setText(value.getName());
+						mSideCodeSpinner.setSelection(value.getAgreementCode());
+						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+					} else {
+						throw new IllegalStateException("Expected single value in cursor, was: "
+								+ cursor.getCount());
+					}
+					break;
+				}
+				default:
+					throw new IllegalArgumentException("Unknown type id: " + typeId);
+			}
+		} else {
+			throw new IllegalArgumentException("Unknown action: " + action);
+		}
+	}
 
 	public void onActionSave() {
 
@@ -100,10 +164,9 @@ public class PointDetailFragment extends SherlockFragment {
 			return null;
 		}
 		if (DEBUG) {
-			Log.d(TAG, "[onCreateView] intent: " + getActivity().getIntent());
+			Log.d(TAG, "[onCreateView] arguments: " + getArguments().toString());
 		}
-		Intent intent = getActivity().getIntent();
-		Uri uri = intent.getData();
+		Uri uri = getArguments().getParcelable(EXTRA_URI);
 		String type = getActivity().getContentResolver().getType(uri);
 		if (type.equals(Points.CONTENT_DIR_TYPE)) {
 			typeId = TYPE_DIR;
@@ -118,18 +181,18 @@ public class PointDetailFragment extends SherlockFragment {
 		mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
 		mSharedToPublicCheckBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
 		// fill in data
-		String action = intent.getAction();
+		String action = getArguments().getString(EXTRA_ACTION);
 		if (action.equals(Intent.ACTION_EDIT)) {
 			switch (typeId) {
 				case TYPE_DIR:
 					// leave empty fields to create new point
-					if (getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_ID)) {
-						personId = getActivity().getIntent().getExtras().getInt(IntentExtrasKey.PERSON_ID);
+					if (getArguments().containsKey(EXTRA_PERSON_ID)) {
+						personId = getArguments().getInt(EXTRA_PERSON_ID);
 					} else {
 						throw new IllegalStateException("intent was without person id");
 					}
-					if (getActivity().getIntent().hasExtra(IntentExtrasKey.TOPIC_ID)) {
-						topicId = getActivity().getIntent().getExtras().getInt(IntentExtrasKey.TOPIC_ID);
+					if (getArguments().containsKey(EXTRA_TOPIC_ID)) {
+						topicId = getArguments().getInt(EXTRA_TOPIC_ID);
 					} else {
 						throw new IllegalStateException("intent was without topic id");
 					}

@@ -30,6 +30,8 @@ public class PointDetailsActivity extends BaseDetailActivity {
 	@Override
 	protected Fragment onCreatePane() {
 
-		return new PointDetailFragment();
+		PointDetailFragment fragment = new PointDetailFragment();
+		fragment.setArguments(PointDetailFragment.intentToFragmentArguments(getIntent()));
+		return fragment;
 	}
 }

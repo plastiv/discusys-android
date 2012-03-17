@@ -7,6 +7,7 @@
     <string name="activity_name_topics">Topics</string>
     <string name="activity_name_points">Points</string>
     <string name="activity_name_home">Home</string>
+    <string name="action_mode_name_points">Edit point</string>
     <string name="menu_refresh">Refresh</string>
     <string name="menu_new">New</string>
     <string name="menu_details">Details</string>
