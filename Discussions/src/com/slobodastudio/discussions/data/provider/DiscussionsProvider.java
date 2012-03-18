@@ -1,11 +1,13 @@
 package com.slobodastudio.discussions.data.provider;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentProvider;
@@ -32,6 +34,8 @@ public class DiscussionsProvider extends ContentProvider {
 
 	private static final int COMMENTS_DIR = 500;
 	private static final int COMMENTS_ITEM = 501;
+	private static final int DESCRIPTION_DIR = 600;
+	private static final int DESCRIPTION_ITEM = 601;
 	private static final int DISCUSSIONS_DIR = 101;
 	private static final int DISCUSSIONS_ITEM = 100;
 	private static final int DISCUSSIONS_ITEM_TOPICS_DIR = 102;
@@ -88,6 +92,12 @@ public class DiscussionsProvider extends ContentProvider {
 				final String valueId = Comments.getValueId(uri);
 				return builder.table(Comments.TABLE_NAME).where(Comments.Columns.ID + "=?", valueId);
 			}
+			case DESCRIPTION_DIR:
+				return builder.table(RichText.TABLE_NAME);
+			case DESCRIPTION_ITEM: {
+				final String valueId = RichText.getValueId(uri);
+				return builder.table(RichText.TABLE_NAME).where(RichText.Columns.ID + "=?", valueId);
+			}
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -124,6 +134,9 @@ public class DiscussionsProvider extends ContentProvider {
 		// comment
 		matcher.addURI(authority, Comments.A_TABLE_PREFIX, COMMENTS_DIR);
 		matcher.addURI(authority, Comments.A_TABLE_PREFIX + "/*", COMMENTS_ITEM);
+		// description
+		matcher.addURI(authority, RichText.A_TABLE_PREFIX, DESCRIPTION_DIR);
+		matcher.addURI(authority, RichText.A_TABLE_PREFIX + "/*", DESCRIPTION_ITEM);
 		return matcher;
 	}
 
@@ -196,6 +209,10 @@ public class DiscussionsProvider extends ContentProvider {
 				return Comments.CONTENT_DIR_TYPE;
 			case COMMENTS_ITEM:
 				return Comments.CONTENT_ITEM_TYPE;
+			case DESCRIPTION_DIR:
+				return RichText.CONTENT_DIR_TYPE;
+			case DESCRIPTION_ITEM:
+				return RichText.CONTENT_ITEM_TYPE;
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -218,6 +235,11 @@ public class DiscussionsProvider extends ContentProvider {
 					insertedUri = Discussions.buildTableUri(insertedId);
 					break;
 				case POINTS_DIR:
+					if (values.containsKey(Points.Columns.GROUP_ID_SERVER)) {
+						values.put(Points.Columns.GROUP_ID, values
+								.getAsInteger(Points.Columns.GROUP_ID_SERVER));
+						values.remove(Points.Columns.GROUP_ID_SERVER);
+					}
 					insertedId = db.insertOrThrow(Points.TABLE_NAME, null, values);
 					insertedUri = Points.buildTableUri(insertedId);
 					break;
@@ -237,11 +259,15 @@ public class DiscussionsProvider extends ContentProvider {
 					insertedId = db.insertOrThrow(Comments.TABLE_NAME, null, values);
 					insertedUri = Comments.buildTableUri(insertedId);
 					break;
+				case DESCRIPTION_DIR:
+					insertedId = db.insertOrThrow(RichText.TABLE_NAME, null, values);
+					insertedUri = RichText.buildTableUri(insertedId);
+					break;
 				default:
 					throw new IllegalArgumentException("Unknown uri: " + uri);
 			}
 		} catch (SQLiteException e) {
-			throw new RuntimeException("Unable to insert uri: " + uri + ", value: " + values.toString(), e);
+			throw new DataIoException("Unable to insert uri: " + uri + ", value: " + values.toString(), e);
 		}
 		getContext().getContentResolver().notifyChange(uri, null);
 		return insertedUri;

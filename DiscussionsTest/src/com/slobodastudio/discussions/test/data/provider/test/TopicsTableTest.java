@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.data.provider.test;
+package com.slobodastudio.discussions.test.data.provider.test;
 
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;

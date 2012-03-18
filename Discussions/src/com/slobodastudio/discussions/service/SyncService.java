@@ -93,6 +93,7 @@ public class SyncService extends IntentService {
 				bundle.putString(Intent.EXTRA_TEXT, e.toString());
 				receiver.send(STATUS_ERROR, bundle);
 			}
+			return;
 		}
 		// Announce success to any surface listener
 		if (DEBUG) {

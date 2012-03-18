@@ -4,14 +4,19 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="8" />
+   <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="14" />
+
+    <supports-screens android:anyDensity="true" />
 
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
-        android:targetPackage="com.slobodastudio.discussions" />
+        android:targetPackage="com.slobodastudio.discussions" android:functionalTest="true" />
 
-    <application>
-        <uses-library android:name="android.test.runner" />
+    <application> 
+        
+        <uses-library android:name="android.test.runner" android:required="true" />
     </application>
 
 </manifest>

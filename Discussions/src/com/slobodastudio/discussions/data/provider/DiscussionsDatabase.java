@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussio
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.Context;
@@ -19,7 +20,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 25;
+	private static final int DATABASE_VERSION = 26;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -60,20 +61,28 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ Comments.Columns.ID + " INTEGER NOT NULL,"
 				+ Comments.Columns.NAME + " TEXT NOT NULL,"
-				+ Comments.Columns.PERSON_ID + " INTEGER NOT NULL " + References.PERSON_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
-				+ Comments.Columns.POINT_ID + " INTEGER NOT NULL " + References.POINT_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
+				+ Comments.Columns.PERSON_ID + " INTEGER " + References.PERSON_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
+				+ Comments.Columns.POINT_ID + " INTEGER " + References.POINT_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ " UNIQUE (" + Comments.Columns.ID + ") ON CONFLICT REPLACE)");
+		
+		db.execSQL("CREATE TABLE " + RichText.TABLE_NAME + " (" 
+				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ RichText.Columns.ID + " INTEGER NOT NULL,"
+				+ RichText.Columns.TEXT + " TEXT NOT NULL,"
+				+ RichText.Columns.DISCUSSION_ID + " INTEGER " + References.DISCUSSION_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
+				+ RichText.Columns.POINT_ID + " INTEGER " + References.POINT_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
+				+ " UNIQUE (" + RichText.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		db.execSQL("CREATE TABLE " + Points.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ Points.Columns.ID + " INTEGER NOT NULL,"
 				+ Points.Columns.PERSON_ID + " INTEGER NOT NULL " + References.PERSON_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ Points.Columns.TOPIC_ID + " INTEGER NOT NULL " + References.TOPIC_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
-			    + Points.Columns.GROUP_ID + " INTEGER NOT NULL,"
+			    + Points.Columns.GROUP_ID + " INTEGER,"
 				+ Points.Columns.AGREEMENT_CODE + " INTEGER NOT NULL,"
-				+ Points.Columns.DRAWING + " TEXT NOT NULL,"
+				+ Points.Columns.DRAWING + " TEXT,"
 				+ Points.Columns.EXPANDED + " INTEGER NOT NULL,"
-				+ Points.Columns.NUMBERED_POINT + " TEXT NOT NULL,"
+				+ Points.Columns.NUMBERED_POINT + " TEXT,"
 				+ Points.Columns.NAME + " TEXT NOT NULL,"
 				+ Points.Columns.SHARED_TO_PUBLIC + " INTEGER NOT NULL,"
 				+ Points.Columns.SIDE_CODE + " INTEGER NOT NULL,"
@@ -117,6 +126,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 			db.execSQL("DROP TABLE IF EXISTS " + Topics.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + PersonsTopics.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Comments.TABLE_NAME);
+			db.execSQL("DROP TABLE IF EXISTS " + RichText.TABLE_NAME);
 			db.execSQL("DROP TRIGGER IF EXISTS " + Triggers.PERSONS_DELETE_TOPICS);
 			onCreate(db);
 		}

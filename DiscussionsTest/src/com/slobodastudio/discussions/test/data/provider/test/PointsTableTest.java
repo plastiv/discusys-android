@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.data.provider.test;
+package com.slobodastudio.discussions.test.data.provider.test;
 
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -144,8 +144,8 @@ public class PointsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 			assertTrue(true);
 		}
 		insertValidValue(1);
-		getProvider().insert(tableUri, getTestValue(4323));
-		cursor = getProvider().query(Points.buildTableUri(4323), null, null, null, null);
+		Uri uri = getProvider().insert(tableUri, getTestValue(4323));
+		cursor = getProvider().query(uri, null, null, null, null);
 		if (cursor.moveToFirst()) {
 			int index = cursor.getColumnIndexOrThrow(Points.Columns.ID);
 			int id = cursor.getInt(index);

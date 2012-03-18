@@ -1,11 +1,11 @@
-package com.slobodastudio.discussions.data.provider.test;
+package com.slobodastudio.discussions.test.data.provider.test;
 
+import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.model.Comment;
 import com.slobodastudio.discussions.data.model.Value;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 
 import android.content.ContentProvider;
@@ -26,7 +26,7 @@ public class CommentsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		super(DiscussionsProvider.class, DiscussionsProvider.class.getName());
 	}
 
-	static ContentValues getTestValue(final int id, final int personId, final int pointId) {
+	static ContentValues getTestValue(final int id, final Integer personId, final Integer pointId) {
 
 		Value value = new Comment(id, "New value", personId, pointId);
 		return value.toContentValues();
@@ -39,7 +39,7 @@ public class CommentsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		return provider.insert(tableUri, getTestValue(valueId));
 	}
 
-	static Uri insertValidValue(final int valueId, final int personId, final int pointId,
+	static Uri insertValidValue(final int valueId, final Integer personId, final Integer pointId,
 			final ContentProvider provider) {
 
 		PersonsTableTest.insertValidValue(personId, provider);
@@ -91,15 +91,40 @@ public class CommentsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		} else {
 			fail("Didnt insert test value in table");
 		}
-		fail();
-		// test relationship
-		cursor = getProvider().query(Persons.buildTopicUri(PERSON_ID), null, null, null, null);
+		// insert only one foreign key - person
+		getProvider().delete(Comments.CONTENT_URI, null, null);
+		getProvider().delete(Persons.CONTENT_URI, null, null);
+		getProvider().delete(Points.CONTENT_URI, null, null);
+		PersonsTableTest.insertValidValue(PERSON_ID, getProvider());
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID, PERSON_ID, null));
+		cursor = getProvider().query(tableUri, null, null, null, null);
 		if (cursor.moveToFirst()) {
 			assertTrue(true);
 		} else {
-			fail("Didnt insert relationship between Topics and Persons");
+			fail("Didnt insert test value in table");
 		}
-		assertEquals("Should be one associated value, was: " + cursor.getCount(), 1, cursor.getCount());
+		// insert only one foreign key - point
+		getProvider().delete(Comments.CONTENT_URI, null, null);
+		getProvider().delete(Persons.CONTENT_URI, null, null);
+		getProvider().delete(Points.CONTENT_URI, null, null);
+		PointsTableTest.insertValidValue(POINT_ID, getProvider());
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID, null, POINT_ID));
+		cursor = getProvider().query(tableUri, null, null, null, null);
+		if (cursor.moveToFirst()) {
+			assertTrue(true);
+		} else {
+			fail("Didnt insert test value in table");
+		}
+		// fail to insert both foreign key missing
+		getProvider().delete(Comments.CONTENT_URI, null, null);
+		getProvider().delete(Persons.CONTENT_URI, null, null);
+		getProvider().delete(Points.CONTENT_URI, null, null);
+		try {
+			getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID, null, null));
+			fail("Was able to insert value without any foreign key");
+		} catch (DataIoException e) {
+			assertTrue(true);
+		}
 	}
 
 	public void testInsertValueTwice() {
@@ -152,38 +177,39 @@ public class CommentsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 			assertTrue(true);
 		}
 		insertValidValue(RANDOM_COMMENT_ID);
-		fail();
-		getProvider().insert(tableUri, getTestValue(4323));
-		cursor = getProvider().query(Topics.buildTableUri(4323), null, null, null, null);
+		int idOffset = 223;
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID + idOffset));
+		cursor = getProvider().query(Comments.buildTableUri(RANDOM_COMMENT_ID + idOffset), null, null, null,
+				null);
 		if (cursor.moveToFirst()) {
-			int index = cursor.getColumnIndexOrThrow(Topics.Columns.ID);
+			int index = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
 			int id = cursor.getInt(index);
-			assertEquals(4323, id);
+			assertEquals(RANDOM_COMMENT_ID + idOffset, id);
 		} else {
-			fail("couldnt read value 4323");
+			fail("couldnt read value: " + (RANDOM_COMMENT_ID + idOffset));
 		}
 	}
 
 	public void testQueryFromPersons() {
 
-		fail();
-		// insertValidValue(1);
-		// getProvider().insert(tableUri, getTestValue(2));
-		// getProvider().insert(Persons.buildTopicUri(PersonsTopics.DEF_PERSON_VALUE),
-		// getTestPersonTopicValue(PERSON_ID, 2));
-		// Cursor cursor = getProvider().query(Persons.buildTopicUri(PERSON_ID), null, null, null, null);
-		// assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
-		// assertEquals("Should be 4 table columns, was: " + cursor.getCount(), 4, cursor.getColumnCount());
+		PersonsTableTest.insertValidValue(PERSON_ID, getProvider());
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID, PERSON_ID, null));
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID + 123, PERSON_ID, null));
+		String selection = Comments.Columns.PERSON_ID + "=?";
+		String[] selectionArgs = new String[] { String.valueOf(PERSON_ID) };
+		Cursor cursor = getProvider().query(Comments.CONTENT_URI, null, selection, selectionArgs, null);
+		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 
 	public void testQueryFromPoint() {
 
-		fail();
-		// insertValidValue(1);
-		// getProvider().insert(tableUri, getTestValue(2));
-		// Cursor cursor = getProvider().query(Discussions.buildTopicUri(DISCUSSION_ID), null, null, null,
-		// null);
-		// assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
+		PointsTableTest.insertValidValue(POINT_ID, getProvider());
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID, null, POINT_ID));
+		getProvider().insert(tableUri, getTestValue(RANDOM_COMMENT_ID + 133, null, POINT_ID));
+		String selection = Comments.Columns.POINT_ID + "=?";
+		String[] selectionArgs = new String[] { String.valueOf(POINT_ID) };
+		Cursor cursor = getProvider().query(Comments.CONTENT_URI, null, selection, selectionArgs, null);
+		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 
 	@Override

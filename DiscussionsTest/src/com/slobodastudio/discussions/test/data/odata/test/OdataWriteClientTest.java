@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.data.odata.test;
+package com.slobodastudio.discussions.test.data.odata.test;
 
 import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataReadClient;

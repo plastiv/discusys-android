@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.data;
 
+import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Discussion;
 import com.slobodastudio.discussions.data.model.Person;
 import com.slobodastudio.discussions.data.model.PersonTopic;
@@ -9,6 +10,7 @@ import com.slobodastudio.discussions.data.model.Value;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentResolver;
@@ -35,6 +37,21 @@ public class ProviderTestData {
 		generatePersons(cr);
 		generateTopics(cr);
 		generatePoints(cr);
+		generateDescriptions(cr);
+	}
+
+	public static void generateDescriptions(final ContentResolver cr) {
+
+		Description description = new Description(1, "my description first", null, 1);
+		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		description = new Description(2, "my description second", null, 2);
+		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		description = new Description(3, "my description third", null, 3);
+		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		description = new Description(4, "my description fourth", null, 4);
+		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		description = new Description(5, "my description fifht", null, 5);
+		cr.insert(RichText.CONTENT_URI, description.toContentValues());
 	}
 
 	public static void generateDiscussions(final ContentResolver cr) {
@@ -255,6 +272,9 @@ public class ProviderTestData {
 				20,
 				"Like any other difficult situation, abortion creates stress. Yet the American Psychological Association found that stress was greatest prior to an abortion, and that there was no evidence of post-abortion syndrome.",
 				null, personId, true, 1, topicId);
+		cr.insert(Points.CONTENT_URI, point.toContentValues());
+		point = new Point(0, null, false, groupId, 21, "Its my cool point from other user.", null,
+				personId + 1, true, 1, topicId);
 		cr.insert(Points.CONTENT_URI, point.toContentValues());
 	}
 

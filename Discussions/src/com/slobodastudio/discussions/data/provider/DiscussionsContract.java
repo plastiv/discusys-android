@@ -508,7 +508,7 @@ public final class DiscussionsContract {
 			/** Type Int32. */
 			public static final String ID = "Id";
 			/** Type Int32. Foreign key. */
-			public static final String POINT_ID = "Point";
+			public static final String POINT_ID = "ArgPoint";
 			/** Type String. */
 			public static final String TEXT = "Text";
 		}

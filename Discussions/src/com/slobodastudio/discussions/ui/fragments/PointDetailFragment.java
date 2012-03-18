@@ -2,8 +2,10 @@ package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
 import com.slobodastudio.discussions.service.SyncService;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
 
@@ -19,6 +21,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
@@ -34,6 +37,8 @@ public class PointDetailFragment extends SherlockFragment {
 	private static final String TAG = PointDetailFragment.class.getSimpleName();
 	private static final int TYPE_DIR = 1;
 	private static final int TYPE_ITEM = 0;
+	private boolean empty = false;
+	private EditText mDesctiptionEditText;
 	private EditText mNameEditText;
 	private CheckBox mSharedToPublicCheckBox;
 	private Spinner mSideCodeSpinner;
@@ -67,6 +72,11 @@ public class PointDetailFragment extends SherlockFragment {
 	public int getPointId() {
 
 		return pointId;
+	}
+
+	public boolean isEmpty() {
+
+		return empty;
 	}
 
 	public void onActionCancel() {
@@ -163,9 +173,15 @@ public class PointDetailFragment extends SherlockFragment {
 			// the view hierarchy; it would just never be used.
 			return null;
 		}
+		if (isEmpty()) {
+			TextView text = (TextView) inflater.inflate(R.layout.details_item, null);
+			text.setText(getActivity().getString(R.string.fragment_select_point));
+			return text;
+		}
 		if (DEBUG) {
 			Log.d(TAG, "[onCreateView] arguments: " + getArguments().toString());
 		}
+		// set type
 		Uri uri = getArguments().getParcelable(EXTRA_URI);
 		String type = getActivity().getContentResolver().getType(uri);
 		if (type.equals(Points.CONTENT_DIR_TYPE)) {
@@ -178,71 +194,98 @@ public class PointDetailFragment extends SherlockFragment {
 		// setup layout
 		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.point_desctiption_item, null);
 		mNameEditText = (EditText) layout.findViewById(R.id.et_point_name);
+		mDesctiptionEditText = (EditText) layout.findViewById(R.id.et_point_description);
 		mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
 		mSharedToPublicCheckBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
 		// fill in data
 		String action = getArguments().getString(EXTRA_ACTION);
 		if (action.equals(Intent.ACTION_EDIT)) {
-			switch (typeId) {
-				case TYPE_DIR:
-					// leave empty fields to create new point
-					if (getArguments().containsKey(EXTRA_PERSON_ID)) {
-						personId = getArguments().getInt(EXTRA_PERSON_ID);
-					} else {
-						throw new IllegalStateException("intent was without person id");
-					}
-					if (getArguments().containsKey(EXTRA_TOPIC_ID)) {
-						topicId = getArguments().getInt(EXTRA_TOPIC_ID);
-					} else {
-						throw new IllegalStateException("intent was without topic id");
-					}
-					pointId = INVALID_POINT_ID;
-					break;
-				case TYPE_ITEM: {
-					Cursor cursor = getActivity().getContentResolver().query(uri, null, null, null, null);
-					if (cursor.getCount() == 1) {
-						Point value = new Point(cursor);
-						pointId = value.getId();
-						personId = value.getPersonId();
-						topicId = value.getTopicId();
-						mNameEditText.setText(value.getName());
-						mSideCodeSpinner.setSelection(value.getAgreementCode());
-						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
-					} else {
-						throw new IllegalStateException("Expected single value in cursor, was: "
-								+ cursor.getCount());
-					}
-					break;
-				}
-				default:
-					throw new IllegalArgumentException("Unknown type id: " + typeId);
-			}
+			onActionEdit();
 		} else if (action.equals(Intent.ACTION_VIEW)) {
-			switch (typeId) {
-				case TYPE_DIR:
-					throw new IllegalStateException("Should not reach here. No sense to view empty point");
-				case TYPE_ITEM: {
-					Cursor cursor = getActivity().getContentResolver().query(uri, null, null, null, null);
-					if (cursor.getCount() == 1) {
-						Point value = new Point(cursor);
-						mNameEditText.setText(value.getName());
-						mNameEditText.setEnabled(false);
-						mSideCodeSpinner.setSelection(value.getAgreementCode());
-						mSideCodeSpinner.setEnabled(false);
-						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
-						mSharedToPublicCheckBox.setEnabled(false);
-					} else {
-						throw new IllegalStateException("Expected single value in cursor, was: "
-								+ cursor.getCount());
-					}
-					break;
-				}
-				default:
-					throw new IllegalArgumentException("Unknown type id: " + typeId);
-			}
+			onActionView();
 		} else {
 			throw new IllegalArgumentException("Unknown action: " + action);
 		}
 		return layout;
+	}
+
+	public void setEmpty(final boolean empty) {
+
+		this.empty = empty;
+	}
+
+	private void onActionEdit() {
+
+		switch (typeId) {
+			case TYPE_DIR:
+				// leave empty fields to create new point
+				if (getArguments().containsKey(EXTRA_PERSON_ID)) {
+					personId = getArguments().getInt(EXTRA_PERSON_ID);
+				} else {
+					throw new IllegalStateException("intent was without person id");
+				}
+				if (getArguments().containsKey(EXTRA_TOPIC_ID)) {
+					topicId = getArguments().getInt(EXTRA_TOPIC_ID);
+				} else {
+					throw new IllegalStateException("intent was without topic id");
+				}
+				pointId = INVALID_POINT_ID;
+				break;
+			case TYPE_ITEM:
+				setupView(true);
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown type id: " + typeId);
+		}
+	}
+
+	private void onActionView() {
+
+		switch (typeId) {
+			case TYPE_DIR:
+				throw new IllegalStateException("Should not reach here. No sense to view empty point");
+			case TYPE_ITEM:
+				setupView(false);
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown type id: " + typeId);
+		}
+	}
+
+	private void setDescription() {
+
+		Uri uri = RichText.CONTENT_URI;
+		String selection = RichText.Columns.POINT_ID + "=?";
+		String[] selectionArgs = new String[] { String.valueOf(pointId) };
+		Cursor cursor = getActivity().getContentResolver().query(uri, null, selection, selectionArgs, null);
+		if (cursor.getCount() > 0) {
+			Description description = new Description(cursor);
+			mDesctiptionEditText.setText(description.getText());
+		} else if (DEBUG) {
+			Log.d(TAG, "NO associated description for point id: " + pointId);
+		}
+		// TODO: set empty description message
+		cursor.close();
+	}
+
+	private void setupView(final boolean editable) {
+
+		Uri uri = getArguments().getParcelable(EXTRA_URI);
+		Cursor cursor = getActivity().getContentResolver().query(uri, null, null, null, null);
+		Point value = new Point(cursor);
+		cursor.close();
+		pointId = value.getId();
+		personId = value.getPersonId();
+		topicId = value.getTopicId();
+		mNameEditText.setText(value.getName());
+		mSideCodeSpinner.setSelection(value.getAgreementCode());
+		mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+		setDescription();
+		if (!editable) {
+			mNameEditText.setEnabled(false);
+			mDesctiptionEditText.setEnabled(false);
+			mSideCodeSpinner.setEnabled(false);
+			mSharedToPublicCheckBox.setEnabled(false);
+		}
 	}
 }

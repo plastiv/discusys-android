@@ -56,6 +56,36 @@ public class Person implements Value {
 		}
 	}
 
+	public byte[] getAvatar() {
+
+		return avatar;
+	}
+
+	public int getColor() {
+
+		return color;
+	}
+
+	public String getEmail() {
+
+		return email;
+	}
+
+	public int getId() {
+
+		return id;
+	}
+
+	public String getName() {
+
+		return name;
+	}
+
+	public boolean isOnline() {
+
+		return online;
+	}
+
 	@Override
 	public ContentValues toContentValues() {
 
@@ -72,13 +102,6 @@ public class Person implements Value {
 	@Override
 	public String toMyString() {
 
-		// StringBuilder sb = new StringBuilder();
-		// sb.append(Persons.Columns.COLOR).append(':').append(color).append('\n');
-		// sb.append(Persons.Columns.EMAIL).append(':').append(email).append('\n');
-		// sb.append(Persons.Columns.ID).append(':').append(id).append('\n');
-		// sb.append(Persons.Columns.NAME).append(':').append(name).append('\n');
-		// sb.append(Persons.Columns.ONLINE).append(':').append(online).append('\n');
-		// return sb.toString();
 		return toContentValues().toString();
 	}
 }

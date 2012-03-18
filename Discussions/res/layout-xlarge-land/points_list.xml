@@ -6,7 +6,8 @@
     android:orientation="horizontal" >
 
     <LinearLayout
-        android:id="@+id/points_layout_list"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/points_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
@@ -55,6 +56,13 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:drawSelectorOnTop="false" />
+
+        <TextView
+            android:id="@android:id/empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|center_horizontal"
+            android:text="@string/fragment_empty_points" />
     </LinearLayout>
 
     <FrameLayout

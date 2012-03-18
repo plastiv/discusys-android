@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.data.model;
 
+import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 
 import android.content.ContentValues;
@@ -9,8 +10,8 @@ public class Comment implements Value {
 
 	private final int id;
 	private final String name;
-	private final int personId;
-	private final int pointId;
+	private final Integer personId;
+	private final Integer pointId;
 
 	public Comment(final Cursor cursor) {
 
@@ -32,9 +33,12 @@ public class Comment implements Value {
 		}
 	}
 
-	public Comment(final int id, final String name, final int personId, final int pointId) {
+	public Comment(final int id, final String name, final Integer personId, final Integer pointId) {
 
 		super();
+		if ((personId == null) && (pointId == null)) {
+			throw new DataIoException("Both foreign key cant be null");
+		}
 		this.id = id;
 		this.name = name;
 		this.personId = personId;

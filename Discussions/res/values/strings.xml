@@ -23,12 +23,14 @@
     <string name="fragment_empty_points">No points found</string>
     <string name="fragment_empty_discussions">No discussions found</string>
     <string name="fragment_empty_topics">No topics found</string>
+    <string name="fragment_select_point">Select point to see details</string>
     <string name="side_code_prompt">Choose a side code</string>
     <string name="text_no_data">No data</string>
     <string name="text_other_users_points">Other user\'s points</string>
     <string name="text_current_user_points">Current user\'s points</string>
     <string name="text_shoose_a_side_code">Choose a side code: </string>
     <string name="text_point_name">Point name: </string>
+    <string name="text_point_description">Point description: </string>
     <string name="text_shared_to_public">Shared to public: </string>
     <string name="toast_saved">Saved</string>
     <string name="toast_sync_error"> Sync error: <xliff:g id="error">%1$s</xliff:g></string>

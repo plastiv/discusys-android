@@ -49,4 +49,14 @@
         android:layout_weight="1"
         android:drawSelectorOnTop="false" />
 
+    <TextView
+        android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical|center_horizontal"
+        android:paddingLeft="8dip"
+        android:paddingRight="8dip"
+        android:text="@string/fragment_empty_points"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
 </LinearLayout>

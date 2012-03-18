@@ -1,39 +1,37 @@
-package com.slobodastudio.discussions.data.provider.test;
+package com.slobodastudio.discussions.test.data.provider.test;
 
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
 import android.test.ProviderTestCase2;
 
-public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
+public class DiscussionsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
-	private static final Uri tableUri = Persons.CONTENT_URI;
+	private static final Uri tableUri = Discussions.CONTENT_URI;
 
-	public PersonsTableTest() {
+	public DiscussionsTableTest() {
 
 		super(DiscussionsProvider.class, DiscussionsProvider.class.getName());
-	}
-
-	static ContentValues getTestValue(final int valueId) {
-
-		final ContentValues cv = new ContentValues();
-		cv.put(Persons.Columns.AVATAR, new byte[] {});
-		cv.put(Persons.Columns.ID, Integer.valueOf(valueId));
-		cv.put(Persons.Columns.NAME, "person name");
-		cv.put(Persons.Columns.EMAIL, "person@mail");
-		cv.put(Persons.Columns.COLOR, Color.CYAN);
-		cv.put(Persons.Columns.ONLINE, false);
-		return cv;
 	}
 
 	static Uri insertValidValue(final int valueId, final ContentProvider provider) {
 
 		return provider.insert(tableUri, getTestValue(valueId));
+	}
+
+	private static ContentValues getTestValue(final int discussionId) {
+
+		final ContentValues cv = new ContentValues();
+		cv.put(Discussions.Columns.ID, Integer.valueOf(discussionId));
+		cv.put(Discussions.Columns.SUBJECT, "Discussion subject");
+		return cv;
 	}
 
 	public void testInsert() {
@@ -52,11 +50,11 @@ public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
 		// same value should be overwrite
 		insertValidValue(1);
-		getProvider().insert(tableUri, getTestValue(1));
+		insertValidValue(1);
 		Cursor cursor = getProvider().query(tableUri, null, null, null, null);
 		assertEquals(1, cursor.getCount());
 		// second value should writes into table
-		getProvider().insert(tableUri, getTestValue(2));
+		insertValidValue(2);
 		cursor = getProvider().query(tableUri, null, null, null, null);
 		assertEquals(2, cursor.getCount());
 	}
@@ -64,12 +62,8 @@ public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 	public void testInsertWrongValue() {
 
 		final ContentValues cv = new ContentValues();
-		cv.put(Persons.Columns.ID, Integer.valueOf(1));
-		// name required
-		// cv.put(Persons.Columns.NAME, "person name");
-		cv.put(Persons.Columns.EMAIL, "person@mail");
-		cv.put(Persons.Columns.COLOR, Color.CYAN);
-		cv.put(Persons.Columns.ONLINE, false);
+		cv.put(Discussions.Columns.ID, Integer.valueOf(1));
+		// subject required
 		try {
 			getProvider().insert(tableUri, cv);
 			fail();
@@ -99,15 +93,34 @@ public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 			assertTrue(true);
 		}
 		insertValidValue(1);
-		getProvider().insert(tableUri, getTestValue(4323));
-		cursor = getProvider().query(Persons.buildTableUri(4323), null, null, null, null);
+		getProvider().insert(tableUri, getTestValue(123));
+		cursor = getProvider().query(Discussions.buildTableUri(123), null, null, null, null);
 		if (cursor.moveToFirst()) {
-			int index = cursor.getColumnIndexOrThrow(Persons.Columns.ID);
+			int index = cursor.getColumnIndexOrThrow(Discussions.Columns.ID);
 			int id = cursor.getInt(index);
-			assertEquals(4323, id);
+			assertEquals(123, id);
 		} else {
-			fail("couldnt read value 4323");
+			fail("couldnt read value 123");
 		}
+	}
+
+	public void testQueryFromPersons() {
+
+		// insert valid value
+		getProvider().insert(tableUri, getTestValue(100));
+		getProvider().insert(Persons.CONTENT_URI, PersonsTableTest.getTestValue(123));
+		getProvider().insert(Topics.CONTENT_URI, TopicsTableTest.getTestValue(400, 100));
+		getProvider().insert(Persons.buildTopicUri(PersonsTopics.DEF_PERSON_VALUE),
+				TopicsTableTest.getTestPersonTopicValue(123, 400));
+		// insert 2nd valid value
+		getProvider().insert(tableUri, getTestValue(200));
+		getProvider().insert(Topics.CONTENT_URI, TopicsTableTest.getTestValue(500, 200));
+		getProvider().insert(Persons.buildTopicUri(PersonsTopics.DEF_PERSON_VALUE),
+				TopicsTableTest.getTestPersonTopicValue(123, 500));
+		// queue values
+		Cursor cursor = getProvider().query(Persons.buildDiscussionUri(123), null, null, null, null);
+		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
+		assertEquals("Should be 3 table columns, was: " + cursor.getCount(), 3, cursor.getColumnCount());
 	}
 
 	@Override
