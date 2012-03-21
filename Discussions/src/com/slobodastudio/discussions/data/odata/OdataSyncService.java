@@ -13,6 +13,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import org.core4j.Enumerable;
 import org.odata4j.consumer.ODataConsumer;
@@ -31,6 +32,14 @@ public class OdataSyncService {
 	private static final String TAG = OdataSyncService.class.getSimpleName();
 	private final ODataConsumer consumer;
 	private final Context context;
+
+	/** Sets service root uri by default to japan server */
+	public OdataSyncService(final Context context) {
+
+		// FIXME: check if network is accessible
+		consumer = ODataConsumer.create(ODataConstants.SERVICE_URL_JAPAN);
+		this.context = context;
+	}
 
 	public OdataSyncService(final String serviceRootUri, final Context context) {
 
@@ -92,9 +101,23 @@ public class OdataSyncService {
 		}
 	}
 
+	public void downloadPoint(final int pointId) {
+
+		OEntity entity = consumer.getEntity(Points.TABLE_NAME, pointId).execute();
+		insertPoint(entity);
+	}
+
 	public void downloadPoints() {
 
 		for (OEntity entity : consumer.getEntities(Points.TABLE_NAME).execute()) {
+			insertPoint(entity);
+		}
+	}
+
+	public void downloadPoints(final int topicId) {
+
+		OEntity topic = consumer.getEntity(Topics.TABLE_NAME, topicId).execute();
+		for (OEntity entity : getRelatedEntities(topic, "ArgPoint")) {
 			insertPoint(entity);
 		}
 	}
@@ -124,15 +147,20 @@ public class OdataSyncService {
 		final String linkName = Points.Columns.TOPIC_ID;
 		final OEntity topicEntity = getRelatedEntity(entity, linkName);
 		if (topicEntity == null) {
-			throw new NullPointerException("Related " + linkName + " link is null");
+			// TODO: thwo ex here
+			Log.e(TAG, "Related " + linkName + " link is null");
+			return null;
 		}
 		cv.put(linkName, getAsInt(topicEntity, Topics.Columns.ID));
 		final String linkName2 = Points.Columns.PERSON_ID;
 		final OEntity personEntity = getRelatedEntity(entity, linkName2);
 		if (personEntity == null) {
-			throw new NullPointerException("Related " + linkName2 + " link is null");
+			// TODO throw exception here
+			Log.e(TAG, "Related " + linkName2 + " link is null");
+			return null;
 		}
 		cv.put(linkName2, getAsInt(personEntity, Persons.Columns.ID));
+		cv.put(Points.Columns.SYNC, false);
 		if (LOGV) {
 			MyLog.v(TAG, "Content value: " + cv.toString());
 		}
@@ -176,7 +204,9 @@ public class OdataSyncService {
 			cv.put(linkName2, getAsInt(pointEntity, Points.Columns.ID));
 		}
 		if ((discussionEntity == null) && (pointEntity == null)) {
-			throw new NullPointerException("Both description foreign keys was null");
+			// TODO: throw ex
+			Log.e(TAG, "Both description foreign keys was null");
+			return null;
 		}
 		// insert into table
 		if (LOGV) {
@@ -212,7 +242,9 @@ public class OdataSyncService {
 		final String linkName = Topics.Columns.DISCUSSION_ID;
 		OEntity discussionEntity = getRelatedEntity(entity, linkName);
 		if (discussionEntity == null) {
-			throw new NullPointerException("Related " + linkName + " link is null");
+			// TODO: throw ex here
+			Log.e(TAG, "Related " + linkName + " link is null");
+			return null;
 		}
 		cv.put(linkName, getAsInt(discussionEntity, Discussions.Columns.ID));
 		// insert into table

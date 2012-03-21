@@ -90,6 +90,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				mSelectedList = SELECTED_USERS;
 				mCurPosition = position;
 				mUserPointsList.setItemChecked(position, true);
+				mOtherPointsList.clearChoices();
 				onActionEdit(id, position);
 			}
 		});
@@ -102,6 +103,10 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				mSelectedList = SELECTED_OTHERS;
 				mCurPosition = position;
 				mOtherPointsList.setItemChecked(position, true);
+				mUserPointsList.clearChoices();
+				if (mActionMode != null) {
+					mActionMode.finish();
+				}
 				onActionView(id, position);
 			}
 		});
@@ -208,9 +213,11 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			case LOADER_USER_POINTS_ID:
 				mUserPointsAdapter.swapCursor(data);
 				mUserPointsList.invalidate();
+				getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
 				break;
 			case LOADER_OTHER_POINTS_ID:
 				mOtherPointsAdapter.swapCursor(data);
+				getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
 				break;
 			default:
 				throw new IllegalArgumentException("Unknown loader id: " + loader.getId());

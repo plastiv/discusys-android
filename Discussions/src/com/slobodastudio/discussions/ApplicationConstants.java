@@ -4,7 +4,7 @@ package com.slobodastudio.discussions;
 public class ApplicationConstants {
 
 	/** TODO: set false on release */
-	public static final boolean DEBUG_MODE = true;
+	public static final boolean DEBUG_MODE = false;
 
 	/** A private Constructor prevents class from instantiating. */
 	private ApplicationConstants() {

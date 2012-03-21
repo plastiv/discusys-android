@@ -146,6 +146,11 @@ public class PointDetailFragment extends SherlockFragment {
 					expectedSharedToPublic, expectedSideCode, expectedTopicId);
 			intent = new Intent(SyncService.ACTION_UPDATE);
 			intent.putExtras(point.toBundle());
+			String where = Points.Columns.ID + "=?";
+			String[] args = new String[] { String.valueOf(point.getId()) };
+			getActivity().getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where,
+					args);
+			getActivity().startService(intent);
 		} else {
 			// new point
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
@@ -153,8 +158,8 @@ public class PointDetailFragment extends SherlockFragment {
 					expectedSharedToPublic, expectedSideCode, expectedTopicId);
 			intent = new Intent(SyncService.ACTION_INSERT);
 			intent.putExtras(point.toBundle());
+			getActivity().startService(intent);
 		}
-		getActivity().startService(intent);
 		Toast.makeText(getActivity(), getActivity().getString(R.string.toast_saved), Toast.LENGTH_SHORT)
 				.show();
 	}

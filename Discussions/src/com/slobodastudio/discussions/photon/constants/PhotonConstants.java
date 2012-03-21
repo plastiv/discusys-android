@@ -17,4 +17,10 @@ public class PhotonConstants {
 	public static final String SERVER_URL = "123.108.5.30:5055";
 	/** Preffer use tcp over udp. */
 	public static final boolean USE_TCP = false;
+
+	/** A private Constructor prevents class from instantiating. */
+	private PhotonConstants() {
+
+		throw new UnsupportedOperationException("Class is prevented from instantiation");
+	}
 }

@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.photon.constants;
 
 public class DiscussionParameterKey {
 
+	public static final byte AnnotationId = 19;
 	// TODO: refact style to java of constants
 	public static final byte ArgPointId = 11;
 	public static final byte ArrayOfIds = 4;
@@ -13,6 +14,10 @@ public class DiscussionParameterKey {
 	public static final byte BoxHeight = 9;
 	public static final byte BoxWidth = 8;
 	public static final byte CHANGED_TOPIC_ID = 13;
+	/** structure change notification not fired on initiating client. but when moderator dashboad is open, and
+	 * moderator adds/removes topic, and private board is open, we want the list of topics in private board to
+	 * be updated. */
+	public static final byte ForceSelfNotification = 20;
 	public static final byte GeometryChangedWithStruct = 14;
 	public static final byte Message = 0;
 	public static final byte NumArrayEntries = 5;

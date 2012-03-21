@@ -16,6 +16,14 @@ public class PhotonServiceCallbackHandler implements PhotonServiceCallback {
 	}
 
 	@Override
+	public void onArgPointChanged(final int pointId) {
+
+		for (PhotonServiceCallback h : m_callbacks) {
+			h.onArgPointChanged(pointId);
+		}
+	}
+
+	@Override
 	public void onConnect() {
 
 		for (PhotonServiceCallback h : m_callbacks) {
@@ -32,10 +40,10 @@ public class PhotonServiceCallbackHandler implements PhotonServiceCallback {
 	}
 
 	@Override
-	public void onEventJoin(DiscussionUser newUser) {
+	public void onEventJoin(final DiscussionUser newUser) {
 
 		for (PhotonServiceCallback h : m_callbacks) {
-			h.onEventJoin(null);
+			h.onEventJoin(newUser);
 		}
 	}
 

@@ -6,6 +6,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.SyncColumns;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.Context;
@@ -20,7 +21,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 26;
+	private static final int DATABASE_VERSION = 28;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -86,6 +87,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Points.Columns.NAME + " TEXT NOT NULL,"
 				+ Points.Columns.SHARED_TO_PUBLIC + " INTEGER NOT NULL,"
 				+ Points.Columns.SIDE_CODE + " INTEGER NOT NULL,"
+				+ SyncColumns.SYNC + " INTEGER DEFAULT 1,"
 				+ " UNIQUE (" + Points.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		// many-to-many table

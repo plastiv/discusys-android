@@ -47,6 +47,7 @@ public class DiscussionsListFragment extends BaseListFragment {
 		} else {
 			throw new IllegalStateException("intent was without person id");
 		}
+		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, getItemId(position));
 		startActivity(intent);
 	}
 

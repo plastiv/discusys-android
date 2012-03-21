@@ -408,7 +408,7 @@ public final class DiscussionsContract {
 		}
 
 		/** List of columns names. */
-		public static final class Columns implements BaseColumns {
+		public static final class Columns implements BaseColumns, SyncColumns {
 
 			/** Type Int32. 0-not agreed */
 			public static final String AGREEMENT_CODE = "AgreementCode";
@@ -601,5 +601,11 @@ public final class DiscussionsContract {
 
 			static final String TOPIC_ID = TABLE_NAME + "." + Columns.ID;
 		}
+	}
+
+	interface SyncColumns {
+
+		/** Type boolean. true - need to be upload to server. */
+		public static final String SYNC = "sync_column";
 	}
 }

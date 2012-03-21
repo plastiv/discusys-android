@@ -26,6 +26,12 @@ public class HomeActivity extends BaseListActivity {
 
 		Intent intent = new Intent(Intent.ACTION_VIEW, Persons.CONTENT_URI);
 		context.startActivity(intent);
+		// Uri uri = Topics.buildPointUri(2);
+		// Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+		// intent.putExtra(IntentExtrasKey.PERSON_ID, 4);
+		// intent.putExtra(IntentExtrasKey.TOPIC_ID, 2);
+		// intent.putExtra(IntentExtrasKey.DISCUSSION_ID, 1);
+		// context.startActivity(intent);
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
+import com.slobodastudio.discussions.test.data.provider.test.ProviderUtil;
 
 import android.database.Cursor;
 import android.test.ProviderTestCase2;
@@ -18,6 +19,26 @@ public class OdataReadClientTest extends ProviderTestCase2<DiscussionsProvider> 
 	public OdataReadClientTest() {
 
 		super(DiscussionsProvider.class, DiscussionsProvider.class.getName());
+	}
+
+	public static void testServersMetadata() {
+
+		OdataReadClient odata = new OdataReadClient(ODataConstants.SERVICE_URL_JAPAN);
+		odata.logServerMetaData();
+	}
+
+	public void testDatabaseIsEmpty() {
+
+		Cursor cursor = getContext().getContentResolver().query(Topics.CONTENT_URI, null, null, null, null);
+		assertEquals(true, cursor.getCount() == 0);
+		cursor = getContext().getContentResolver().query(Persons.CONTENT_URI, null, null, null, null);
+		assertEquals(true, cursor.getCount() == 0);
+		cursor = getContext().getContentResolver().query(Discussions.CONTENT_URI, null, null, null, null);
+		assertEquals(true, cursor.getCount() == 0);
+		cursor = getContext().getContentResolver().query(Points.CONTENT_URI, null, null, null, null);
+		assertEquals(true, cursor.getCount() == 0);
+		cursor = getContext().getContentResolver().query(RichText.CONTENT_URI, null, null, null, null);
+		assertEquals(true, cursor.getCount() == 0);
 	}
 
 	public void testDescription() {
@@ -68,10 +89,24 @@ public class OdataReadClientTest extends ProviderTestCase2<DiscussionsProvider> 
 		assertEquals(true, cursor.getCount() > 0);
 	}
 
-	public void testServersMetadata() {
+	public void testPointsFromTopic() {
 
-		OdataReadClient odata = new OdataReadClient(ODataConstants.SERVICE_URL_JAPAN);
-		odata.logServerMetaData();
+		OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, getContext());
+		service.downloadValuesWithoutNavigationIds(Discussions.TABLE_NAME, Discussions.CONTENT_URI);
+		service.downloadValuesWithoutNavigationIds(Persons.TABLE_NAME, Persons.CONTENT_URI);
+		service.downloadTopics();
+		service.downloadPoints(2);
+		Cursor cursor = getContext().getContentResolver().query(Points.CONTENT_URI, null, null, null, null);
+		assertEquals(true, cursor.getCount() > 0);
+	}
+
+	public void testSinglePoint() {
+
+		OdataSyncService service = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN, getContext());
+		service.downloadPoint(32);
+		Cursor cursor = getContext().getContentResolver().query(Points.CONTENT_URI, null, null, null, null);
+		ProviderUtil.logCursor(cursor);
+		assertEquals(true, cursor.getCount() == 1);
 	}
 
 	public void testTopics() {

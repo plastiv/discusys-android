@@ -2,6 +2,8 @@ package com.slobodastudio.discussions.photon;
 
 public interface PhotonServiceCallback {
 
+	void onArgPointChanged(int pointId);
+
 	void onConnect();
 
 	void onErrorOccured(String message);

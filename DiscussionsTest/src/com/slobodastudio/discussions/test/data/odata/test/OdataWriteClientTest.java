@@ -50,7 +50,7 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
 		OdataReadClient odataRead = new OdataReadClient(ODataConstants.SERVICE_URL_JAPAN);
 		int expectedAgreementCode = 0;
-		byte[] expectedDrawing = new byte[] { 0, 1 };
+		Byte[] expectedDrawing = new Byte[] { 0, 1 };
 		boolean expectedExpanded = false;
 		int expectedGroupId = 1;
 		String expectedNumberedPoint = "";
@@ -66,7 +66,7 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		int actualAgreementCode = (Integer) entity.getProperty(Points.Columns.AGREEMENT_CODE).getValue();
 		assertEquals(expectedAgreementCode, actualAgreementCode);
 		// drawing
-		byte[] actualDrawing = (byte[]) entity.getProperty(Points.Columns.DRAWING).getValue();
+		Byte[] actualDrawing = (Byte[]) entity.getProperty(Points.Columns.DRAWING).getValue();
 		assertEquals(expectedDrawing[0], actualDrawing[0]);
 		assertEquals(expectedDrawing[1], actualDrawing[1]);
 		// expanded
@@ -114,8 +114,7 @@ public class OdataWriteClientTest extends AndroidTestCase {
 		assertEquals(expectedName, actualName);
 		// discussion
 		OEntity discussionEntity = odataRead.getRelatedEntity(entity, Topics.Columns.DISCUSSION_ID);
-		int actualDiscussionId = (Integer) discussionEntity.getProperty(Discussions.Columns.ID)
-				.getValue();
+		int actualDiscussionId = (Integer) discussionEntity.getProperty(Discussions.Columns.ID).getValue();
 		assertEquals(expectedDiscussionId, actualDiscussionId);
 		// person
 		OEntity personEntity = odataRead.getRelatedEntity(entity, Topics.Columns.PERSON_ID);

@@ -7,6 +7,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import org.odata4j.consumer.ODataConsumer;
+import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OProperties;
@@ -48,23 +49,30 @@ public class OdataWriteClient {
 		// @formatter:on
 	}
 
-	public OEntity insertPoint(final int agreementCode, final byte[] drawing, final boolean expanded,
-			final int groupId, final String numberedPoint, final int personId, final String pointName,
+	public OEntity insertPoint(final int agreementCode, final Byte[] drawing, final boolean expanded,
+			final Integer groupId, final String numberedPoint, final int personId, final String pointName,
 			final boolean sharedToPublic, final int sideCode, final int topicId) {
 
 		// @formatter:off
-		return consumer.createEntity(Points.TABLE_NAME)
-				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, Integer.valueOf(agreementCode)))
-				.properties(OProperties.binary(Points.Columns.DRAWING, drawing))
-				.properties(OProperties.boolean_(Points.Columns.EXPANDED, Boolean.valueOf(expanded)))
-				.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(groupId)))
-				.properties(OProperties.string(Points.Columns.NUMBERED_POINT, numberedPoint))
+		OCreateRequest<OEntity> request = consumer.createEntity(Points.TABLE_NAME)
+				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, Integer.valueOf(agreementCode)))				
+				.properties(OProperties.boolean_(Points.Columns.EXPANDED, Boolean.valueOf(expanded)))	
 				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
 				.properties(OProperties.string(Points.Columns.NAME, pointName))
 				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(sharedToPublic)))
 				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(sideCode)))		
-				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(topicId)))
-				.execute();
+				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(topicId)));
+		
+		if(drawing != null){
+			request.properties(OProperties.binary(Points.Columns.DRAWING, drawing));
+		}
+		if(groupId != null){
+			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(groupId)));
+		}
+		if(numberedPoint != null){
+			request.properties(OProperties.string(Points.Columns.NUMBERED_POINT, numberedPoint));
+		}
+		return request.execute();
 		// @formatter:on
 	}
 
