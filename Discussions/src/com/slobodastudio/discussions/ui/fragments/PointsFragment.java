@@ -137,17 +137,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				}
 			}
 			// show empty details "select point to see"
-			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
-					R.id.frame_layout_details);
-			// Make new fragment to show this selection.
-			details = new PointDetailFragment();
-			details.setEmpty(true);
-			// Execute a transaction, replacing any existing fragment
-			// with this one inside the frame.
-			FragmentTransaction ft = getFragmentManager().beginTransaction();
-			ft.replace(R.id.frame_layout_details, details);
-			ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-			ft.commit();
+			showEmtyDetails();
 		}
 	}
 
@@ -213,11 +203,9 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			case LOADER_USER_POINTS_ID:
 				mUserPointsAdapter.swapCursor(data);
 				mUserPointsList.invalidate();
-				getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
 				break;
 			case LOADER_OTHER_POINTS_ID:
 				mOtherPointsAdapter.swapCursor(data);
-				getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
 				break;
 			default:
 				throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
@@ -274,10 +262,10 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			// We can display everything in-place with fragments
 			// Check what fragment is currently shown, replace if needed.
 			int valueId;
-			if ((mUserPointsAdapter.getCursor() != null)
-					&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
-				int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
-				valueId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
+			if ((mOtherPointsAdapter.getCursor() != null)
+					&& mOtherPointsAdapter.getCursor().moveToPosition(position)) {
+				int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
+				valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
 			} else {
 				valueId = PointDetailFragment.INVALID_POINT_ID;
 				return;
@@ -318,6 +306,21 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		}
 	}
 
+	private void showEmtyDetails() {
+
+		PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
+				R.id.frame_layout_details);
+		// Make new fragment to show this selection.
+		details = new PointDetailFragment();
+		details.setEmpty(true);
+		// Execute a transaction, replacing any existing fragment
+		// with this one inside the frame.
+		FragmentTransaction ft = getFragmentManager().beginTransaction();
+		ft.replace(R.id.frame_layout_details, details);
+		ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+		ft.commit();
+	}
+
 	private final class EditDetailsActionMode implements ActionMode.Callback {
 
 		@Override
@@ -332,6 +335,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				case R.id.menu_cancel:
 					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
 							.onActionCancel();
+					showEmtyDetails();
+					mUserPointsList.clearChoices();
 					mode.finish();
 					return true;
 				default:

@@ -5,7 +5,9 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
@@ -57,6 +59,8 @@ public class PersonsListFragment extends BaseListFragment {
 		Uri uri = Persons.buildDiscussionUri(getItemId(position));
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		intent.putExtra(IntentExtrasKey.PERSON_ID, getItemId(position));
+		Log.d("Vasya", "Peson name: " + getItemName(position));
+		intent.putExtra(IntentExtrasKey.PERSON_NAME, getItemName(position));
 		startActivity(intent);
 	}
 
@@ -64,5 +68,16 @@ public class PersonsListFragment extends BaseListFragment {
 	protected BaseDetailFragment getDetailFragment() {
 
 		return new PersonsDetailFragment();
+	}
+
+	protected String getItemName(final int position) {
+
+		Cursor cursor = (Cursor) getListAdapter().getItem(position);
+		if (cursor == null) {
+			// For some reason the requested item isn't available, do nothing
+			return null;
+		}
+		int columnIndex = cursor.getColumnIndexOrThrow(Persons.Columns.NAME);
+		return cursor.getString(columnIndex);
 	}
 }

@@ -6,13 +6,19 @@ import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
+import com.slobodastudio.discussions.photon.PhotonService;
+import com.slobodastudio.discussions.photon.PhotonService.LocalBinder;
 import com.slobodastudio.discussions.service.SyncService;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,8 +44,36 @@ public class PointDetailFragment extends SherlockFragment {
 	private static final int TYPE_DIR = 1;
 	private static final int TYPE_ITEM = 0;
 	private boolean empty = false;
+	private boolean mBound = false;
+	private final ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(final ComponentName className, final IBinder service) {
+
+			if (DEBUG) {
+				Log.d(TAG, "[onServiceConnected] className: " + className);
+			}
+			// We've bound to PhotonService, cast the IBinder and get PhotonService instance
+			LocalBinder binder = (LocalBinder) service;
+			mService = binder.getService();
+			mBound = true;
+			// todo get a receiver
+		}
+
+		@Override
+		public void onServiceDisconnected(final ComponentName className) {
+
+			if (DEBUG) {
+				Log.d(TAG, "[onServiceDisconnected] className: " + className);
+			}
+			Log.e(TAG, "onServiceDisconnected");
+			mBound = false;
+			mService = null;
+		}
+	};
 	private EditText mDesctiptionEditText;
 	private EditText mNameEditText;
+	private PhotonService mService;
 	private CheckBox mSharedToPublicCheckBox;
 	private Spinner mSideCodeSpinner;
 	private int personId;
@@ -138,27 +172,22 @@ public class PointDetailFragment extends SherlockFragment {
 						+ (int) mSideCodeSpinner.getSelectedItemId());
 		}
 		int expectedTopicId = topicId;
-		Intent intent;
 		if (pointId != INVALID_POINT_ID) {
 			// update point
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
 					expectedGroupId, pointId, expectedPointName, expectedNumberedPoint, expectedPersonId,
 					expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			intent = new Intent(SyncService.ACTION_UPDATE);
-			intent.putExtras(point.toBundle());
 			String where = Points.Columns.ID + "=?";
 			String[] args = new String[] { String.valueOf(point.getId()) };
 			getActivity().getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where,
 					args);
-			getActivity().startService(intent);
+			syncPoint(SyncService.ACTION_UPDATE, point.toBundle());
 		} else {
 			// new point
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
 					expectedGroupId, 1, expectedPointName, expectedNumberedPoint, expectedPersonId,
 					expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			intent = new Intent(SyncService.ACTION_INSERT);
-			intent.putExtras(point.toBundle());
-			getActivity().startService(intent);
+			syncPoint(SyncService.ACTION_INSERT, point.toBundle());
 		}
 		Toast.makeText(getActivity(), getActivity().getString(R.string.toast_saved), Toast.LENGTH_SHORT)
 				.show();
@@ -168,7 +197,7 @@ public class PointDetailFragment extends SherlockFragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
-		if (container == null) {
+		if ((container == null) || (getArguments() == null)) {
 			// We have different layouts, and in one of them this
 			// fragment's containing frame doesn't exist. The fragment
 			// may still be created from its saved state, but there is
@@ -212,6 +241,26 @@ public class PointDetailFragment extends SherlockFragment {
 			throw new IllegalArgumentException("Unknown action: " + action);
 		}
 		return layout;
+	}
+
+	@Override
+	public void onStart() {
+
+		super.onStart();
+		// Bind to LocalService
+		Intent intent = new Intent(getActivity(), PhotonService.class);
+		getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+	}
+
+	@Override
+	public void onStop() {
+
+		super.onStop();
+		// Unbind from the service
+		if (mBound) {
+			getActivity().unbindService(mConnection);
+			mBound = false;
+		}
 	}
 
 	public void setEmpty(final boolean empty) {
@@ -292,5 +341,15 @@ public class PointDetailFragment extends SherlockFragment {
 			mSideCodeSpinner.setEnabled(false);
 			mSharedToPublicCheckBox.setEnabled(false);
 		}
+	}
+
+	private void syncPoint(final String action, final Bundle value) {
+
+		Intent intent = new Intent(action);
+		intent.putExtras(value);
+		if (mBound && mService.isConnected()) {
+			intent.putExtra(SyncService.EXTRA_PHOTON_RECEIVER, mService.getResultReceiver());
+		}
+		getActivity().startService(intent);
 	}
 }

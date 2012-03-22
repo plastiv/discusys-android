@@ -87,8 +87,8 @@ public class OdataSyncService {
 
 	public void downloadAllValues() {
 
-		downloadValuesWithoutNavigationIds(Discussions.TABLE_NAME, Discussions.CONTENT_URI);
 		downloadValuesWithoutNavigationIds(Persons.TABLE_NAME, Persons.CONTENT_URI);
+		downloadValuesWithoutNavigationIds(Discussions.TABLE_NAME, Discussions.CONTENT_URI);
 		downloadTopics();
 		downloadPoints();
 		downloadDescriptions();

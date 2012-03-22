@@ -47,6 +47,12 @@ public class DiscussionsListFragment extends BaseListFragment {
 		} else {
 			throw new IllegalStateException("intent was without person id");
 		}
+		if (getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_NAME)) {
+			intent.putExtra(IntentExtrasKey.PERSON_NAME, getActivity().getIntent().getExtras().getString(
+					IntentExtrasKey.PERSON_NAME));
+		} else {
+			throw new IllegalStateException("intent was without person name");
+		}
 		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, getItemId(position));
 		startActivity(intent);
 	}

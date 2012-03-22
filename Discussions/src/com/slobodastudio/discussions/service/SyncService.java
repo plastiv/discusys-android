@@ -11,6 +11,7 @@ import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.util.Log;
@@ -24,11 +25,14 @@ public class SyncService extends IntentService {
 	public static final String ACTION_INSERT = "com.slobodastudio.action.insert";
 	public static final String ACTION_SYNC = "com.slobodastudio.action.sync";
 	public static final String ACTION_UPDATE = "com.slobodastudio.action.update";
+	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
 	public static final String EXTRA_POINT_ID = "intent.extra.key.EXTRA_POINT_ID";
 	public static final String EXTRA_STATUS_RECEIVER = "intent.extra.key.STATUS_RECEIVER";
 	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
+	public static final String EXTRA_URI = "intent.extra.key.EXTRA_URI";
 	public static final int STATUS_ERROR = 0x2;
 	public static final int STATUS_FINISHED = 0x3;
+	public static final int STATUS_NOTIFICATION = 0x4;
 	public static final int STATUS_RUNNING = 0x1;
 	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
 	private static final boolean LOCAL = false && ApplicationConstants.DEBUG_MODE;
@@ -39,6 +43,33 @@ public class SyncService extends IntentService {
 		super(TAG);
 	}
 
+	private static void logd(final String message) {
+
+		if (DEBUG) {
+			Log.d(TAG, message);
+		}
+	}
+
+	private static void notifyPhoton(final Intent intent) {
+
+		final ResultReceiver photonReceiver = intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER);
+		if (photonReceiver != null) {
+			final Bundle bundle = new Bundle();
+			bundle.putInt(EXTRA_TOPIC_ID, intent.getIntExtra(Points.Columns.TOPIC_ID, Integer.MIN_VALUE));
+			photonReceiver.send(STATUS_FINISHED, bundle);
+		}
+	}
+
+	private static void sendNotification(final ResultReceiver receiver, final String message) {
+
+		if (receiver != null) {
+			// Pass back error to surface listener
+			final Bundle bundle = new Bundle();
+			bundle.putString(Intent.EXTRA_TEXT, message);
+			receiver.send(STATUS_NOTIFICATION, bundle);
+		}
+	}
+
 	@Override
 	protected void onHandleIntent(final Intent intent) {
 
@@ -46,9 +77,7 @@ public class SyncService extends IntentService {
 		if (receiver != null) {
 			receiver.send(STATUS_RUNNING, Bundle.EMPTY);
 		}
-		if (DEBUG) {
-			Log.d(TAG, "[onHandleIntent] intent: " + intent.toString() + ", receiver: " + receiver);
-		}
+		logd("[onHandleIntent] intent: " + intent.toString() + ", receiver: " + receiver);
 		try {
 			if (intent.getAction().equals(ACTION_SYNC)) {
 				if (LOCAL) {
@@ -72,6 +101,7 @@ public class SyncService extends IntentService {
 					OdataSyncService odataSync = new OdataSyncService(ODataConstants.SERVICE_URL_JAPAN,
 							getBaseContext());
 					odataSync.insertPoint(insertedItem);
+					notifyPhoton(intent);
 				}
 			} else if (intent.getAction().equals(ACTION_UPDATE)) {
 				if (intent.getExtras() == null) {
@@ -81,6 +111,7 @@ public class SyncService extends IntentService {
 				if (!LOCAL) {
 					OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
 					odataWrite.updatePoint(point);
+					notifyPhoton(intent);
 				}
 				String where = Points.Columns.ID + "=?";
 				String[] args = new String[] { String.valueOf(point.getId()) };
@@ -109,7 +140,7 @@ public class SyncService extends IntentService {
 				throw new IllegalArgumentException("Unkknown action: " + intent.getAction());
 			}
 		} catch (Exception e) {
-			MyLog.e(TAG, "Problem while syncing", e);
+			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
 			if (receiver != null) {
 				// Pass back error to surface listener
 				final Bundle bundle = new Bundle();
@@ -118,12 +149,34 @@ public class SyncService extends IntentService {
 			}
 			return;
 		}
+		logd("[onHandleIntent] sync finished");
 		// Announce success to any surface listener
-		if (DEBUG) {
-			Log.d(TAG, "[onHandleIntent] sync finished");
-		}
 		if (receiver != null) {
 			receiver.send(STATUS_FINISHED, Bundle.EMPTY);
+		}
+	}
+
+	private void onDownloadAction(final Intent intent) {
+
+		if (!intent.hasExtra(EXTRA_URI)) {
+			throw new IllegalArgumentException("Intent doesnt have download uri in extras: "
+					+ intent.getExtras());
+		}
+		Uri uri = intent.getParcelableExtra(EXTRA_URI);
+		if (intent.hasExtra(EXTRA_URI)) {
+			int pointId = intent.getIntExtra(EXTRA_POINT_ID, -1);
+			if (pointId != -1) {
+				OdataSyncService odata = new OdataSyncService(this);
+				odata.downloadPoint(pointId);
+			}
+		} else if (intent.hasExtra(EXTRA_TOPIC_ID)) {
+			int topicId = intent.getIntExtra(EXTRA_TOPIC_ID, -1);
+			if (topicId != -1) {
+				OdataSyncService odata = new OdataSyncService(this);
+				odata.downloadPoints(topicId);
+			}
+		} else {
+			throw new IllegalArgumentException("Intent doesnt have needed extras: " + intent.getExtras());
 		}
 	}
 }

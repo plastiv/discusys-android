@@ -52,6 +52,12 @@ public class TopicsListFragment extends BaseListFragment {
 		} else {
 			throw new IllegalStateException("intent was without discussion id");
 		}
+		if (getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_NAME)) {
+			intent.putExtra(IntentExtrasKey.PERSON_NAME, getActivity().getIntent().getExtras().getString(
+					IntentExtrasKey.PERSON_NAME));
+		} else {
+			throw new IllegalStateException("intent was without person name");
+		}
 		intent.putExtra(IntentExtrasKey.TOPIC_ID, getItemId(position));
 		startActivity(intent);
 	}

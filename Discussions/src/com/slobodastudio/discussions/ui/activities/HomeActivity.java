@@ -38,7 +38,6 @@ public class HomeActivity extends BaseListActivity {
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		if (item.getItemId() == R.id.menu_refresh) {
-			updateRefreshStatus(true);
 			triggerRefresh();
 			return true;
 		}
@@ -58,19 +57,24 @@ public class HomeActivity extends BaseListActivity {
 			mSyncStatusUpdaterFragment = new SyncStatusUpdaterFragment();
 			fm.beginTransaction().add(mSyncStatusUpdaterFragment, SyncStatusUpdaterFragment.TAG).commit();
 		}
-		String versionName;
-		try {
-			versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-		} catch (NameNotFoundException e) {
-			throw new RuntimeException();
-		}
-		Toast.makeText(this, "version " + versionName, Toast.LENGTH_LONG).show();
+		showCurrentVersionInToast();
 	}
 
 	@Override
 	protected Fragment onCreatePane() {
 
 		return null;
+	}
+
+	private void showCurrentVersionInToast() {
+
+		String versionName;
+		try {
+			versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+		} catch (NameNotFoundException e) {
+			throw new RuntimeException();
+		}
+		Toast.makeText(this, "Version " + versionName, Toast.LENGTH_LONG).show();
 	}
 
 	private void triggerRefresh() {
@@ -133,12 +137,19 @@ public class HomeActivity extends BaseListActivity {
 				case SyncService.STATUS_RUNNING: {
 					mSyncing = true;
 					activity.updateRefreshStatus(mSyncing);
+					HomeActivity.startNextActivity(activity);
+					Toast.makeText(activity, "Syncing data...", Toast.LENGTH_LONG).show();
 					break;
 				}
 				case SyncService.STATUS_FINISHED: {
 					mSyncing = false;
 					activity.updateRefreshStatus(mSyncing);
-					HomeActivity.startNextActivity(activity);
+					Toast.makeText(activity, "Data synced", Toast.LENGTH_LONG).show();
+					break;
+				}
+				case SyncService.STATUS_NOTIFICATION: {
+					final String notification = resultData.getString(Intent.EXTRA_TEXT);
+					Toast.makeText(activity, notification, Toast.LENGTH_LONG).show();
 					break;
 				}
 				case SyncService.STATUS_ERROR: {

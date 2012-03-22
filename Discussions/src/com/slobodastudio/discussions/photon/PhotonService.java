@@ -9,12 +9,15 @@ import com.slobodastudio.discussions.photon.constants.LiteLobbyOpKey;
 import com.slobodastudio.discussions.photon.constants.LiteOpParameterKey;
 import com.slobodastudio.discussions.photon.constants.LiteOpPropertyType;
 import com.slobodastudio.discussions.photon.constants.PhotonConstants;
+import com.slobodastudio.discussions.service.SyncService;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.ResultReceiver;
 import android.util.Log;
 
 import de.exitgames.client.photon.DebugLevel;
@@ -43,18 +46,21 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
 	private static final int INVALID_POINT_ID = -1;
 	private static final String TAG = PhotonService.class.getSimpleName();
-	LitePeer peer;
-	Object sequenceNumberingLockObj = new Object();
-	/** Handler required to process async events that are interfering with UI (eventAction changes players
-	 * array while UI reads it when redrawing. So eventAction should be executed in main loop to avoid
-	 * ConcurrentModificationException) */
-	final Handler syncHandler = new Handler();
 	Timer timer;
 	private final PhotonServiceCallbackHandler callbackHandler = new PhotonServiceCallbackHandler();
 	private String gameLobbyName;
 	private DiscussionUser localUser;
+	/** Binder given to clients */
 	private final IBinder mBinder = new LocalBinder();
+	private ResultReceiver mResultReceiver;
+	private final SyncResultReceiver mSyncResultReceiver = new SyncResultReceiver(new Handler());
 	private final Hashtable<Integer, DiscussionUser> onlineUsers = new Hashtable<Integer, DiscussionUser>();
+	private LitePeer peer;
+	private final Object sequenceNumberingLockObj = new Object();
+	/** Handler required to process async events that are interfering with UI (eventAction changes players
+	 * array while UI reads it when redrawing. So eventAction should be executed in main loop to avoid
+	 * ConcurrentModificationException) */
+	private final Handler syncHandler = new Handler();
 
 	private static Integer[] toIntArray(final List<Integer> integerList) {
 
@@ -102,16 +108,21 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 		if (peer == null) {
 			throw new IllegalStateException("Peer was null at the disconnect point");
 		}
-		timer.cancel();
-		timer = null;
-		peer.opLeave(gameLobbyName);
-		peer.disconnect();
-		peer = null;
+		if (isConnected()) {
+			peer.opLeave(gameLobbyName);
+			peer.opCustom(DiscussionOperationCode.NOTIFY_LEAVE_USER, null, true);
+			peer.disconnect();
+		}
 	}
 
 	public PhotonServiceCallbackHandler getCallbackHandler() {
 
 		return callbackHandler;
+	}
+
+	public ResultReceiver getResultReceiver() {
+
+		return mSyncResultReceiver;
 	}
 
 	public boolean isConnected() {
@@ -128,9 +139,10 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 	@Override
 	public void onDestroy() {
 
-		if (isConnected()) {
-			disconnect();
+		if (DEBUG) {
+			Log.d(TAG, "[onDestroy]");
 		}
+		disconnect();
 		super.onDestroy();
 	}
 
@@ -177,21 +189,21 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 					callbackHandler.onStructureChanged(changedTopicId);
 				}
 				break;
-			case DiscussionEventCode.INSTANT_USER_PLUS_MINUS:
-				break;
 			case DiscussionEventCode.ARG_POINT_CHANGED:
 				int pointId = (Integer) event.Parameters.get(DiscussionParameterKey.ArgPointId);
 				if (pointId != INVALID_POINT_ID) {
 					callbackHandler.onArgPointChanged(pointId);
 				}
 				break;
+			case DiscussionEventCode.INSTANT_USER_PLUS_MINUS:
 			case DiscussionEventCode.BADGE_GEOMETRY_CHANGED:
 			case DiscussionEventCode.BADGE_EXPANSION_CHANGED:
 			case DiscussionEventCode.USER_CURSOR_CHANGED:
 			case DiscussionEventCode.ANNOTATION_CHANGED:
 			case DiscussionEventCode.USER_ACC_PLUS_MINUS:
-				throw new UnsupportedOperationException("Event " + DiscussionEventCode.asString(event.Code)
-						+ " not implemented yet");
+				break;
+			// throw new UnsupportedOperationException("Event " + DiscussionEventCode.asString(event.Code)
+			// + " not implemented yet");
 			default:
 				throw new IllegalArgumentException("Unknown event code: " + event.Code);
 		}
@@ -247,7 +259,6 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 				logUsersOnline();
 				break;
 			case DiscussionOperationCode.NOTIFY_STRUCTURE_CHANGED:
-				break;
 			case DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED:
 			case DiscussionOperationCode.NOTIFY_ANNOTATION_UPDATED:
 			case DiscussionOperationCode.NOTIFY_BADGE_EXPANSION_CHANGED:
@@ -257,8 +268,9 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 			case DiscussionOperationCode.NOTIFY_USER_CURSOR_STATE:
 			case DiscussionOperationCode.REQUEST_BADGE_GEOMETRY:
 			case DiscussionOperationCode.REQUEST_SYNC_POINTS:
-				throw new UnsupportedOperationException("Operation: "
-						+ DiscussionOperationCode.asString(opCode) + " not implemented yet");
+				break;
+			// throw new UnsupportedOperationException("Operation: "
+			// + DiscussionOperationCode.asString(opCode) + " not implemented yet");
 			default:
 				throw new IllegalArgumentException("Unknown operation code: " + opCode);
 		}
@@ -303,7 +315,7 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 				debugReturn(DebugLevel.INFO, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
 						+ peer.getPeerState());
 				localUser = null;
-				// TODO: try to reconnect
+				timer.cancel();
 				break;
 			case Exception_Connect:
 			case Exception:
@@ -392,7 +404,9 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 				// in the settings menu.
 				if ((System.currentTimeMillis() - lastSendTime) > PhotonConstants.SEND_INTERVAL) {
 					lastSendTime = System.currentTimeMillis();
-					peer.sendOutgoingCommands();
+					if (peer != null) {
+						peer.sendOutgoingCommands();
+					}
 				}
 			}
 		};
@@ -423,6 +437,33 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 		public PhotonService getService() {
 
 			return PhotonService.this;
+		}
+	}
+
+	public class SyncResultReceiver extends ResultReceiver {
+
+		public SyncResultReceiver(final Handler handler) {
+
+			super(handler);
+		}
+
+		@Override
+		protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+
+			if (DEBUG) {
+				Log.d(TAG, "[onReceiveResult] code: " + resultCode + ", data: " + resultData.toString());
+			}
+			super.onReceiveResult(resultCode, resultData);
+			switch (resultCode) {
+				case SyncService.STATUS_FINISHED:
+					int topicId = resultData.getInt(SyncService.EXTRA_TOPIC_ID);
+					if (isConnected()) {
+						opSendNotifyStructureChanged(topicId);
+					}
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown result code: " + resultCode);
+			}
 		}
 	}
 }

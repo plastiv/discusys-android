@@ -16,5 +16,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/plastiv/workspace/Discussions/Discussions/lib/libGoogleAnalytics.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/plastiv/workspace/Discussions/Discussions/lib/android-support-v4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/plastiv/workspace/Discussions/Discussions/lib/bugsense-trace-1-1-2.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

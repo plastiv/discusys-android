@@ -152,23 +152,23 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
 
 		super.onCreateContextMenu(menu, v, menuInfo);
-		AdapterView.AdapterContextMenuInfo info;
-		try {
-			// Casts the incoming data object into the type for AdapterView objects.
-			info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		} catch (ClassCastException e) {
-			// If the menu object can't be cast, logs an error.
-			throw new RuntimeException("bad menuInfo: " + menuInfo, e);
-		}
-		Cursor cursor = (Cursor) getListAdapter().getItem(info.position);
-		if (cursor == null) {
-			// For some reason the requested item isn't available, do nothing
-			return;
-		}
-		int columnIndex = cursor.getColumnIndexOrThrow(mColumnName);
-		menu.setHeaderTitle(cursor.getString(columnIndex));// if your table name is name
-		android.view.MenuInflater inflater = getActivity().getMenuInflater();
-		inflater.inflate(R.menu.list_context_menu, menu);
+		// AdapterView.AdapterContextMenuInfo info;
+		// try {
+		// // Casts the incoming data object into the type for AdapterView objects.
+		// info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		// } catch (ClassCastException e) {
+		// // If the menu object can't be cast, logs an error.
+		// throw new RuntimeException("bad menuInfo: " + menuInfo, e);
+		// }
+		// Cursor cursor = (Cursor) getListAdapter().getItem(info.position);
+		// if (cursor == null) {
+		// // For some reason the requested item isn't available, do nothing
+		// return;
+		// }
+		// int columnIndex = cursor.getColumnIndexOrThrow(mColumnName);
+		// menu.setHeaderTitle(cursor.getString(columnIndex));// if your table name is name
+		// android.view.MenuInflater inflater = getActivity().getMenuInflater();
+		// inflater.inflate(R.menu.list_context_menu, menu);
 	}
 
 	@Override

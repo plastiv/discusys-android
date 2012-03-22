@@ -14,7 +14,7 @@ import com.actionbarsherlock.view.Window;
 
 public abstract class BaseActivity extends SherlockFragmentActivity {
 
-	public static final boolean DEBUG = true | ApplicationConstants.DEBUG_MODE;
+	public static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
 	private static final String TAG = BaseActivity.class.getSimpleName();
 	protected Fragment mFragment;
 
@@ -78,6 +78,14 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 					return;
 				}
 				fm.beginTransaction().add(R.id.frame_layout_list, mFragment).commit();
+			}
+		} else {
+			if (fm.findFragmentById(R.id.frame_layout_list) != null) {
+				mFragment = fm.findFragmentById(R.id.frame_layout_list);
+				//
+				// fm.beginTransaction().add(R.id.frame_layout_list, mFragment).commit();
+			} else {
+				throw new IllegalStateException("fragment should be created here");
 			}
 		}
 		setSupportProgressBarIndeterminateVisibility(false);
