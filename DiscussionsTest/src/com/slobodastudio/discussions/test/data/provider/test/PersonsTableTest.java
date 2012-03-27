@@ -19,6 +19,11 @@ public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		super(DiscussionsProvider.class, DiscussionsProvider.class.getName());
 	}
 
+	public static Uri insertValidValue(final int valueId, final ContentProvider provider) {
+
+		return provider.insert(tableUri, getTestValue(valueId));
+	}
+
 	static ContentValues getTestValue(final int valueId) {
 
 		final ContentValues cv = new ContentValues();
@@ -29,11 +34,6 @@ public class PersonsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 		cv.put(Persons.Columns.COLOR, Color.CYAN);
 		cv.put(Persons.Columns.ONLINE, false);
 		return cv;
-	}
-
-	static Uri insertValidValue(final int valueId, final ContentProvider provider) {
-
-		return provider.insert(tableUri, getTestValue(valueId));
 	}
 
 	public void testInsert() {

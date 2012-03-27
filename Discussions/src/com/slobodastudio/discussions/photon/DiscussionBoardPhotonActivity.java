@@ -19,7 +19,7 @@ import android.widget.Button;
 
 public class DiscussionBoardPhotonActivity extends Activity implements PhotonServiceCallback {
 
-	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
+	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = DiscussionBoardPhotonActivity.class.getSimpleName();
 	PhotonService serviceInstance;
 	private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -89,7 +89,7 @@ public class DiscussionBoardPhotonActivity extends Activity implements PhotonSer
 				if (DEBUG) {
 					Log.d(TAG, "[onClick] notify button");
 				}
-				OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
+				OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL);
 				odata.insertPoint(Points.ArgreementCode.UNSOLVED, null, false, null, null, 4,
 						"android second try point", true, Points.SideCode.NEUTRAL, 2);
 				serviceInstance.opSendNotifyStructureChanged(2);

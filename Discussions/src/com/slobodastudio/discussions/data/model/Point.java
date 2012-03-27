@@ -12,7 +12,7 @@ public class Point implements Value {
 	private final byte[] drawing;
 	private final boolean expanded;
 	private final int groupId;
-	private final int id;
+	private int id;
 	private final String name;
 	private final String numberedPoint;
 	private final int personId;
@@ -154,6 +154,11 @@ public class Point implements Value {
 	public boolean isSharedToPublic() {
 
 		return sharedToPublic;
+	}
+
+	public void setId(final int id) {
+
+		this.id = id;
 	}
 
 	public Bundle toBundle() {

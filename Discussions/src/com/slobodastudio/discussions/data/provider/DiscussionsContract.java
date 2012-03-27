@@ -593,6 +593,8 @@ public final class DiscussionsContract {
 			public static final String NAME = "Name";
 			/** Type Int32. Should be used only by servers data. */
 			public static final String PERSON_ID = "Person";
+			/** Type Int32. Should be used only by servers data. */
+			public static final String POINT_ID = "ArgPoint";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when

@@ -9,7 +9,6 @@ import com.slobodastudio.discussions.photon.constants.LiteLobbyOpKey;
 import com.slobodastudio.discussions.photon.constants.LiteOpParameterKey;
 import com.slobodastudio.discussions.photon.constants.LiteOpPropertyType;
 import com.slobodastudio.discussions.photon.constants.PhotonConstants;
-import com.slobodastudio.discussions.service.SyncService;
 
 import android.app.Service;
 import android.content.Intent;
@@ -43,7 +42,11 @@ import java.util.TimerTask;
 
 public class PhotonService extends Service implements IPhotonPeerListener {
 
-	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
+	public static final String EXTRA_POINT_ID = "intent.extra.key.EXTRA_POINT_ID";
+	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
+	public static final int STATUS_ARG_POINT_CHANGED = 0x3;
+	public static final int STATUS_STRUCTURE_CHANGED = 0x2;
+	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int INVALID_POINT_ID = -1;
 	private static final String TAG = PhotonService.class.getSimpleName();
 	Timer timer;
@@ -109,9 +112,9 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 			throw new IllegalStateException("Peer was null at the disconnect point");
 		}
 		if (isConnected()) {
-			peer.opLeave(gameLobbyName);
 			peer.opCustom(DiscussionOperationCode.NOTIFY_LEAVE_USER, null, true);
-			peer.disconnect();
+			peer.opLeave(gameLobbyName);
+			// peer.disconnect();
 		}
 	}
 
@@ -181,7 +184,7 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 				onlineUsers.remove(leftActorNumber);
 				logUsersOnline();
 				break;
-			case DiscussionEventCode.STRUCTURE_CHANGED:
+			case DiscussionEventCode.STRUCTURE_CHANGED: {
 				int actorId = (Integer) event.Parameters.get(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR);
 				if (actorId != localUser.getActorNumber()) {
 					int changedTopicId = (Integer) event.Parameters
@@ -189,12 +192,17 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 					callbackHandler.onStructureChanged(changedTopicId);
 				}
 				break;
-			case DiscussionEventCode.ARG_POINT_CHANGED:
-				int pointId = (Integer) event.Parameters.get(DiscussionParameterKey.ArgPointId);
-				if (pointId != INVALID_POINT_ID) {
-					callbackHandler.onArgPointChanged(pointId);
+			}
+			case DiscussionEventCode.ARG_POINT_CHANGED: {
+				int actorId = (Integer) event.Parameters.get(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR);
+				if (actorId != localUser.getActorNumber()) {
+					int pointId = (Integer) event.Parameters.get(DiscussionParameterKey.ARG_POINT_ID);
+					if (pointId != INVALID_POINT_ID) {
+						callbackHandler.onArgPointChanged(pointId);
+					}
 				}
 				break;
+			}
 			case DiscussionEventCode.INSTANT_USER_PLUS_MINUS:
 			case DiscussionEventCode.BADGE_GEOMETRY_CHANGED:
 			case DiscussionEventCode.BADGE_EXPANSION_CHANGED:
@@ -249,6 +257,7 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 				callbackHandler.onConnect();
 				break;
 			case DiscussionOperationCode.LEAVE:
+				peer.disconnect();
 				onlineUsers.clear();
 				localUser = null;
 				break;
@@ -276,6 +285,27 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 		}
 	}
 
+	public boolean opArgPointChanged(final int changedPointId) {
+
+		if (DEBUG) {
+			Log.d(TAG, "[opArgPointChanged] point id: " + changedPointId);
+		}
+		if (!isConnected()) {
+			throw new IllegalStateException(
+					"You trying to send notification while not connected to the server");
+		}
+		if (changedPointId < 0) {
+			throw new IllegalArgumentException("Point id can't be below zero");
+		}
+		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
+				Object.class);
+		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, changedPointId);
+		structureChangedParameters.put(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR, localUser
+				.getActorNumber());
+		return peer.opCustom(DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED, structureChangedParameters,
+				true);
+	}
+
 	public void opJoinFromLobby() {
 
 		HashMap<Byte, Object> actorProperties = new HashMap<Byte, Object>();
@@ -286,6 +316,9 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 
 	public boolean opSendNotifyStructureChanged(final int activeTopicId) {
 
+		if (DEBUG) {
+			Log.d(TAG, "[opSendNotifyStructureChanged] topic id: " + activeTopicId);
+		}
 		if (!isConnected()) {
 			throw new IllegalStateException(
 					"You trying to send notification while not connected to the server");
@@ -317,11 +350,23 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 				localUser = null;
 				timer.cancel();
 				break;
-			case Exception_Connect:
+			case DisconnectByServer:
+			case DisconnectByServerLogic:
+			case DisconnectByServerUserLimit:
+			case EncryptionEstablished:
+			case EncryptionFailedToEstablish:
 			case Exception:
+			case Exception_Connect:
+			case InternalReceiveException:
+			case QueueIncomingReliableWarning:
+			case QueueIncomingUnreliableWarning:
+			case QueueOutgoingAcksWarning:
+			case QueueOutgoingReliableError:
+			case QueueOutgoingReliableWarning:
+			case QueueOutgoingUnreliableWarning:
+			case QueueSentWarning:
 			case SendError:
 			case TimeoutDisconnect:
-			case DisconnectByServer:
 				debugReturn(DebugLevel.ERROR, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
 						+ peer.getPeerState());
 				break;
@@ -455,10 +500,16 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 			}
 			super.onReceiveResult(resultCode, resultData);
 			switch (resultCode) {
-				case SyncService.STATUS_FINISHED:
-					int topicId = resultData.getInt(SyncService.EXTRA_TOPIC_ID);
+				case STATUS_STRUCTURE_CHANGED:
+					int topicId = resultData.getInt(EXTRA_TOPIC_ID);
 					if (isConnected()) {
 						opSendNotifyStructureChanged(topicId);
+					}
+					break;
+				case STATUS_ARG_POINT_CHANGED:
+					int pointId = resultData.getInt(EXTRA_POINT_ID);
+					if (isConnected()) {
+						opArgPointChanged(pointId);
 					}
 					break;
 				default:

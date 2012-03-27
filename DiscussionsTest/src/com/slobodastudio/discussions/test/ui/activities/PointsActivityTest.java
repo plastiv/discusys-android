@@ -29,6 +29,8 @@ public class PointsActivityTest extends ActivityInstrumentationTestCase2 {
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		intent.putExtra(IntentExtrasKey.PERSON_ID, 2);
 		intent.putExtra(IntentExtrasKey.TOPIC_ID, 1);
+		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, 1);
+		intent.putExtra(IntentExtrasKey.PERSON_NAME, "Muhammed");
 		setActivityIntent(intent);
 	}
 
@@ -91,6 +93,8 @@ public class PointsActivityTest extends ActivityInstrumentationTestCase2 {
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		intent.putExtra(IntentExtrasKey.PERSON_ID, 2);
 		intent.putExtra(IntentExtrasKey.TOPIC_ID, 2);
+		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, 1);
+		intent.putExtra(IntentExtrasKey.PERSON_NAME, "Muhammed");
 		solo.getCurrentActivity().startActivity(intent);
 		solo.waitForActivity(PointsActivity.class.getSimpleName());
 		solo.assertCurrentActivity("Failure to start points activity", PointsActivity.class);

@@ -4,7 +4,7 @@ public class DiscussionParameterKey {
 
 	public static final byte AnnotationId = 19;
 	// TODO: refact style to java of constants
-	public static final byte ArgPointId = 11;
+	public static final byte ARG_POINT_ID = 11;
 	public static final byte ArrayOfIds = 4;
 	public static final byte ArrayOfOrientations = 3;
 	public static final byte ArrayOfViewTypes = 12;

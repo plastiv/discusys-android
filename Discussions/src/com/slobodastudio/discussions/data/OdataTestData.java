@@ -9,7 +9,7 @@ public class OdataTestData {
 
 	public static void generateDiscussions() {
 
-		OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
+		OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL);
 		odata.insertDiscussion("Abortion");
 		odata.insertDiscussion("News");
 		odata.insertDiscussion("Nuclear energy");
@@ -19,7 +19,7 @@ public class OdataTestData {
 
 	public static void generatePersons() {
 
-		OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
+		OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL);
 		odata.insertPerson("Isaac Newton", "android@test.com", Color.BLUE, false);
 		odata.insertPerson("Muhammad", "android@test.com", Color.CYAN, false);
 		odata.insertPerson("Jesus Christ", "android@test.com", Color.DKGRAY, false);
@@ -38,7 +38,7 @@ public class OdataTestData {
 
 	public static void generatePoints() {
 
-		OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
+		OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL);
 		final int groupId = 1;
 		final int personId = 7;
 		final int topicId = 1;
@@ -220,7 +220,7 @@ public class OdataTestData {
 
 	public static void generateTopics() {
 
-		OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL_JAPAN);
+		OdataWriteClient odata = new OdataWriteClient(ODataConstants.SERVICE_URL);
 		odata.insertTopic("Abortion pro and cons", 1, 2);
 		odata.insertTopic("Observers slam Russian vote as Putin declares victory", 2, 2);
 		odata.insertTopic("Crowley: Super Tuesday looms larger for Gingrich than anyone else", 2, 2);

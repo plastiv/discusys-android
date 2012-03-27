@@ -14,7 +14,7 @@ import com.actionbarsherlock.view.Window;
 
 public abstract class BaseActivity extends SherlockFragmentActivity {
 
-	public static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
+	public static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = BaseActivity.class.getSimpleName();
 	protected Fragment mFragment;
 

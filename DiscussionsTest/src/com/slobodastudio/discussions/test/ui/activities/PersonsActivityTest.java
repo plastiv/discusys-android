@@ -14,7 +14,7 @@ import android.widget.ListView;
 
 import com.jayway.android.robotium.solo.Solo;
 
-public class PersonsActivityTest extends ActivityInstrumentationTestCase2 {
+public class PersonsActivityTest extends ActivityInstrumentationTestCase2<PersonsActivity> {
 
 	private Solo solo;
 

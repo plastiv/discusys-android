@@ -2,7 +2,7 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
-import com.slobodastudio.discussions.service.SyncService;
+import com.slobodastudio.discussions.service.DownloadService;
 import com.slobodastudio.discussions.utils.AnalyticsUtils;
 import com.slobodastudio.discussions.utils.DetachableResultReceiver;
 
@@ -80,8 +80,9 @@ public class HomeActivity extends BaseListActivity {
 	private void triggerRefresh() {
 
 		updateRefreshStatus(true);
-		final Intent intent = new Intent(SyncService.ACTION_SYNC);
-		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mSyncStatusUpdaterFragment.mReceiver);
+		final Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
+		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_ALL);
+		intent.putExtra(DownloadService.EXTRA_STATUS_RECEIVER, mSyncStatusUpdaterFragment.mReceiver);
 		startService(intent);
 	}
 
@@ -134,25 +135,20 @@ public class HomeActivity extends BaseListActivity {
 				return;
 			}
 			switch (resultCode) {
-				case SyncService.STATUS_RUNNING: {
+				case DownloadService.STATUS_RUNNING: {
 					mSyncing = true;
 					activity.updateRefreshStatus(mSyncing);
 					HomeActivity.startNextActivity(activity);
 					Toast.makeText(activity, "Syncing data...", Toast.LENGTH_LONG).show();
 					break;
 				}
-				case SyncService.STATUS_FINISHED: {
+				case DownloadService.STATUS_FINISHED: {
 					mSyncing = false;
 					activity.updateRefreshStatus(mSyncing);
 					Toast.makeText(activity, "Data synced", Toast.LENGTH_LONG).show();
 					break;
 				}
-				case SyncService.STATUS_NOTIFICATION: {
-					final String notification = resultData.getString(Intent.EXTRA_TEXT);
-					Toast.makeText(activity, notification, Toast.LENGTH_LONG).show();
-					break;
-				}
-				case SyncService.STATUS_ERROR: {
+				case DownloadService.STATUS_ERROR: {
 					// Error happened down in SyncService, show as toast.
 					mSyncing = false;
 					activity.updateRefreshStatus(mSyncing);

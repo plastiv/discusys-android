@@ -17,9 +17,9 @@ public class DiscussionsApplication extends Application {
 	public void onCreate() {
 
 		super.onCreate();
-		if (ApplicationConstants.DEBUG_MODE) {
-			StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectNetwork().penaltyDeath()
-					.build());
+		if (ApplicationConstants.DEV_MODE) {
+			StrictMode
+					.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());
 		} else {
 			BugSenseHandler.setup(this, ApplicationConstants.BUG_SENSE_API_KEY);
 		}

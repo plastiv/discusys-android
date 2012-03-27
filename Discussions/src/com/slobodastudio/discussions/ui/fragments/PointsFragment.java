@@ -32,7 +32,7 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class PointsFragment extends SherlockFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
+	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String EXTRA_POSITION = "extra_key_position";
 	private static final String EXTRA_SELECTED = "extra_key_selected_list_id";
 	private static final int LOADER_OTHER_POINTS_ID = 1;
@@ -202,7 +202,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		switch (loader.getId()) {
 			case LOADER_USER_POINTS_ID:
 				mUserPointsAdapter.swapCursor(data);
-				mUserPointsList.invalidate();
+				// mUserPointsList.invalidate();
 				break;
 			case LOADER_OTHER_POINTS_ID:
 				mOtherPointsAdapter.swapCursor(data);

@@ -2,13 +2,12 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.DiscussionUser;
 import com.slobodastudio.discussions.photon.PhotonService;
 import com.slobodastudio.discussions.photon.PhotonService.LocalBinder;
 import com.slobodastudio.discussions.photon.PhotonServiceCallback;
 import com.slobodastudio.discussions.photon.constants.PhotonConstants;
-import com.slobodastudio.discussions.service.SyncService;
+import com.slobodastudio.discussions.service.DownloadService;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
 import com.slobodastudio.discussions.ui.activities.HomeActivity.SyncStatusUpdaterFragment;
 import com.slobodastudio.discussions.ui.fragments.PointsFragment;
@@ -26,11 +25,12 @@ import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.MenuItem;
 
 public class PointsActivity extends BaseListActivity implements PhotonServiceCallback {
 
-	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
+	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = PointsActivity.class.getSimpleName();
 	private int discussionId;
 	private boolean mBound = false;
@@ -73,7 +73,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 		if (DEBUG) {
 			Log.d(TAG, "[onArgPointChanged] point id: " + pointId);
 		}
-		showToast("Point changed: " + pointId);
+		// showToast("Point changed: " + pointId);
 		downloadPoint(pointId);
 	}
 
@@ -89,7 +89,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 	public void onErrorOccured(final String message) {
 
 		Log.e(TAG, "[onErrorOccured] message: " + message);
-		showToast("[onErrorOccured] message: " + message);
+		// showToast("[onErrorOccured] message: " + message);
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 		if (DEBUG) {
 			Log.d(TAG, "[onEventJoin] user come: " + newUser.getUserName());
 		}
-		showToast("User online: " + newUser.getUserName());
+		// showToast("User online: " + newUser.getUserName());
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 		if (DEBUG) {
 			Log.d(TAG, "[onEventLeave] user left: " + leftUser.getUserName());
 		}
-		showToast("User offline: " + leftUser.getUserName());
+		// showToast("User offline: " + leftUser.getUserName());
 	}
 
 	@Override
@@ -125,7 +125,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 				}
 				return true;
 			case R.id.menu_refresh:
-				downloadPoints(topicId);
+				downloadPointsFromTopic(topicId);
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -138,8 +138,8 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 		if (DEBUG) {
 			Log.d(TAG, "[onStructureChanged] topic id: " + topicId);
 		}
-		showToast("[onStructureChanged] topic id: " + topicId);
-		downloadPoints(topicId);
+		// showToast("[onStructureChanged] topic id: " + topicId);
+		downloadPointsFromTopic(topicId);
 	}
 
 	@Override
@@ -166,7 +166,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 	protected void onStart() {
 
 		super.onStart();
-		// Bind to LocalService
+		// Bind to LocalService (create in new thread)
 		Intent intent = new Intent(this, PhotonService.class);
 		bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 	}
@@ -191,20 +191,20 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 
 	private void downloadPoint(final int pointId) {
 
-		Intent intent = new Intent(SyncService.ACTION_DOWNLOAD);
-		intent.putExtra(SyncService.EXTRA_POINT_ID, pointId);
-		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mSyncStatusUpdaterFragment.mReceiver);
+		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
+		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_POINT);
+		intent.putExtra(DownloadService.EXTRA_VALUE_ID, pointId);
+		intent.putExtra(DownloadService.EXTRA_STATUS_RECEIVER, mSyncStatusUpdaterFragment.mReceiver);
 		startService(intent);
 	}
 
-	private void downloadPoints(final int topicId) {
+	private void downloadPointsFromTopic(final int topicId) {
 
-		Intent intent = new Intent(SyncService.ACTION_DOWNLOAD);
-		intent.putExtra(SyncService.EXTRA_TOPIC_ID, topicId);
-		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mSyncStatusUpdaterFragment.mReceiver);
+		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
+		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_POINT_FROM_TOPIC);
+		intent.putExtra(DownloadService.EXTRA_VALUE_ID, topicId);
+		intent.putExtra(DownloadService.EXTRA_STATUS_RECEIVER, mSyncStatusUpdaterFragment.mReceiver);
 		startService(intent);
-		getContentResolver().delete(Points.CONTENT_URI, Points.Columns.TOPIC_ID + "=?",
-				new String[] { String.valueOf(topicId) });
 	}
 
 	private void initFromIntentExtra() {
@@ -264,7 +264,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 				Log.d(TAG, "[onActivityCreated] savedInstanceState: " + savedInstanceState);
 			}
 			super.onActivityCreated(savedInstanceState);
-			((PointsActivity) getActivity()).setSupportProgressBarIndeterminateVisibility(mSyncing);
+			((SherlockFragmentActivity) getActivity()).setSupportProgressBarIndeterminateVisibility(mSyncing);
 		}
 
 		@Override
@@ -286,31 +286,20 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 			if (DEBUG) {
 				Log.d(TAG, "[onReceiveResult] resultCode: " + resultCode + ", resultData: " + resultData);
 			}
-			PointsActivity activity = (PointsActivity) getActivity();
+			SherlockFragmentActivity activity = (SherlockFragmentActivity) getActivity();
 			if (activity == null) {
 				return;
 			}
 			switch (resultCode) {
-				case SyncService.STATUS_RUNNING:
+				case DownloadService.STATUS_RUNNING:
 					mSyncing = true;
-					activity.updateRefreshStatus(mSyncing);
-					Toast.makeText(activity, "Syncing points...", Toast.LENGTH_LONG).show();
 					break;
-				case SyncService.STATUS_FINISHED: {
+				case DownloadService.STATUS_FINISHED:
 					mSyncing = false;
-					activity.updateRefreshStatus(mSyncing);
-					Toast.makeText(activity, "Points synced", Toast.LENGTH_LONG).show();
 					break;
-				}
-				case SyncService.STATUS_NOTIFICATION: {
-					final String notification = resultData.getString(Intent.EXTRA_TEXT);
-					Toast.makeText(activity, notification, Toast.LENGTH_LONG).show();
-					break;
-				}
-				case SyncService.STATUS_ERROR:
+				case DownloadService.STATUS_ERROR:
 					// Error happened down in SyncService, show as toast.
 					mSyncing = false;
-					activity.updateRefreshStatus(mSyncing);
 					final String errorText = getString(R.string.toast_sync_error, resultData
 							.getString(Intent.EXTRA_TEXT));
 					Toast.makeText(activity, errorText, Toast.LENGTH_LONG).show();
@@ -318,6 +307,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 				default:
 					throw new IllegalArgumentException("Unknown result code: " + resultCode);
 			}
+			activity.setSupportProgressBarIndeterminateVisibility(mSyncing);
 		}
 	}
 }

@@ -11,10 +11,21 @@ import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OProperties;
+import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 
 public class OdataWriteClient {
 
 	private final ODataConsumer consumer;
+
+	/** Create a new odata consumer pointing to the odata read-write service.
+	 * 
+	 * @param serviceRootUri
+	 *            the service uri e.g. http://services.odata.org/Northwind/Northwind.svc/ */
+	public OdataWriteClient() {
+
+		// FIXME: check if network is accessible
+		consumer = ODataJerseyConsumer.newBuilder(ODataConstants.SERVICE_URL).build();
+	}
 
 	// FIXME catch 404 errors from HTTP RESPONSE
 	/** Create a new odata consumer pointing to the odata read-write service.
@@ -24,7 +35,7 @@ public class OdataWriteClient {
 	public OdataWriteClient(final String serviceRootUri) {
 
 		// FIXME: check if network is accessible
-		consumer = ODataConsumer.create(serviceRootUri);
+		consumer = ODataJerseyConsumer.newBuilder(serviceRootUri).build();
 	}
 
 	public OEntity insertDiscussion(final String subject) {
@@ -64,9 +75,10 @@ public class OdataWriteClient {
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(topicId)));
 		
 		if(drawing != null){
-			request.properties(OProperties.binary(Points.Columns.DRAWING, drawing));
+			//request.properties(OProperties.binary(Points.Columns.DRAWING, drawing));
 		}
 		if(groupId != null){
+			
 			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(groupId)));
 		}
 		if(numberedPoint != null){

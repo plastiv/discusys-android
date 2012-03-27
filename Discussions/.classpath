@@ -4,18 +4,10 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-	<classpathentry exported="true" kind="lib" path="lib/odata4j-0.5-clientbundle.jar">
+	<classpathentry kind="lib" path="C:/Users/plastiv/workspace/Discussions/Discussions/libs/odata4j-0.6.0-clientbundle.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Users/plastiv/workspace/Discussions/Discussions/lib/javadoc/"/>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/plastiv/workspace/Discussions/Discussions/libs/odata4j-0.6.0-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/photon-android.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Users/plastiv/workspace/Discussions/Discussions/lib/doc/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/plastiv/workspace/Discussions/Discussions/lib/libGoogleAnalytics.jar"/>
-	<classpathentry exported="true" kind="lib" path="C:/Users/plastiv/workspace/Discussions/Discussions/lib/android-support-v4.jar"/>
-	<classpathentry kind="lib" path="C:/Users/plastiv/workspace/Discussions/Discussions/lib/bugsense-trace-1-1-2.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

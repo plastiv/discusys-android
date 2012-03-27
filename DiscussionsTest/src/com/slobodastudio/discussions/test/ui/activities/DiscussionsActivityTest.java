@@ -7,6 +7,7 @@ import com.slobodastudio.discussions.ui.IntentExtrasKey;
 import com.slobodastudio.discussions.ui.activities.DiscussionsActivity;
 import com.slobodastudio.discussions.ui.activities.TopicsActivity;
 
+import android.app.Instrumentation;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -15,7 +16,7 @@ import android.widget.ListView;
 
 import com.jayway.android.robotium.solo.Solo;
 
-public class DiscussionsActivityTest extends ActivityInstrumentationTestCase2 {
+public class DiscussionsActivityTest extends ActivityInstrumentationTestCase2<DiscussionsActivity> {
 
 	private Solo solo;
 
@@ -25,6 +26,7 @@ public class DiscussionsActivityTest extends ActivityInstrumentationTestCase2 {
 		Uri uri = Persons.buildDiscussionUri(2);
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		intent.putExtra(IntentExtrasKey.PERSON_ID, 2);
+		intent.putExtra(IntentExtrasKey.PERSON_NAME, "Muhammed");
 		setActivityIntent(intent);
 	}
 
@@ -85,6 +87,7 @@ public class DiscussionsActivityTest extends ActivityInstrumentationTestCase2 {
 	@Override
 	protected void setUp() throws Exception {
 
+		Instrumentation instrumentation = new Instrumentation();
 		solo = new Solo(getInstrumentation(), getActivity());
 	}
 }

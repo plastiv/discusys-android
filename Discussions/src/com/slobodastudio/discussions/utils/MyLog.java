@@ -13,8 +13,8 @@ import java.util.Map;
  * BugSense, exclude verbose messages from release. */
 public class MyLog {
 
-	private static final boolean GLOBAL_LOGD = true && ApplicationConstants.DEBUG_MODE;
-	private static final boolean GLOBAL_LOGV = true && ApplicationConstants.DEBUG_MODE;
+	private static final boolean GLOBAL_LOGD = true && ApplicationConstants.DEV_MODE;
+	private static final boolean GLOBAL_LOGV = true && ApplicationConstants.DEV_MODE;
 
 	/** Custom wrapper on system {@link Log#DEBUG} log. Blocks to print log on release version.
 	 * 
@@ -42,7 +42,7 @@ public class MyLog {
 	 *            An exception to log */
 	public static void e(final String tag, final String message, final Exception e) {
 
-		if (ApplicationConstants.DEBUG_MODE) {
+		if (ApplicationConstants.DEV_MODE) {
 			Log.e(tag, message, e);
 		} else {
 			Map<String, String> extraData = new HashMap<String, String>();

@@ -8,7 +8,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
 import com.slobodastudio.discussions.photon.PhotonService;
 import com.slobodastudio.discussions.photon.PhotonService.LocalBinder;
-import com.slobodastudio.discussions.service.SyncService;
+import com.slobodastudio.discussions.service.UploadService;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
 
 import android.content.ComponentName;
@@ -19,6 +19,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,10 +35,10 @@ import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
-public class PointDetailFragment extends SherlockFragment {
+public class PointDetailFragment extends SherlockFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
 	public static final int INVALID_POINT_ID = Integer.MIN_VALUE;
-	private static final boolean DEBUG = true && ApplicationConstants.DEBUG_MODE;
+	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String EXTRA_ACTION = "extra_key_action";
 	private static final String EXTRA_PERSON_ID = IntentExtrasKey.PERSON_ID;
 	private static final String EXTRA_TOPIC_ID = IntentExtrasKey.TOPIC_ID;
@@ -43,6 +46,7 @@ public class PointDetailFragment extends SherlockFragment {
 	private static final String TAG = PointDetailFragment.class.getSimpleName();
 	private static final int TYPE_DIR = 1;
 	private static final int TYPE_ITEM = 0;
+	Cursor mCursor;
 	private boolean empty = false;
 	private boolean mBound = false;
 	private final ServiceConnection mConnection = new ServiceConnection() {
@@ -122,10 +126,8 @@ public class PointDetailFragment extends SherlockFragment {
 				case TYPE_DIR:
 					throw new UnsupportedOperationException();
 				case TYPE_ITEM: {
-					Uri uri = getArguments().getParcelable(EXTRA_URI);
-					Cursor cursor = getActivity().getContentResolver().query(uri, null, null, null, null);
-					if (cursor.getCount() == 1) {
-						Point value = new Point(cursor);
+					if (mCursor.getCount() == 1) {
+						Point value = new Point(mCursor);
 						pointId = value.getId();
 						personId = value.getPersonId();
 						topicId = value.getTopicId();
@@ -134,7 +136,7 @@ public class PointDetailFragment extends SherlockFragment {
 						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
 					} else {
 						throw new IllegalStateException("Expected single value in cursor, was: "
-								+ cursor.getCount());
+								+ mCursor.getCount());
 					}
 					break;
 				}
@@ -177,20 +179,26 @@ public class PointDetailFragment extends SherlockFragment {
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
 					expectedGroupId, pointId, expectedPointName, expectedNumberedPoint, expectedPersonId,
 					expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			String where = Points.Columns.ID + "=?";
-			String[] args = new String[] { String.valueOf(point.getId()) };
-			getActivity().getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where,
-					args);
-			syncPoint(SyncService.ACTION_UPDATE, point.toBundle());
+			syncPoint(UploadService.TYPE_UPDATE_POINT, point.toBundle());
 		} else {
 			// new point
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
-					expectedGroupId, 1, expectedPointName, expectedNumberedPoint, expectedPersonId,
-					expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			syncPoint(SyncService.ACTION_INSERT, point.toBundle());
+					expectedGroupId, INVALID_POINT_ID, expectedPointName, expectedNumberedPoint,
+					expectedPersonId, expectedSharedToPublic, expectedSideCode, expectedTopicId);
+			syncPoint(UploadService.TYPE_INSERT_POINT, point.toBundle());
 		}
 		Toast.makeText(getActivity(), getActivity().getString(R.string.toast_saved), Toast.LENGTH_SHORT)
 				.show();
+	}
+
+	@Override
+	public Loader<Cursor> onCreateLoader(final int arg0, final Bundle arg1) {
+
+		Uri uri = getArguments().getParcelable(EXTRA_URI);
+		if (DEBUG) {
+			Log.d(TAG, "[onCreateLoader] uri: " + uri);
+		}
+		return new CursorLoader(getActivity(), uri, null, null, null, null);
 	}
 
 	@Override
@@ -244,6 +252,27 @@ public class PointDetailFragment extends SherlockFragment {
 	}
 
 	@Override
+	public void onLoaderReset(final Loader<Cursor> arg0) {
+
+		mCursor = null;
+	}
+
+	@Override
+	public void onLoadFinished(final Loader<Cursor> arg0, final Cursor data) {
+
+		mCursor = data;
+		if (data.getCount() > 0) {
+			Point value = new Point(mCursor);
+			pointId = value.getId();
+			personId = value.getPersonId();
+			topicId = value.getTopicId();
+			mNameEditText.setText(value.getName());
+			mSideCodeSpinner.setSelection(value.getAgreementCode());
+			mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+		}
+	}
+
+	@Override
 	public void onStart() {
 
 		super.onStart();
@@ -286,6 +315,7 @@ public class PointDetailFragment extends SherlockFragment {
 				pointId = INVALID_POINT_ID;
 				break;
 			case TYPE_ITEM:
+				getLoaderManager().initLoader(0, null, this);
 				setupView(true);
 				break;
 			default:
@@ -299,6 +329,7 @@ public class PointDetailFragment extends SherlockFragment {
 			case TYPE_DIR:
 				throw new IllegalStateException("Should not reach here. No sense to view empty point");
 			case TYPE_ITEM:
+				getLoaderManager().initLoader(0, null, this);
 				setupView(false);
 				break;
 			default:
@@ -324,17 +355,9 @@ public class PointDetailFragment extends SherlockFragment {
 
 	private void setupView(final boolean editable) {
 
-		Uri uri = getArguments().getParcelable(EXTRA_URI);
-		Cursor cursor = getActivity().getContentResolver().query(uri, null, null, null, null);
-		Point value = new Point(cursor);
-		cursor.close();
-		pointId = value.getId();
-		personId = value.getPersonId();
-		topicId = value.getTopicId();
-		mNameEditText.setText(value.getName());
-		mSideCodeSpinner.setSelection(value.getAgreementCode());
-		mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
-		setDescription();
+		// TODO: unchecked when description are enabled
+		// setDescription();
+		mDesctiptionEditText.setEnabled(false);
 		if (!editable) {
 			mNameEditText.setEnabled(false);
 			mDesctiptionEditText.setEnabled(false);
@@ -343,12 +366,13 @@ public class PointDetailFragment extends SherlockFragment {
 		}
 	}
 
-	private void syncPoint(final String action, final Bundle value) {
+	private void syncPoint(final int type, final Bundle value) {
 
-		Intent intent = new Intent(action);
-		intent.putExtras(value);
-		if (mBound && mService.isConnected()) {
-			intent.putExtra(SyncService.EXTRA_PHOTON_RECEIVER, mService.getResultReceiver());
+		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
+		intent.putExtra(UploadService.EXTRA_TYPE_ID, type);
+		intent.putExtra(UploadService.EXTRA_VALUE, value);
+		if (mBound) {
+			intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mService.getResultReceiver());
 		}
 		getActivity().startService(intent);
 	}

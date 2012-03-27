@@ -39,7 +39,7 @@ public class DiscussionsProvider extends ContentProvider {
 	private static final int DISCUSSIONS_DIR = 101;
 	private static final int DISCUSSIONS_ITEM = 100;
 	private static final int DISCUSSIONS_ITEM_TOPICS_DIR = 102;
-	private static final boolean LOGV = true && ApplicationConstants.DEBUG_MODE;
+	private static final boolean LOGV = true && ApplicationConstants.DEV_MODE;
 	private static final int PERSONS_DIR = 201;
 	private static final int PERSONS_ITEM = 200;
 	private static final int PERSONS_ITEM_DISCUSSIONS_DIR = 204;
