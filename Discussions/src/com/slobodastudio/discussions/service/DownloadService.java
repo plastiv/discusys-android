@@ -3,6 +3,7 @@ package com.slobodastudio.discussions.service;
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.ProviderTestData;
 import com.slobodastudio.discussions.data.odata.OdataReadClient;
+import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
@@ -15,12 +16,8 @@ import android.util.Log;
 public class DownloadService extends IntentService {
 
 	public static final String ACTION_DOWNLOAD = "com.slobodastudio.action.download";
-	public static final String EXTRA_STATUS_RECEIVER = "intent.extra.key.STATUS_RECEIVER";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE_ID = "intent.extra.key.EXTRA_VALUE_ID";
-	public static final int STATUS_ERROR = 0x2;
-	public static final int STATUS_FINISHED = 0x3;
-	public static final int STATUS_RUNNING = 0x1;
 	public static final int TYPE_ALL = 0x0;
 	public static final int TYPE_POINT = 0x1;
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
@@ -49,15 +46,16 @@ public class DownloadService extends IntentService {
 		if (intent.getExtras() == null) {
 			throw new IllegalArgumentException("Service was started without extras");
 		}
-		if (!intent.hasExtra(EXTRA_STATUS_RECEIVER)) {
+		if (!intent.hasExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER)) {
 			throw new IllegalArgumentException("Service was started without extras: status receiver");
 		}
 		if (!intent.hasExtra(EXTRA_TYPE_ID)) {
 			throw new IllegalArgumentException("Service was started without extras: type id");
 		}
-		final ResultReceiver receiver = intent.getParcelableExtra(EXTRA_STATUS_RECEIVER);
+		final ResultReceiver receiver = intent
+				.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
 		if (receiver != null) {
-			receiver.send(STATUS_RUNNING, Bundle.EMPTY);
+			receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);
 		}
 		logd("[onHandleIntent] intent: " + intent.toString() + ", receiver: " + receiver);
 		try {
@@ -81,14 +79,15 @@ public class DownloadService extends IntentService {
 				// Pass back error to surface listener
 				final Bundle bundle = new Bundle();
 				bundle.putString(Intent.EXTRA_TEXT, e.toString());
-				receiver.send(STATUS_ERROR, bundle);
+				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
 			}
+			stopSelf();
 			return;
 		}
 		logd("[onHandleIntent] sync finished");
 		// Announce success to any surface listener
 		if (receiver != null) {
-			receiver.send(STATUS_FINISHED, Bundle.EMPTY);
+			receiver.send(OdataSyncResultReceiver.STATUS_FINISHED, Bundle.EMPTY);
 		}
 	}
 
@@ -101,9 +100,13 @@ public class DownloadService extends IntentService {
 		} else {
 			OdataReadClient odataClient = new OdataReadClient(this);
 			odataClient.refreshPersons();
+			logd("[downloadAll] persons completed");
 			odataClient.refreshDiscussions();
+			logd("[downloadAll] discussions completed");
 			odataClient.refreshTopics();
+			logd("[downloadAll] topics completed");
 			odataClient.refreshPoints();
+			logd("[downloadAll] points completed");
 		}
 	}
 

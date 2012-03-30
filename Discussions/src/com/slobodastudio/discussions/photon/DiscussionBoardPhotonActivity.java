@@ -120,6 +120,12 @@ public class DiscussionBoardPhotonActivity extends Activity implements PhotonSer
 	}
 
 	@Override
+	public void onRefreshCurrentTopic() {
+
+		// TODO Auto-generated method stub
+	}
+
+	@Override
 	public void onStructureChanged(final int topicId) {
 
 		if (DEBUG) {

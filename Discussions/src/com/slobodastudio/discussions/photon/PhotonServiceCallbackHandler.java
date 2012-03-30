@@ -56,6 +56,14 @@ public class PhotonServiceCallbackHandler implements PhotonServiceCallback {
 	}
 
 	@Override
+	public void onRefreshCurrentTopic() {
+
+		for (PhotonServiceCallback h : m_callbacks) {
+			h.onRefreshCurrentTopic();
+		}
+	}
+
+	@Override
 	public void onStructureChanged(final int topicId) {
 
 		for (PhotonServiceCallback h : m_callbacks) {

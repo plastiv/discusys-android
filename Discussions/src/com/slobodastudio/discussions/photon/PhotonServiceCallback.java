@@ -12,5 +12,7 @@ public interface PhotonServiceCallback {
 
 	void onEventLeave(DiscussionUser leftUser);
 
+	void onRefreshCurrentTopic();
+
 	void onStructureChanged(int topicId);
 }

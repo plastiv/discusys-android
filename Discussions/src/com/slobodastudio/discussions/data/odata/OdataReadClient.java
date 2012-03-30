@@ -388,6 +388,7 @@ public class OdataReadClient extends BaseOdataClient {
 			// TODO: thwo ex here
 			Log.e(TAG, "Related topic link was null for point: " + getAsInt(point, Points.Columns.ID));
 			if (ApplicationConstants.ODATA_SANITIZE) {
+				Log.w(TAG, "Try to delete point: " + getAsInt(point, Points.Columns.ID));
 				mConsumer.deleteEntity(Points.TABLE_NAME, getAsInt(point, Points.Columns.ID)).execute();
 			}
 			return null;
@@ -399,6 +400,7 @@ public class OdataReadClient extends BaseOdataClient {
 			// TODO: thwo ex here
 			Log.e(TAG, "Related person link was null for point: " + getAsInt(point, Points.Columns.ID));
 			if (ApplicationConstants.ODATA_SANITIZE) {
+				Log.w(TAG, "Try to delete point: " + getAsInt(point, Points.Columns.ID));
 				mConsumer.deleteEntity(Points.TABLE_NAME, getAsInt(point, Points.Columns.ID)).execute();
 			}
 			return null;

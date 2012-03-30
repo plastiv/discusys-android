@@ -6,6 +6,7 @@ import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.PhotonService;
+import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
@@ -79,6 +80,14 @@ public class UploadService extends IntentService {
 		if (!intent.hasExtra(EXTRA_VALUE)) {
 			throw new IllegalArgumentException("Service was started without extras: value");
 		}
+		if (!intent.hasExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER)) {
+			throw new IllegalArgumentException("Service was started without extras: status receiver");
+		}
+		final ResultReceiver receiver = intent
+				.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
+		if (receiver != null) {
+			receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);
+		}
 		logd("[onHandleIntent] intent: " + intent.toString());
 		try {
 			switch (intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE)) {
@@ -94,9 +103,20 @@ public class UploadService extends IntentService {
 			}
 		} catch (Exception e) {
 			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
+			if (receiver != null) {
+				// Pass back error to surface listener
+				final Bundle bundle = new Bundle();
+				bundle.putString(Intent.EXTRA_TEXT, e.toString());
+				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
+			}
+			stopSelf();
 			return;
 		}
 		logd("[onHandleIntent] sync finished");
+		// Announce success to any surface listener
+		if (receiver != null) {
+			receiver.send(OdataSyncResultReceiver.STATUS_FINISHED, Bundle.EMPTY);
+		}
 	}
 
 	private void insertPoint(final Intent intent) {

@@ -6,7 +6,7 @@ import com.slobodastudio.discussions.ui.fragments.TopicsDetailFragment;
 import android.net.Uri;
 import android.support.v4.app.Fragment;
 
-public class TopicsDetailsActivity extends BaseDetailActivity {
+public abstract class TopicsDetailsActivity extends BaseDetailActivity {
 
 	@Override
 	protected Fragment onCreatePane() {

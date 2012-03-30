@@ -6,19 +6,13 @@ import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
-import com.slobodastudio.discussions.photon.PhotonService;
-import com.slobodastudio.discussions.photon.PhotonService.LocalBinder;
-import com.slobodastudio.discussions.service.UploadService;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.activities.BaseActivity;
 
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -31,7 +25,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
@@ -48,36 +41,8 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	private static final int TYPE_ITEM = 0;
 	Cursor mCursor;
 	private boolean empty = false;
-	private boolean mBound = false;
-	private final ServiceConnection mConnection = new ServiceConnection() {
-
-		@Override
-		public void onServiceConnected(final ComponentName className, final IBinder service) {
-
-			if (DEBUG) {
-				Log.d(TAG, "[onServiceConnected] className: " + className);
-			}
-			// We've bound to PhotonService, cast the IBinder and get PhotonService instance
-			LocalBinder binder = (LocalBinder) service;
-			mService = binder.getService();
-			mBound = true;
-			// todo get a receiver
-		}
-
-		@Override
-		public void onServiceDisconnected(final ComponentName className) {
-
-			if (DEBUG) {
-				Log.d(TAG, "[onServiceDisconnected] className: " + className);
-			}
-			Log.e(TAG, "onServiceDisconnected");
-			mBound = false;
-			mService = null;
-		}
-	};
 	private EditText mDesctiptionEditText;
 	private EditText mNameEditText;
-	private PhotonService mService;
 	private CheckBox mSharedToPublicCheckBox;
 	private Spinner mSideCodeSpinner;
 	private int personId;
@@ -179,16 +144,14 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
 					expectedGroupId, pointId, expectedPointName, expectedNumberedPoint, expectedPersonId,
 					expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			syncPoint(UploadService.TYPE_UPDATE_POINT, point.toBundle());
+			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle());
 		} else {
 			// new point
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
 					expectedGroupId, INVALID_POINT_ID, expectedPointName, expectedNumberedPoint,
 					expectedPersonId, expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			syncPoint(UploadService.TYPE_INSERT_POINT, point.toBundle());
+			((BaseActivity) getActivity()).getServiceHelper().insertPoint(point.toBundle());
 		}
-		Toast.makeText(getActivity(), getActivity().getString(R.string.toast_saved), Toast.LENGTH_SHORT)
-				.show();
 	}
 
 	@Override
@@ -272,26 +235,6 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		}
 	}
 
-	@Override
-	public void onStart() {
-
-		super.onStart();
-		// Bind to LocalService
-		Intent intent = new Intent(getActivity(), PhotonService.class);
-		getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-	}
-
-	@Override
-	public void onStop() {
-
-		super.onStop();
-		// Unbind from the service
-		if (mBound) {
-			getActivity().unbindService(mConnection);
-			mBound = false;
-		}
-	}
-
 	public void setEmpty(final boolean empty) {
 
 		this.empty = empty;
@@ -364,16 +307,5 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			mSideCodeSpinner.setEnabled(false);
 			mSharedToPublicCheckBox.setEnabled(false);
 		}
-	}
-
-	private void syncPoint(final int type, final Bundle value) {
-
-		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
-		intent.putExtra(UploadService.EXTRA_TYPE_ID, type);
-		intent.putExtra(UploadService.EXTRA_VALUE, value);
-		if (mBound) {
-			intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mService.getResultReceiver());
-		}
-		getActivity().startService(intent);
 	}
 }

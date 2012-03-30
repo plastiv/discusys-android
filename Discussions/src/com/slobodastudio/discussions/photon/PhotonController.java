@@ -10,12 +10,8 @@ import com.slobodastudio.discussions.photon.constants.LiteOpParameterKey;
 import com.slobodastudio.discussions.photon.constants.LiteOpPropertyType;
 import com.slobodastudio.discussions.photon.constants.PhotonConstants;
 
-import android.app.Service;
-import android.content.Intent;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.ResultReceiver;
 import android.util.Log;
 
@@ -40,7 +36,7 @@ import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class PhotonService extends Service implements IPhotonPeerListener {
+public class PhotonController implements IPhotonPeerListener {
 
 	public static final String EXTRA_POINT_ID = "intent.extra.key.EXTRA_POINT_ID";
 	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
@@ -48,22 +44,15 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 	public static final int STATUS_STRUCTURE_CHANGED = 0x2;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int INVALID_POINT_ID = -1;
-	private static final String TAG = PhotonService.class.getSimpleName();
+	private static final String TAG = PhotonController.class.getSimpleName();
 	Timer timer;
 	private final PhotonServiceCallbackHandler callbackHandler = new PhotonServiceCallbackHandler();
 	private String gameLobbyName;
 	private DiscussionUser localUser;
-	/** Binder given to clients */
-	private final IBinder mBinder = new LocalBinder();
-	private ResultReceiver mResultReceiver;
+	private final ResultReceiver mResultReceiver = new SyncResultReceiver(new Handler());
 	private final SyncResultReceiver mSyncResultReceiver = new SyncResultReceiver(new Handler());
 	private final Hashtable<Integer, DiscussionUser> onlineUsers = new Hashtable<Integer, DiscussionUser>();
 	private LitePeer peer;
-	private final Object sequenceNumberingLockObj = new Object();
-	/** Handler required to process async events that are interfering with UI (eventAction changes players
-	 * array while UI reads it when redrawing. So eventAction should be executed in main loop to avoid
-	 * ConcurrentModificationException) */
-	private final Handler syncHandler = new Handler();
 
 	private static Integer[] toIntArray(final List<Integer> integerList) {
 
@@ -130,22 +119,6 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 	public boolean isConnected() {
 
 		return (peer != null) && (peer.getPeerState() == PeerStateValue.Connected.value());
-	}
-
-	@Override
-	public IBinder onBind(final Intent arg0) {
-
-		return mBinder;
-	}
-
-	@Override
-	public void onDestroy() {
-
-		if (DEBUG) {
-			Log.d(TAG, "[onDestroy]");
-		}
-		disconnect();
-		super.onDestroy();
 	}
 
 	@Override
@@ -478,17 +451,6 @@ public class PhotonService extends Service implements IPhotonPeerListener {
 			onlineUsers.put(newUser.getActorNumber(), newUser);
 			it.remove(); // avoids a ConcurrentModificationException
 			callbackHandler.onEventJoin(newUser);
-		}
-	}
-
-	/** Class for clients to access. Because we know this service always runs in the same process as its
-	 * clients, we don't need to deal with IPC. */
-	public class LocalBinder extends Binder {
-
-		/** @return instance of PhotonService */
-		public PhotonService getService() {
-
-			return PhotonService.this;
 		}
 	}
 

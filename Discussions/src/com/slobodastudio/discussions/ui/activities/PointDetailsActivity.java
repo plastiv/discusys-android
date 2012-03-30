@@ -43,6 +43,12 @@ public class PointDetailsActivity extends BaseDetailActivity {
 	}
 
 	@Override
+	protected void onControlServiceConnected() {
+
+		// TODO Auto-generated method stub
+	}
+
+	@Override
 	protected Fragment onCreatePane() {
 
 		PointDetailFragment fragment = new PointDetailFragment();

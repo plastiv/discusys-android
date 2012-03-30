@@ -44,6 +44,12 @@ public class DiscussionsActivity extends BaseActivity {
 	}
 
 	@Override
+	protected void onControlServiceConnected() {
+
+		// TODO Auto-generated method stub
+	}
+
+	@Override
 	protected Fragment onCreatePane() {
 
 		return new DiscussionsListFragment();
