@@ -21,7 +21,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 28;
+	private static final int DATABASE_VERSION = 30;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -34,6 +34,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(final SQLiteDatabase db) {
 
+		// FIXME: on conflict ignore should not be done!
 		// @formatter:off
 		db.execSQL("CREATE TABLE " + Discussions.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"

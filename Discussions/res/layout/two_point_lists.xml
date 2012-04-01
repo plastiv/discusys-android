@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/user_points_listview_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/darker_gray"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dip"
+        android:paddingLeft="8dip"
+        android:paddingRight="8dip"
+        android:paddingTop="8dip"
+        android:singleLine="true"
+        android:text="@string/text_current_user_points"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <ListView
+        android:id="@+id/user_points_listview"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="0.6"
+        android:drawSelectorOnTop="false" />
+
+    <TextView
+        android:id="@+id/user_points_listview_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal"
+        android:paddingLeft="8dip"
+        android:paddingRight="8dip"
+        android:text="@string/fragment_empty_points"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/other_user_points_listview_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/darker_gray"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dip"
+        android:paddingLeft="8dip"
+        android:paddingRight="8dip"
+        android:paddingTop="8dip"
+        android:singleLine="true"
+        android:text="@string/text_other_users_points"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <ListView
+        android:id="@+id/other_user_points_listview"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="0.4"
+        android:drawSelectorOnTop="false" />
+
+    <TextView
+        android:id="@+id/other_user_points_listview_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal"
+        android:paddingLeft="8dip"
+        android:paddingRight="8dip"
+        android:text="@string/fragment_empty_points"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+</merge>

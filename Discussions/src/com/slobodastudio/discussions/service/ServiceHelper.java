@@ -28,10 +28,28 @@ public class ServiceHelper {
 		mPhotonController = photonController;
 	}
 
+	public void deletePoint(final int pointId) {
+
+		Intent intent = new Intent(DeleteService.ACTION_DELETE);
+		intent.putExtra(DeleteService.EXTRA_TYPE_ID, DeleteService.TYPE_DELETE_POINT);
+		intent.putExtra(DeleteService.EXTRA_VALUE_ID, pointId);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		mContext.startService(intent);
+	}
+
 	public void downloadAll() {
 
 		final Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_ALL);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		mContext.startService(intent);
+	}
+
+	public void downloadDiscussions() {
+
+		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
+		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_DISCUSSIONS);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		mContext.startService(intent);
 	}
@@ -54,6 +72,14 @@ public class ServiceHelper {
 		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_POINT_FROM_TOPIC);
 		intent.putExtra(DownloadService.EXTRA_VALUE_ID, topicId);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		mContext.startService(intent);
+	}
+
+	public void downloadTopics() {
+
+		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
+		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_TOPICS);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		mContext.startService(intent);
 	}

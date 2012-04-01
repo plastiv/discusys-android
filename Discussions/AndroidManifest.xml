@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
     android:versionCode="1"
-    android:versionName="0.1.10" >
+    android:versionName="0.1.11" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -145,6 +145,13 @@
         <service android:name=".service.DownloadService" >
             <intent-filter>
                 <action android:name="com.slobodastudio.action.download" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+        <service android:name=".service.DeleteService" >
+            <intent-filter>
+                <action android:name="com.slobodastudio.action.delete" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

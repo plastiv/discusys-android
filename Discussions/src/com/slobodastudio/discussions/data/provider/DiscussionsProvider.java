@@ -233,6 +233,8 @@ public class DiscussionsProvider extends ContentProvider {
 				case DISCUSSIONS_DIR:
 					insertedId = db.insertOrThrow(Discussions.TABLE_NAME, null, values);
 					insertedUri = Discussions.buildTableUri(insertedId);
+					// notify subscribers from persons table
+					getContext().getContentResolver().notifyChange(Persons.CONTENT_URI, null);
 					break;
 				case POINTS_DIR:
 					if (values.containsKey(Points.Columns.GROUP_ID_SERVER)) {
@@ -322,7 +324,7 @@ public class DiscussionsProvider extends ContentProvider {
 				notificationUri = Discussions.CONTENT_URI;
 				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Topics.Columns.ID,
 						Topics.Columns.NAME, Topics.Columns.DISCUSSION_ID }, sortOrder);
-				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+				c.setNotificationUri(getContext().getContentResolver(), uri);
 				return c;
 			}
 			case PERSONS_ITEM_DISCUSSIONS_DIR: {

@@ -6,6 +6,6 @@ import com.slobodastudio.discussions.ApplicationConstants;
 public class ODataConstants {
 
 	/** Server url with open data protocol service running. */
-	public static final String SERVICE_URL = ApplicationConstants.ODATA_LOCAL ? "http://192.168.1.2/DiscSvc/discsvc.svc/"
+	public static final String SERVICE_URL = ApplicationConstants.ODATA_LOCAL ? "http://192.168.1.122/DiscSvc/discsvc.svc/"
 			: "http://123.108.5.30/DiscSvc/discsvc.svc/";
 }

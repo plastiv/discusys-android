@@ -20,7 +20,7 @@ public class PersonsActivity extends BaseActivity {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = PersonsActivity.class.getSimpleName();
-	private boolean isActionMain = false;
+	private boolean firstTimeSync = false;
 
 	@Override
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
@@ -37,16 +37,8 @@ public class PersonsActivity extends BaseActivity {
 
 		switch (item.getItemId()) {
 			case R.id.menu_refresh:
-				Toast.makeText(this, "Fake refreshing...", Toast.LENGTH_SHORT).show();
-				setSupportProgressBarIndeterminateVisibility(true);
-				getWindow().getDecorView().postDelayed(new Runnable() {
-
-					@Override
-					public void run() {
-
-						setSupportProgressBarIndeterminateVisibility(false);
-					}
-				}, 1000);
+				Toast.makeText(this, "Refreshing all data...", Toast.LENGTH_SHORT).show();
+				mServiceHelper.downloadAll();
 				break;
 		}
 		return super.onOptionsItemSelected(item);
@@ -56,23 +48,29 @@ public class PersonsActivity extends BaseActivity {
 	protected void onControlServiceConnected() {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onControlServiceConnected] action main: " + isActionMain + ", isBound: " + mBound);
+			Log.d(TAG, "[onControlServiceConnected] action main: " + firstTimeSync + ", isBound: " + mBound);
 		}
-		if (isActionMain && mBound) {
+		if (firstTimeSync && mBound) {
 			// when app first run
 			mServiceHelper.downloadAll();
-			isActionMain = false;
+			firstTimeSync = false;
 		}
 	}
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 
+		if (DEBUG) {
+			Log.d(TAG, "[onCreate] action main: " + getIntent().getAction().equals(Intent.ACTION_MAIN));
+		}
 		if (getIntent().getAction().equals(Intent.ACTION_MAIN)) {
 			Intent intent = new Intent(Intent.ACTION_VIEW, Persons.CONTENT_URI);
 			setIntent(intent);
-			showCurrentVersionInToast();
-			isActionMain = true;
+			if (savedInstanceState == null) {
+				// first time activity created
+				showCurrentVersionInToast();
+				firstTimeSync = true;
+			}
 		}
 		super.onCreate(savedInstanceState);
 		setTitle(R.string.activity_name_persons);

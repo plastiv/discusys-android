@@ -38,6 +38,11 @@ public class OdataWriteClient {
 		consumer = ODataJerseyConsumer.newBuilder(serviceRootUri).build();
 	}
 
+	public void deletePoint(final int pointId) {
+
+		consumer.deleteEntity(Points.TABLE_NAME, pointId).execute();
+	}
+
 	public OEntity insertDiscussion(final String subject) {
 
 		// @formatter:off

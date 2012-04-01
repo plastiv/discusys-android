@@ -13,56 +13,7 @@
         android:layout_weight="1"
         android:orientation="vertical" >
 
-        <TextView
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/user_points_listview_header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/darker_gray"
-            android:gravity="center_vertical"
-            android:paddingBottom="8dip"
-            android:paddingLeft="8dip"
-            android:paddingRight="8dip"
-            android:paddingTop="8dip"
-            android:singleLine="true"
-            android:text="@string/text_current_user_points"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <ListView
-            android:id="@+id/user_points_listview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:drawSelectorOnTop="false" />
-
-        <TextView
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/other_user_points_listview_header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/darker_gray"
-            android:gravity="center_vertical"
-            android:paddingBottom="8dip"
-            android:paddingLeft="8dip"
-            android:paddingRight="8dip"
-            android:paddingTop="8dip"
-            android:singleLine="true"
-            android:text="@string/text_other_users_points"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <ListView
-            android:id="@+id/other_user_points_listview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:drawSelectorOnTop="false" />
-
-        <TextView
-            android:id="@android:id/empty"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|center_horizontal"
-            android:text="@string/fragment_empty_points" />
+        <include layout="@layout/two_point_lists" />
     </LinearLayout>
 
     <FrameLayout

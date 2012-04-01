@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.ui.fragments;
 
+import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.Value;
@@ -30,6 +31,7 @@ import com.actionbarsherlock.app.SherlockListFragment;
 public abstract class BaseListFragment extends SherlockListFragment implements
 		LoaderManager.LoaderCallbacks<Cursor> {
 
+	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = BaseListFragment.class.getSimpleName();
 	protected final String mColumnId;
 	private final Uri baseUri;
@@ -180,6 +182,9 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 		// currently filtering.
 		// Now create and return a CursorLoader that will take care of
 		// creating a Cursor for the data being displayed.
+		if (DEBUG) {
+			Log.d(TAG, "[onCreateLoader] uri: " + getActivity().getIntent().getData());
+		}
 		return new CursorLoader(getActivity(), getActivity().getIntent().getData(), null, null, null, null);
 	}
 
@@ -203,7 +208,7 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 	public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
 
 		// Swap the new cursor in. (The framework will take care of closing the
-		// old cursor once we return.)
+		// old cursor once we return.
 		mAdapter.swapCursor(data);
 		// The list should now be shown.
 		if (isResumed()) {

@@ -139,13 +139,16 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void refreshDiscussions() {
 
+		log("[refreshDiscussions]");
 		Enumerable<OEntity> discussions = mConsumer.getEntities(Discussions.TABLE_NAME).execute();
+		log("[refreshDiscussions] discussions entities count: " + discussions.count());
 		List<Integer> serversIds = new ArrayList<Integer>(discussions.count());
 		for (OEntity discussion : discussions) {
 			serversIds.add(getAsInt(discussion, Discussions.Columns.ID));
 			ContentValues cv = OEntityToContentValue(discussion);
 			mContentResolver.insert(Discussions.CONTENT_URI, cv);
 		}
+		log("[refreshDiscussions] all discussions was inserted");
 		// check if server has a deleted points
 		Cursor cur = mContentResolver.query(Discussions.CONTENT_URI, new String[] { Discussions.Columns.ID },
 				null, null, null);
@@ -156,6 +159,7 @@ public class OdataReadClient extends BaseOdataClient {
 				int discussionId = cur.getInt(idIndex);
 				if (!serversIds.contains(discussionId)) {
 					// delete this row
+					log("[refreshDiscussions] delete discussion: " + discussionId);
 					Uri uri = Discussions.buildTableUri(discussionId);
 					mContentResolver.delete(uri, null, null);
 				}
@@ -166,16 +170,20 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void refreshPersons() {
 
+		log("[refreshPersons] ");
 		Enumerable<OEntity> persons = mConsumer.getEntities(Persons.TABLE_NAME).execute();
+		log("[refreshPersons] topics entities count: " + persons.count());
 		List<Integer> serversIds = new ArrayList<Integer>(persons.count());
 		for (OEntity person : persons) {
 			serversIds.add(getAsInt(person, Points.Columns.ID));
 			ContentValues cv = OEntityToContentValue(person);
 			mContentResolver.insert(Persons.CONTENT_URI, cv);
 		}
+		log("[refreshPersons] all persons was inserted");
 		// check if server has a deleted points
 		Cursor cur = mContentResolver.query(Persons.CONTENT_URI, new String[] { Persons.Columns.ID }, null,
 				null, null);
+		log("[refreshPersons] db persons count: " + cur.getCount());
 		if (cur.getCount() > serversIds.size()) {
 			// local storage has deleted data
 			int idIndex = cur.getColumnIndexOrThrow(Points.Columns.ID);
@@ -183,6 +191,7 @@ public class OdataReadClient extends BaseOdataClient {
 				int personId = cur.getInt(idIndex);
 				if (!serversIds.contains(personId)) {
 					// delete this row
+					log("[refreshPersons] delete person: " + personId);
 					Uri uri = Persons.buildTableUri(personId);
 					mContentResolver.delete(uri, null, null);
 				}
@@ -262,16 +271,20 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void refreshTopics() {
 
+		log("[refreshTopics] ");
 		Enumerable<OEntity> topics = getTopicsEntities();
+		log("[refreshTopics] topics entities count: " + topics.count());
 		List<Integer> serversIds = new ArrayList<Integer>(topics.count());
 		for (OEntity topic : topics) {
 			serversIds.add(getAsInt(topic, Topics.Columns.ID));
 			insertTopic(topic);
 			insertPersonsTopics(topic);
 		}
+		log("[refreshTopics] all topics was inserted");
 		// check if server has a deleted points
 		Cursor cur = mContentResolver.query(Topics.CONTENT_URI, new String[] { Topics.Columns.ID }, null,
 				null, null);
+		log("[refreshTopics] db topics count: " + cur.getCount());
 		if (cur.getCount() > serversIds.size()) {
 			// local storage has deleted data
 			int idIndex = cur.getColumnIndexOrThrow(Topics.Columns.ID);
@@ -279,6 +292,7 @@ public class OdataReadClient extends BaseOdataClient {
 				int topicId = cur.getInt(idIndex);
 				if (!serversIds.contains(topicId)) {
 					// delete this row
+					log("[refreshTopics] delete topic: " + topicId);
 					Uri uri = Topics.buildTableUri(topicId);
 					mContentResolver.delete(uri, null, null);
 				}
@@ -322,6 +336,7 @@ public class OdataReadClient extends BaseOdataClient {
 		return mConsumer.getEntity(originEntity.getLink(linkColumn, ORelatedEntityLink.class)).execute();
 	}
 
+	@Deprecated
 	private OEntity getTopicEntity(final int topicId) {
 
 		return mConsumer.getEntity(Topics.Columns.ID, topicId).expand(Topics.Columns.POINT_ID).execute();

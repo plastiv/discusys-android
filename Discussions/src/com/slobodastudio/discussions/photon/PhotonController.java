@@ -274,7 +274,7 @@ public class PhotonController implements IPhotonPeerListener {
 			throw new IllegalStateException(
 					"You trying to send notification while not connected to the server");
 		}
-		if (changedPointId < 0) {
+		if (changedPointId < -1) {
 			throw new IllegalArgumentException("Point id can't be below zero");
 		}
 		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,

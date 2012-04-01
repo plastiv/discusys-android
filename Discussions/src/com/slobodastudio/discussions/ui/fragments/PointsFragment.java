@@ -4,6 +4,8 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.activities.BaseActivity;
+import com.slobodastudio.discussions.utils.MyLog;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -15,6 +17,8 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -142,6 +146,45 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 	}
 
 	@Override
+	public boolean onContextItemSelected(final android.view.MenuItem item) {
+
+		MyLog.v(TAG, (String) item.getTitle());
+		switch (item.getItemId()) {
+			case R.id.menu_delete:
+				int pointId = getItemId(item);
+				((BaseActivity) getActivity()).getServiceHelper().deletePoint(pointId);
+				return true;
+			default:
+				return super.onContextItemSelected(item);
+		}
+	}
+
+	@Override
+	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+
+		super.onCreateContextMenu(menu, v, menuInfo);
+		if (v.equals(mUserPointsList)) {
+			AdapterView.AdapterContextMenuInfo info;
+			try {
+				// Casts the incoming data object into the type for AdapterView objects.
+				info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+			} catch (ClassCastException e) {
+				// If the menu object can't be cast, logs an error.
+				throw new RuntimeException("bad menuInfo: " + menuInfo, e);
+			}
+			Cursor cursor = (Cursor) mUserPointsAdapter.getItem(info.position);
+			if (cursor == null) {
+				// For some reason the requested item isn't available, do nothing
+				return;
+			}
+			int columnIndex = cursor.getColumnIndexOrThrow(mColumnName);
+			menu.setHeaderTitle(cursor.getString(columnIndex));// if your table name is name
+			android.view.MenuInflater inflater = getActivity().getMenuInflater();
+			inflater.inflate(R.menu.list_context_delete_menu, menu);
+		}
+	}
+
+	@Override
 	public Loader<Cursor> onCreateLoader(final int id, final Bundle arguments) {
 
 		// This is called when a new Loader needs to be created.
@@ -173,8 +216,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.points_list, null);
 		mUserPointsList = (ListView) layout.findViewById(R.id.user_points_listview);
 		mOtherPointsList = (ListView) layout.findViewById(R.id.other_user_points_listview);
-		mUserPointsList.setEmptyView(layout.findViewById(android.R.id.empty));
-		mOtherPointsList.setEmptyView(layout.findViewById(android.R.id.empty));
+		mUserPointsList.setEmptyView(layout.findViewById(R.id.user_points_listview_empty));
+		mOtherPointsList.setEmptyView(layout.findViewById(R.id.other_user_points_listview_empty));
 		return layout;
 	}
 
@@ -197,12 +240,11 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 	public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onLoadFinished] cursor count: " + data.getCount());
+			Log.d(TAG, "[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
 		}
 		switch (loader.getId()) {
 			case LOADER_USER_POINTS_ID:
 				mUserPointsAdapter.swapCursor(data);
-				// mUserPointsList.invalidate();
 				break;
 			case LOADER_OTHER_POINTS_ID:
 				mOtherPointsAdapter.swapCursor(data);
@@ -289,6 +331,25 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(id));
 			startActivity(intent);
 		}
+	}
+
+	protected int getItemId(final android.view.MenuItem item) {
+
+		AdapterView.AdapterContextMenuInfo info;
+		try {
+			// Casts the incoming data object into the type for AdapterView objects.
+			info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+		} catch (ClassCastException e) {
+			// If the menu object can't be cast, logs an error.
+			throw new RuntimeException("bad menuInfo: " + item.getMenuInfo(), e);
+		}
+		Cursor cursor = (Cursor) mUserPointsAdapter.getItem(info.position);
+		if (cursor == null) {
+			// For some reason the requested item isn't available, do nothing
+			throw new NullPointerException("Cursor was null, cant get a value id");
+		}
+		int columnIndex = cursor.getColumnIndexOrThrow(mColumnId);
+		return cursor.getInt(columnIndex);
 	}
 
 	private void initFromIntentExtra() {

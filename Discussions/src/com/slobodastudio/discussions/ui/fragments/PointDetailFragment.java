@@ -34,6 +34,10 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String EXTRA_ACTION = "extra_key_action";
 	private static final String EXTRA_PERSON_ID = IntentExtrasKey.PERSON_ID;
+	private static final String EXTRA_POINT_ID = "extra_point_id";
+	private static final String EXTRA_POINT_NAME = "extra_point_name";
+	private static final String EXTRA_SHARED_TO_PUBLIC = "extra_shared_to_public";
+	private static final String EXTRA_SIDE_CODE = "extra_side_code";
 	private static final String EXTRA_TOPIC_ID = IntentExtrasKey.TOPIC_ID;
 	private static final String EXTRA_URI = "extra_key_uri";
 	private static final String TAG = PointDetailFragment.class.getSimpleName();
@@ -205,7 +209,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		// fill in data
 		String action = getArguments().getString(EXTRA_ACTION);
 		if (action.equals(Intent.ACTION_EDIT)) {
-			onActionEdit();
+			onActionEdit(savedInstanceState);
 		} else if (action.equals(Intent.ACTION_VIEW)) {
 			onActionView();
 		} else {
@@ -235,12 +239,44 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		}
 	}
 
+	@Override
+	public void onSaveInstanceState(final Bundle outState) {
+
+		super.onSaveInstanceState(outState);
+		outState.putBoolean(EXTRA_SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
+		outState.putString(EXTRA_POINT_NAME, mNameEditText.getText().toString());
+		outState.putInt(EXTRA_SIDE_CODE, getSelectedSideCodeId());
+		outState.putInt(EXTRA_PERSON_ID, personId);
+		outState.putInt(EXTRA_TOPIC_ID, topicId);
+		outState.putInt(EXTRA_POINT_ID, pointId);
+	}
+
 	public void setEmpty(final boolean empty) {
 
 		this.empty = empty;
 	}
 
-	private void onActionEdit() {
+	private int getSelectedSideCodeId() {
+
+		int sideCode;
+		switch ((int) mSideCodeSpinner.getSelectedItemId()) {
+			case Points.SideCode.CONS:
+				sideCode = Points.SideCode.CONS;
+				break;
+			case Points.SideCode.NEUTRAL:
+				sideCode = Points.SideCode.NEUTRAL;
+				break;
+			case Points.SideCode.PROS:
+				sideCode = Points.SideCode.PROS;
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown side code: "
+						+ (int) mSideCodeSpinner.getSelectedItemId());
+		}
+		return sideCode;
+	}
+
+	private void onActionEdit(final Bundle savedInstanceState) {
 
 		switch (typeId) {
 			case TYPE_DIR:
@@ -258,7 +294,17 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 				pointId = INVALID_POINT_ID;
 				break;
 			case TYPE_ITEM:
-				getLoaderManager().initLoader(0, null, this);
+				if (savedInstanceState == null) {
+					getLoaderManager().initLoader(0, null, this);
+				} else {
+					pointId = savedInstanceState.getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
+					personId = savedInstanceState.getInt(EXTRA_PERSON_ID, Integer.MIN_VALUE);
+					topicId = savedInstanceState.getInt(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
+					mNameEditText.setText(savedInstanceState.getString(EXTRA_POINT_NAME));
+					mSideCodeSpinner.setSelection(savedInstanceState.getInt(EXTRA_SIDE_CODE,
+							Integer.MIN_VALUE));
+					mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(EXTRA_SHARED_TO_PUBLIC));
+				}
 				setupView(true);
 				break;
 			default:

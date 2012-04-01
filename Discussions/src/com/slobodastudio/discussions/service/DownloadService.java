@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.util.Log;
 
+import com.sun.jersey.api.client.ClientHandlerException;
+
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class DownloadService extends IntentService {
 
@@ -19,8 +21,10 @@ public class DownloadService extends IntentService {
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE_ID = "intent.extra.key.EXTRA_VALUE_ID";
 	public static final int TYPE_ALL = 0x0;
+	public static final int TYPE_DISCUSSIONS = 0x3;
 	public static final int TYPE_POINT = 0x1;
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
+	public static final int TYPE_TOPICS = 0x4;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = DownloadService.class.getSimpleName();
 
@@ -34,6 +38,13 @@ public class DownloadService extends IntentService {
 		if (DEBUG) {
 			Log.d(TAG, message);
 		}
+	}
+
+	@Override
+	public void onDestroy() {
+
+		logd("[onDestroy]");
+		super.onDestroy();
 	}
 
 	@Override
@@ -69,10 +80,25 @@ public class DownloadService extends IntentService {
 				case TYPE_POINT_FROM_TOPIC:
 					downloadPointsFromTopic(intent);
 					break;
+				case TYPE_DISCUSSIONS:
+					downloadDiscussions();
+					break;
+				case TYPE_TOPICS:
+					downloadTopics();
+					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: "
 							+ intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE));
 			}
+		} catch (ClientHandlerException e) {
+			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
+			if (receiver != null) {
+				final Bundle bundle = new Bundle();
+				bundle.putString(Intent.EXTRA_TEXT, "Network error");
+				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
+			}
+			stopSelf();
+			return;
 		} catch (Exception e) {
 			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
 			if (receiver != null) {
@@ -110,6 +136,15 @@ public class DownloadService extends IntentService {
 		}
 	}
 
+	private void downloadDiscussions() {
+
+		logd("[downloadDiscussions]");
+		OdataReadClient odataClient = new OdataReadClient(this);
+		// topic will download related discussions
+		odataClient.refreshTopics();
+		logd("[downloadTopics] topics and discussions completed");
+	}
+
 	private void downloadPoint(final Intent intent) {
 
 		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
@@ -130,5 +165,13 @@ public class DownloadService extends IntentService {
 		logd("[downloadPointsFromTopic] topic id: " + topicId);
 		OdataReadClient odata = new OdataReadClient(this);
 		odata.refreshPoints(topicId);
+	}
+
+	private void downloadTopics() {
+
+		logd("[downloadTopics]");
+		OdataReadClient odataClient = new OdataReadClient(this);
+		odataClient.refreshTopics();
+		logd("[downloadTopics] topics completed");
 	}
 }
