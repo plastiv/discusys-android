@@ -1,9 +1,11 @@
 package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.PhotonService;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
@@ -24,7 +26,10 @@ public class UploadService extends IntentService {
 	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE = "intent.extra.key.EXTRA_VALUE";
+	public static final int TYPE_INSERT_DESCRIPTION = 0x3;
 	public static final int TYPE_INSERT_POINT = 0x0;
+	public static final int TYPE_INSERT_POINT_AND_DESCRIPTION = 0x4;
+	public static final int TYPE_UPDATE_DESCRIPTION = 0x2;
 	public static final int TYPE_UPDATE_POINT = 0x1;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = UploadService.class.getSimpleName();
@@ -94,8 +99,17 @@ public class UploadService extends IntentService {
 				case TYPE_INSERT_POINT:
 					insertPoint(intent);
 					break;
+				case TYPE_INSERT_POINT_AND_DESCRIPTION:
+					insertPointAndDescription(intent);
+					break;
+				case TYPE_INSERT_DESCRIPTION:
+					insertDescription(intent);
+					break;
 				case TYPE_UPDATE_POINT:
 					updatePoint(intent);
+					break;
+				case TYPE_UPDATE_DESCRIPTION:
+					updateDescription(intent);
 					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: "
@@ -119,6 +133,21 @@ public class UploadService extends IntentService {
 		}
 	}
 
+	private void insertDescription(final Intent intent) {
+
+		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Description description = new Description(descriptionBundle);
+		logd("[insertDescription] " + description.toMyString());
+		if (!ApplicationConstants.PROVIDER_LOCAL) {
+			OdataWriteClient odataWrite = new OdataWriteClient();
+			OEntity entity = odataWrite.insertDescription(description);
+			int newId = (Integer) entity.getProperty(Descriptions.Columns.ID).getValue();
+			logd("[insertDescription] new description id: " + newId);
+			description.setId(newId);
+		}
+		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
+	}
+
 	private void insertPoint(final Intent intent) {
 
 		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
@@ -134,6 +163,46 @@ public class UploadService extends IntentService {
 					point.getId());
 		}
 		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
+	}
+
+	private void insertPointAndDescription(final Intent intent) {
+
+		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Point point = new Point(pointBundle);
+		logd("[insertPoint] " + point.toMyString());// insert new description
+		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Description description = new Description(descriptionBundle);
+		logd("[insertDescription] " + description.toMyString());
+		if (!ApplicationConstants.PROVIDER_LOCAL) {
+			OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL);
+			OEntity entity = odataWrite.insertPoint(point);
+			int newPointId = (Integer) entity.getProperty(Points.Columns.ID).getValue();
+			logd("[insertPoint] new point id: " + newPointId);
+			point.setId(newPointId);
+			description.setPointId(newPointId);
+			OEntity entityDesription = odataWrite.insertDescription(description);
+			int newId = (Integer) entityDesription.getProperty(Descriptions.Columns.ID).getValue();
+			logd("[insertDescription] new description id: " + newId);
+			description.setId(newId);
+			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+					point.getId());
+		}
+		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
+		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
+	}
+
+	private void updateDescription(final Intent intent) {
+
+		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Description description = new Description(descriptionBundle);
+		logd("[updateDescription] " + description.toMyString());
+		if (!ApplicationConstants.PROVIDER_LOCAL) {
+			OdataWriteClient odataWrite = new OdataWriteClient();
+			odataWrite.updateDescription(description);
+		}
+		String where = Descriptions.Columns.ID + "=?";
+		String[] args = new String[] { String.valueOf(description.getId()) };
+		getContentResolver().update(Descriptions.CONTENT_URI, description.toContentValues(), where, args);
 	}
 
 	private void updatePoint(final Intent intent) {

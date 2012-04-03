@@ -1,11 +1,11 @@
 package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.utils.MyLog;
 
@@ -98,7 +98,7 @@ public class OdataReadClient extends BaseOdataClient {
 	@Deprecated
 	public void downloadDescriptions() {
 
-		for (OEntity entity : mConsumer.getEntities(RichText.TABLE_NAME).execute()) {
+		for (OEntity entity : mConsumer.getEntities(Descriptions.TABLE_NAME).execute()) {
 			insertDescription(entity);
 		}
 	}
@@ -135,6 +135,48 @@ public class OdataReadClient extends BaseOdataClient {
 			ContentValues cv = OEntityToContentValue(entity);
 			mContentResolver.insert(contentUri, cv);
 		}
+	}
+
+	public void refreshDescription(final int pointId) {
+
+		String filter = Points.TABLE_NAME + "/" + Points.Columns.ID + " eq " + String.valueOf(pointId);
+		Enumerable<OEntity> description = mConsumer.getEntities(Descriptions.TABLE_NAME).filter(filter)
+				.expand(Points.TABLE_NAME + "," + Discussions.TABLE_NAME).execute();
+		if (description.count() == 1) {
+			insertDescription(description.first());
+		} else {
+			throw new IllegalStateException("Should be one description, was: " + description.count());
+		}
+	}
+
+	public void refreshDescriptions() {
+
+		log("[refreshDescriptions]");
+		Enumerable<OEntity> descriptions = getDescriptionsEntities();
+		log("[refreshDescriptions] descriptions entities count: " + descriptions.count());
+		List<Integer> serversIds = new ArrayList<Integer>(descriptions.count());
+		for (OEntity description : descriptions) {
+			serversIds.add(getAsInt(description, Descriptions.Columns.ID));
+			insertDescription(description);
+		}
+		log("[refreshDescriptions] all descriptions was inserted");
+		// check if server has a deleted descriptions
+		Cursor cur = mContentResolver.query(Descriptions.CONTENT_URI,
+				new String[] { Descriptions.Columns.ID }, null, null, null);
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Descriptions.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int descriptionId = cur.getInt(idIndex);
+				if (!serversIds.contains(descriptionId)) {
+					// delete this row
+					log("[refreshDescriptions] delete discussion: " + descriptionId);
+					Uri uri = Descriptions.buildTableUri(descriptionId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
 	}
 
 	public void refreshDiscussions() {
@@ -301,6 +343,12 @@ public class OdataReadClient extends BaseOdataClient {
 		cur.close();
 	}
 
+	private Enumerable<OEntity> getDescriptionsEntities() {
+
+		return mConsumer.getEntities(Descriptions.TABLE_NAME).expand(
+				Points.TABLE_NAME + "," + Discussions.TABLE_NAME).execute();
+	}
+
 	@Deprecated
 	private List<Integer> getNavigationPropertyIds(final OEntity entity, final String navPropertyName,
 			final String originalPropertyName) {
@@ -348,32 +396,35 @@ public class OdataReadClient extends BaseOdataClient {
 				Discussions.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
 	}
 
-	@Deprecated
-	private Uri insertDescription(final OEntity entity) {
+	private Uri insertDescription(final OEntity description) {
 
 		// get properties
-		ContentValues cv = OEntityToContentValue(entity);
-		// get related discussion id
-		OEntity discussion = entity.getLink(RichText.Columns.DISCUSSION_ID, ORelatedEntityLinkInline.class)
-				.getRelatedEntity();
-		if (discussion != null) {
-			cv.put(RichText.Columns.DISCUSSION_ID, getAsInt(discussion, Discussions.Columns.ID));
-		}
+		ContentValues cv = OEntityToContentValue(description);
 		// get related point id
-		OEntity point = entity.getLink(RichText.Columns.POINT_ID, ORelatedEntityLinkInline.class)
+		OEntity point = description.getLink(Points.TABLE_NAME, ORelatedEntityLinkInline.class)
 				.getRelatedEntity();
 		if (point != null) {
-			cv.put(RichText.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
+			cv.put(Descriptions.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
 		}
+		// or related discussion id
+		OEntity discussion = description.getLink(Discussions.TABLE_NAME, ORelatedEntityLinkInline.class)
+				.getRelatedEntity();
+		if (discussion != null) {
+			cv.put(Descriptions.Columns.DISCUSSION_ID, getAsInt(discussion, Discussions.Columns.ID));
+		}
+		// delete row if it is lost
 		if ((discussion == null) && (point == null)) {
-			// TODO: throw ex
-			Log.e(TAG, "Both description foreign keys was null");
+			// TODO: thwo ex here
+			Log.e(TAG, "Both descriptions foreign key was null "
+					+ getAsInt(description, Descriptions.Columns.ID));
 			if (ApplicationConstants.ODATA_SANITIZE) {
-				mConsumer.deleteEntity(RichText.TABLE_NAME, getAsInt(entity, RichText.Columns.ID)).execute();;
+				Log.w(TAG, "Try to delete point: " + getAsInt(description, Descriptions.Columns.ID));
+				mConsumer.deleteEntity(Descriptions.TABLE_NAME,
+						getAsInt(description, Descriptions.Columns.ID)).execute();
 			}
 			return null;
 		}
-		return mContentResolver.insert(RichText.CONTENT_URI, cv);
+		return mContentResolver.insert(Descriptions.CONTENT_URI, cv);
 	}
 
 	private void insertPersonsTopics(final OEntity topic) {

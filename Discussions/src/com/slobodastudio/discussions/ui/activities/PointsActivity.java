@@ -13,9 +13,10 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
-public class PointsActivity extends BaseListActivity implements PhotonServiceCallback {
+public class PointsActivity extends BaseActivity implements PhotonServiceCallback {
 
 	// TODO: move PhotonServiceCallback to mServiceHelper
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
@@ -33,6 +34,7 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 		}
 		// showToast("Point changed: " + pointId);
 		mServiceHelper.downloadPoint(pointId);
+		mServiceHelper.downloadDescription(pointId);
 	}
 
 	@Override
@@ -41,6 +43,16 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 		if (DEBUG) {
 			Log.d(TAG, "[onConnect] ");
 		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
+
+		MenuInflater menuInflater = getSupportMenuInflater();
+		menuInflater.inflate(R.menu.actionbar_menu, menu);
+		// Calling super after populating the menu is necessary here to ensure that the
+		// action bar helpers have a chance to handle this event.
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
@@ -84,6 +96,9 @@ public class PointsActivity extends BaseListActivity implements PhotonServiceCal
 				return true;
 			case R.id.menu_refresh:
 				mServiceHelper.downloadPointsFromTopic(topicId);
+				// TODO: dont download all descriptions
+				// download only associated with points
+				mServiceHelper.downloadDescriptions();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);

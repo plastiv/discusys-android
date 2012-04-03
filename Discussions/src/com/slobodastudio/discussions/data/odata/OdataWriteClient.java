@@ -1,6 +1,8 @@
 package com.slobodastudio.discussions.data.odata;
 
+import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -10,6 +12,7 @@ import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OModifyRequest;
 import org.odata4j.core.OProperties;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 
@@ -41,6 +44,24 @@ public class OdataWriteClient {
 	public void deletePoint(final int pointId) {
 
 		consumer.deleteEntity(Points.TABLE_NAME, pointId).execute();
+	}
+
+	public OEntity insertDescription(final Description description) {
+
+		// @formatter:off
+		OCreateRequest<OEntity> request = consumer.createEntity(Descriptions.TABLE_NAME)
+				.properties(OProperties.string(Descriptions.Columns.TEXT, description.getText()));
+		
+		// @formatter:on
+		if (description.getPointId() != null) {
+			request.link(Descriptions.Columns.POINT_ID, OEntityKey.parse(String.valueOf(description
+					.getPointId())));
+		}
+		if (description.getDiscussionId() != null) {
+			request.link(Descriptions.Columns.DISCUSSION_ID, OEntityKey.parse(String.valueOf(description
+					.getDiscussionId())));
+		}
+		return request.execute();
 	}
 
 	public OEntity insertDiscussion(final String subject) {
@@ -120,6 +141,23 @@ public class OdataWriteClient {
 				.link(Topics.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
 				.execute();
 		// @formatter:on
+	}
+
+	public boolean updateDescription(final Description description) {
+
+		// @formatter:off
+		OModifyRequest<OEntity> request=  consumer.mergeEntity(Descriptions.TABLE_NAME, description.getId())				
+				.properties(OProperties.string(Descriptions.Columns.TEXT, description.getText()));
+		// @formatter:on
+		if (description.getPointId() != null) {
+			request.link(Descriptions.Columns.POINT_ID, OEntityKey.parse(String.valueOf(description
+					.getPointId())));
+		}
+		if (description.getDiscussionId() != null) {
+			request.link(Descriptions.Columns.DISCUSSION_ID, OEntityKey.parse(String.valueOf(description
+					.getDiscussionId())));
+		}
+		return request.execute();
 	}
 
 	public boolean updatePoint(final Point point) {

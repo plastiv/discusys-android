@@ -21,6 +21,7 @@ import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.actionbarsherlock.view.Window;
 
 public abstract class BaseActivity extends SherlockFragmentActivity {
@@ -121,6 +122,18 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		return false || super.onKeyLongPress(keyCode, event);
 	}
 
+	@Override
+	public boolean onOptionsItemSelected(final MenuItem item) {
+
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				goHome();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
 	protected abstract void onControlServiceConnected();
 
 	@Override
@@ -156,6 +169,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 			}
 		}
 		setSupportProgressBarIndeterminateVisibility(false);
+		getSupportActionBar().setHomeButtonEnabled(true);
 	}
 
 	/** Called in <code>onCreate</code> when the fragment constituting this activity is needed. The returned

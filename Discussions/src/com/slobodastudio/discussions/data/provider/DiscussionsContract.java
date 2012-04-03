@@ -447,7 +447,7 @@ public final class DiscussionsContract {
 
 	/** Describes description's table. Each description is associated with a {@link Points} or
 	 * {@link Discussions}. */
-	public static final class RichText {
+	public static final class Descriptions {
 
 		/** Table name in lower case. */
 		public static final String A_TABLE_PREFIX = "rich_text";
@@ -465,7 +465,7 @@ public final class DiscussionsContract {
 		public static final String TABLE_NAME = "RichText";
 
 		/** A private Constructor prevents class from instantiating. */
-		private RichText() {
+		private Descriptions() {
 
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
 		}

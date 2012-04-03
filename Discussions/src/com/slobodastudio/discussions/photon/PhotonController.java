@@ -88,7 +88,9 @@ public class PhotonController implements IPhotonPeerListener {
 		} else if (DebugLevel.WARNING.equals(level)) {
 			Log.w(TAG, message);
 		} else {
-			Log.v(TAG, level.name() + " : " + message);
+			if (DEBUG) {
+				Log.v(TAG, level.name() + " : " + message);
+			}
 		}
 	}
 
@@ -166,14 +168,15 @@ public class PhotonController implements IPhotonPeerListener {
 				break;
 			}
 			case DiscussionEventCode.ARG_POINT_CHANGED: {
-				// int actorId = (Integer)
-				// event.Parameters.get(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR);
-				// if (actorId != localUser.getActorNumber()) {
-				// int pointId = (Integer) event.Parameters.get(DiscussionParameterKey.ARG_POINT_ID);
-				// if (pointId != INVALID_POINT_ID) {
-				// callbackHandler.onArgPointChanged(pointId);
-				// }
-				// }
+				// check if actor num is here
+				if (event.Parameters.containsKey(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR)) {
+					int actorId = (Integer) event.Parameters
+							.get(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR);
+					if (actorId == localUser.getActorNumber()) {
+						break;
+					}
+				}
+				// update
 				int pointId = (Integer) event.Parameters.get(DiscussionParameterKey.ARG_POINT_ID);
 				if (pointId != INVALID_POINT_ID) {
 					callbackHandler.onArgPointChanged(pointId);

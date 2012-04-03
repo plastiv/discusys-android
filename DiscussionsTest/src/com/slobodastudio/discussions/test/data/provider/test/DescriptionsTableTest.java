@@ -6,7 +6,7 @@ import com.slobodastudio.discussions.data.model.Value;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 
 import android.content.ContentProvider;
@@ -20,7 +20,7 @@ public class DescriptionsTableTest extends ProviderTestCase2<DiscussionsProvider
 	private static final int DISCUSSION_ID = 1123;
 	private static final int POINT_ID = 13333;
 	private static final int RANDOM_DESCRIPTION_ID = 15345;
-	private static final Uri tableUri = RichText.CONTENT_URI;
+	private static final Uri tableUri = Descriptions.CONTENT_URI;
 
 	public DescriptionsTableTest() {
 
@@ -91,7 +91,7 @@ public class DescriptionsTableTest extends ProviderTestCase2<DiscussionsProvider
 			fail("Didnt insert test value in table");
 		}
 		// insert only one foreign key - discussion
-		getProvider().delete(RichText.CONTENT_URI, null, null);
+		getProvider().delete(Descriptions.CONTENT_URI, null, null);
 		getProvider().delete(Discussions.CONTENT_URI, null, null);
 		getProvider().delete(Points.CONTENT_URI, null, null);
 		DiscussionsTableTest.insertValidValue(DISCUSSION_ID, getProvider());
@@ -103,7 +103,7 @@ public class DescriptionsTableTest extends ProviderTestCase2<DiscussionsProvider
 			fail("Didnt insert test value in table");
 		}
 		// insert only one foreign key - point
-		getProvider().delete(RichText.CONTENT_URI, null, null);
+		getProvider().delete(Descriptions.CONTENT_URI, null, null);
 		getProvider().delete(Discussions.CONTENT_URI, null, null);
 		getProvider().delete(Points.CONTENT_URI, null, null);
 		PointsTableTest.insertValidValue(POINT_ID, getProvider());
@@ -115,7 +115,7 @@ public class DescriptionsTableTest extends ProviderTestCase2<DiscussionsProvider
 			fail("Didnt insert test value in table");
 		}
 		// fail to insert both foreign key missing
-		getProvider().delete(RichText.CONTENT_URI, null, null);
+		getProvider().delete(Descriptions.CONTENT_URI, null, null);
 		getProvider().delete(Discussions.CONTENT_URI, null, null);
 		getProvider().delete(Points.CONTENT_URI, null, null);
 		try {
@@ -142,10 +142,10 @@ public class DescriptionsTableTest extends ProviderTestCase2<DiscussionsProvider
 	public void testInsertWrongValue() {
 
 		ContentValues cv = new ContentValues();
-		cv.put(RichText.Columns.ID, RANDOM_DESCRIPTION_ID);
+		cv.put(Descriptions.Columns.ID, RANDOM_DESCRIPTION_ID);
 		// missed text
 		// cv.put(RichText.Columns.TEXT, text);
-		cv.put(RichText.Columns.DISCUSSION_ID, DISCUSSION_ID);
+		cv.put(Descriptions.Columns.DISCUSSION_ID, DISCUSSION_ID);
 		cv.put(Comments.Columns.POINT_ID, POINT_ID);
 		// no connected values
 		try {
@@ -179,10 +179,10 @@ public class DescriptionsTableTest extends ProviderTestCase2<DiscussionsProvider
 		insertValidValue(RANDOM_DESCRIPTION_ID);
 		int idOffset = 123;
 		getProvider().insert(tableUri, getTestValue(RANDOM_DESCRIPTION_ID + idOffset));
-		cursor = getProvider().query(RichText.buildTableUri(RANDOM_DESCRIPTION_ID + idOffset), null, null,
+		cursor = getProvider().query(Descriptions.buildTableUri(RANDOM_DESCRIPTION_ID + idOffset), null, null,
 				null, null);
 		if (cursor.moveToFirst()) {
-			int index = cursor.getColumnIndexOrThrow(RichText.Columns.ID);
+			int index = cursor.getColumnIndexOrThrow(Descriptions.Columns.ID);
 			int id = cursor.getInt(index);
 			assertEquals(RANDOM_DESCRIPTION_ID + idOffset, id);
 		} else {
@@ -195,9 +195,9 @@ public class DescriptionsTableTest extends ProviderTestCase2<DiscussionsProvider
 		DiscussionsTableTest.insertValidValue(DISCUSSION_ID, getProvider());
 		getProvider().insert(tableUri, getTestValue(RANDOM_DESCRIPTION_ID, DISCUSSION_ID, null));
 		getProvider().insert(tableUri, getTestValue(RANDOM_DESCRIPTION_ID + 123, DISCUSSION_ID, null));
-		String selection = RichText.Columns.DISCUSSION_ID + "=?";
+		String selection = Descriptions.Columns.DISCUSSION_ID + "=?";
 		String[] selectionArgs = new String[] { String.valueOf(DISCUSSION_ID) };
-		Cursor cursor = getProvider().query(RichText.CONTENT_URI, null, selection, selectionArgs, null);
+		Cursor cursor = getProvider().query(Descriptions.CONTENT_URI, null, selection, selectionArgs, null);
 		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 
@@ -206,9 +206,9 @@ public class DescriptionsTableTest extends ProviderTestCase2<DiscussionsProvider
 		PointsTableTest.insertValidValue(POINT_ID, getProvider());
 		getProvider().insert(tableUri, getTestValue(RANDOM_DESCRIPTION_ID, null, POINT_ID));
 		getProvider().insert(tableUri, getTestValue(RANDOM_DESCRIPTION_ID + 123, null, POINT_ID));
-		String selection = RichText.Columns.POINT_ID + "=?";
+		String selection = Descriptions.Columns.POINT_ID + "=?";
 		String[] selectionArgs = new String[] { String.valueOf(POINT_ID) };
-		Cursor cursor = getProvider().query(RichText.CONTENT_URI, null, selection, selectionArgs, null);
+		Cursor cursor = getProvider().query(Descriptions.CONTENT_URI, null, selection, selectionArgs, null);
 		assertEquals("Should be two associated values, was: " + cursor.getCount(), 2, cursor.getCount());
 	}
 

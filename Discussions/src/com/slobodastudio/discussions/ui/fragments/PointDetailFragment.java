@@ -4,8 +4,8 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 
@@ -33,6 +33,8 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	public static final int INVALID_POINT_ID = Integer.MIN_VALUE;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String EXTRA_ACTION = "extra_key_action";
+	private static final String EXTRA_DESCRIPTION_ID = "extra_description_id";
+	private static final String EXTRA_DESCRIPTION_TEXT = "extra_description_text";
 	private static final String EXTRA_PERSON_ID = IntentExtrasKey.PERSON_ID;
 	private static final String EXTRA_POINT_ID = "extra_point_id";
 	private static final String EXTRA_POINT_NAME = "extra_point_name";
@@ -40,10 +42,14 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	private static final String EXTRA_SIDE_CODE = "extra_side_code";
 	private static final String EXTRA_TOPIC_ID = IntentExtrasKey.TOPIC_ID;
 	private static final String EXTRA_URI = "extra_key_uri";
+	private static final int LOADER_DESCRIPTION_ID = 1;
+	private static final int LOADER_POINT_ID = 0;
 	private static final String TAG = PointDetailFragment.class.getSimpleName();
 	private static final int TYPE_DIR = 1;
 	private static final int TYPE_ITEM = 0;
-	Cursor mCursor;
+	Cursor mDescriptionCursor;
+	Cursor mPointCursor;
+	private int descriptionId = Integer.MIN_VALUE;
 	private boolean empty = false;
 	private EditText mDesctiptionEditText;
 	private EditText mNameEditText;
@@ -95,8 +101,8 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 				case TYPE_DIR:
 					throw new UnsupportedOperationException();
 				case TYPE_ITEM: {
-					if (mCursor.getCount() == 1) {
-						Point value = new Point(mCursor);
+					if (mPointCursor.getCount() == 1) {
+						Point value = new Point(mPointCursor);
 						pointId = value.getId();
 						personId = value.getPersonId();
 						topicId = value.getTopicId();
@@ -105,7 +111,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
 					} else {
 						throw new IllegalStateException("Expected single value in cursor, was: "
-								+ mCursor.getCount());
+								+ mPointCursor.getCount());
 					}
 					break;
 				}
@@ -119,6 +125,14 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 	public void onActionSave() {
 
+		// description is first because notify server by point change
+		if (descriptionId != Integer.MIN_VALUE) {
+			// update description
+			Description description = new Description(descriptionId, mDesctiptionEditText.getText()
+					.toString(), null, pointId);
+			((BaseActivity) getActivity()).getServiceHelper().updateDescription(description.toBundle());
+		}
+		// save point
 		int expectedAgreementCode = Points.ArgreementCode.UNSOLVED;
 		byte[] expectedDrawing = new byte[] { 0, 1 };
 		boolean expectedExpanded = false;
@@ -151,28 +165,62 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle());
 		} else {
 			// new point
+			Bundle values;
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
 					expectedGroupId, INVALID_POINT_ID, expectedPointName, expectedNumberedPoint,
 					expectedPersonId, expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			((BaseActivity) getActivity()).getServiceHelper().insertPoint(point.toBundle());
+			// ((BaseActivity) getActivity()).getServiceHelper().insertPoint(point.toBundle());
+			values = point.toBundle();
+			// with new description
+			if (descriptionId != Integer.MIN_VALUE) {
+				throw new IllegalStateException("Cant be new point without new description");
+			}
+			// new description
+			Description description = new Description(descriptionId, mDesctiptionEditText.getText()
+					.toString(), null, pointId);
+			// ((BaseActivity) getActivity()).getServiceHelper().insertDescription(description.toBundle());
+			values.putAll(description.toBundle());
+			((BaseActivity) getActivity()).getServiceHelper().insertPointAndDescription(values);
 		}
 	}
 
 	@Override
-	public Loader<Cursor> onCreateLoader(final int arg0, final Bundle arg1) {
+	public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
 
-		Uri uri = getArguments().getParcelable(EXTRA_URI);
-		if (DEBUG) {
-			Log.d(TAG, "[onCreateLoader] uri: " + uri);
+		switch (loaderId) {
+			case LOADER_POINT_ID: {
+				Uri uri = getArguments().getParcelable(EXTRA_URI);
+				if (DEBUG) {
+					Log.d(TAG, "[onCreateLoader] point uri: " + uri);
+				}
+				return new CursorLoader(getActivity(), uri, null, null, null, null);
+			}
+			case LOADER_DESCRIPTION_ID: {
+				String where = Descriptions.Columns.POINT_ID + "=?";
+				String[] args = new String[] { String.valueOf(pointId) };
+				return new CursorLoader(getActivity(), Descriptions.CONTENT_URI, null, where, args, null);
+			}
+			default:
+				throw new IllegalArgumentException("Unknown loader id: " + loaderId);
 		}
-		return new CursorLoader(getActivity(), uri, null, null, null, null);
 	}
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
+		if (isEmpty()) {
+			if (DEBUG) {
+				Log.d(TAG, "[onCreateView] show empty fragment");
+			}
+			TextView text = (TextView) inflater.inflate(R.layout.details_item, null);
+			text.setText(getActivity().getString(R.string.fragment_select_point));
+			return text;
+		}
 		if ((container == null) || (getArguments() == null)) {
+			if (DEBUG) {
+				Log.d(TAG, "[onCreateView] container and arguments was null");
+			}
 			// We have different layouts, and in one of them this
 			// fragment's containing frame doesn't exist. The fragment
 			// may still be created from its saved state, but there is
@@ -181,11 +229,6 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			// just run the code below, where we would create and return
 			// the view hierarchy; it would just never be used.
 			return null;
-		}
-		if (isEmpty()) {
-			TextView text = (TextView) inflater.inflate(R.layout.details_item, null);
-			text.setText(getActivity().getString(R.string.fragment_select_point));
-			return text;
 		}
 		if (DEBUG) {
 			Log.d(TAG, "[onCreateView] arguments: " + getArguments().toString());
@@ -219,23 +262,51 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	}
 
 	@Override
-	public void onLoaderReset(final Loader<Cursor> arg0) {
+	public void onLoaderReset(final Loader<Cursor> loader) {
 
-		mCursor = null;
+		switch (loader.getId()) {
+			case LOADER_POINT_ID:
+				mPointCursor = null;
+				break;
+			case LOADER_DESCRIPTION_ID:
+				mDescriptionCursor = null;
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
+		}
 	}
 
 	@Override
-	public void onLoadFinished(final Loader<Cursor> arg0, final Cursor data) {
+	public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
 
-		mCursor = data;
-		if (data.getCount() > 0) {
-			Point value = new Point(mCursor);
-			pointId = value.getId();
-			personId = value.getPersonId();
-			topicId = value.getTopicId();
-			mNameEditText.setText(value.getName());
-			mSideCodeSpinner.setSelection(value.getAgreementCode());
-			mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+		if (DEBUG) {
+			Log.d(TAG, "[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
+		}
+		switch (loader.getId()) {
+			case LOADER_POINT_ID: {
+				mPointCursor = data;
+				if (data.getCount() > 0) {
+					Point value = new Point(mPointCursor);
+					pointId = value.getId();
+					personId = value.getPersonId();
+					topicId = value.getTopicId();
+					mNameEditText.setText(value.getName());
+					mSideCodeSpinner.setSelection(value.getAgreementCode());
+					mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+					getLoaderManager().initLoader(LOADER_DESCRIPTION_ID, null, this);
+				}
+				break;
+			}
+			case LOADER_DESCRIPTION_ID:
+				mDescriptionCursor = data;
+				if (data.getCount() > 0) {
+					Description description = new Description(mDescriptionCursor);
+					mDesctiptionEditText.setText(description.getText());
+					descriptionId = description.getId();
+				}
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
 		}
 	}
 
@@ -243,12 +314,16 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	public void onSaveInstanceState(final Bundle outState) {
 
 		super.onSaveInstanceState(outState);
-		outState.putBoolean(EXTRA_SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
-		outState.putString(EXTRA_POINT_NAME, mNameEditText.getText().toString());
-		outState.putInt(EXTRA_SIDE_CODE, getSelectedSideCodeId());
-		outState.putInt(EXTRA_PERSON_ID, personId);
-		outState.putInt(EXTRA_TOPIC_ID, topicId);
-		outState.putInt(EXTRA_POINT_ID, pointId);
+		if (!isEmpty()) {
+			outState.putBoolean(EXTRA_SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
+			outState.putString(EXTRA_POINT_NAME, mNameEditText.getText().toString());
+			outState.putInt(EXTRA_SIDE_CODE, getSelectedSideCodeId());
+			outState.putInt(EXTRA_PERSON_ID, personId);
+			outState.putInt(EXTRA_TOPIC_ID, topicId);
+			outState.putInt(EXTRA_POINT_ID, pointId);
+			outState.putInt(EXTRA_DESCRIPTION_ID, descriptionId);
+			outState.putString(EXTRA_DESCRIPTION_TEXT, mDesctiptionEditText.getText().toString());
+		}
 	}
 
 	public void setEmpty(final boolean empty) {
@@ -295,12 +370,13 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 				break;
 			case TYPE_ITEM:
 				if (savedInstanceState == null) {
-					getLoaderManager().initLoader(0, null, this);
+					getLoaderManager().initLoader(LOADER_POINT_ID, null, this);
 				} else {
 					pointId = savedInstanceState.getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
 					personId = savedInstanceState.getInt(EXTRA_PERSON_ID, Integer.MIN_VALUE);
 					topicId = savedInstanceState.getInt(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
 					mNameEditText.setText(savedInstanceState.getString(EXTRA_POINT_NAME));
+					mDesctiptionEditText.setText(savedInstanceState.getString(EXTRA_DESCRIPTION_TEXT));
 					mSideCodeSpinner.setSelection(savedInstanceState.getInt(EXTRA_SIDE_CODE,
 							Integer.MIN_VALUE));
 					mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(EXTRA_SHARED_TO_PUBLIC));
@@ -318,7 +394,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			case TYPE_DIR:
 				throw new IllegalStateException("Should not reach here. No sense to view empty point");
 			case TYPE_ITEM:
-				getLoaderManager().initLoader(0, null, this);
+				getLoaderManager().initLoader(LOADER_POINT_ID, null, this);
 				setupView(false);
 				break;
 			default:
@@ -326,28 +402,10 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		}
 	}
 
-	private void setDescription() {
-
-		Uri uri = RichText.CONTENT_URI;
-		String selection = RichText.Columns.POINT_ID + "=?";
-		String[] selectionArgs = new String[] { String.valueOf(pointId) };
-		Cursor cursor = getActivity().getContentResolver().query(uri, null, selection, selectionArgs, null);
-		if (cursor.getCount() > 0) {
-			Description description = new Description(cursor);
-			mDesctiptionEditText.setText(description.getText());
-		} else if (DEBUG) {
-			Log.d(TAG, "NO associated description for point id: " + pointId);
-		}
-		// TODO: set empty description message
-		cursor.close();
-	}
-
 	private void setupView(final boolean editable) {
 
-		// TODO: unchecked when description are enabled
-		// setDescription();
-		mDesctiptionEditText.setEnabled(false);
 		if (!editable) {
+			mDesctiptionEditText.setEnabled(false);
 			mNameEditText.setEnabled(false);
 			mDesctiptionEditText.setEnabled(false);
 			mSideCodeSpinner.setEnabled(false);

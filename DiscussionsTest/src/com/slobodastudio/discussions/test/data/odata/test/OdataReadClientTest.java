@@ -6,7 +6,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.data.provider.DiscussionsProvider;
 import com.slobodastudio.discussions.test.data.provider.test.ProviderUtil;
@@ -34,7 +34,7 @@ public class OdataReadClientTest extends ProviderTestCase2<DiscussionsProvider> 
 		assertEquals(true, cursor.getCount() == 0);
 		cursor = getProvider().query(Points.CONTENT_URI, null, null, null, null);
 		assertEquals(true, cursor.getCount() == 0);
-		cursor = getProvider().query(RichText.CONTENT_URI, null, null, null, null);
+		cursor = getProvider().query(Descriptions.CONTENT_URI, null, null, null, null);
 		assertEquals(true, cursor.getCount() == 0);
 	}
 
@@ -46,12 +46,12 @@ public class OdataReadClientTest extends ProviderTestCase2<DiscussionsProvider> 
 		mOdataClient.downloadTopics();
 		mOdataClient.downloadPoints();
 		mOdataClient.downloadDescriptions();
-		Cursor cursor = getProvider().query(RichText.CONTENT_URI, null, null, null, null);
+		Cursor cursor = getProvider().query(Descriptions.CONTENT_URI, null, null, null, null);
 		assertEquals(true, cursor.getCount() > 0);
 		assertEquals(true, cursor.getColumnCount() > 2);
 		if (cursor.moveToFirst()) {
-			int discussionIdIndex = cursor.getColumnIndexOrThrow(RichText.Columns.DISCUSSION_ID);
-			int pointIdIndex = cursor.getColumnIndexOrThrow(RichText.Columns.POINT_ID);
+			int discussionIdIndex = cursor.getColumnIndexOrThrow(Descriptions.Columns.DISCUSSION_ID);
+			int pointIdIndex = cursor.getColumnIndexOrThrow(Descriptions.Columns.POINT_ID);
 			if (cursor.isNull(discussionIdIndex) && cursor.isNull(pointIdIndex)) {
 				fail("both foreigh keys are null");
 			}

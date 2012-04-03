@@ -7,7 +7,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussio
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentProvider;
@@ -93,10 +93,10 @@ public class DiscussionsProvider extends ContentProvider {
 				return builder.table(Comments.TABLE_NAME).where(Comments.Columns.ID + "=?", valueId);
 			}
 			case DESCRIPTION_DIR:
-				return builder.table(RichText.TABLE_NAME);
+				return builder.table(Descriptions.TABLE_NAME);
 			case DESCRIPTION_ITEM: {
-				final String valueId = RichText.getValueId(uri);
-				return builder.table(RichText.TABLE_NAME).where(RichText.Columns.ID + "=?", valueId);
+				final String valueId = Descriptions.getValueId(uri);
+				return builder.table(Descriptions.TABLE_NAME).where(Descriptions.Columns.ID + "=?", valueId);
 			}
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
@@ -135,8 +135,8 @@ public class DiscussionsProvider extends ContentProvider {
 		matcher.addURI(authority, Comments.A_TABLE_PREFIX, COMMENTS_DIR);
 		matcher.addURI(authority, Comments.A_TABLE_PREFIX + "/*", COMMENTS_ITEM);
 		// description
-		matcher.addURI(authority, RichText.A_TABLE_PREFIX, DESCRIPTION_DIR);
-		matcher.addURI(authority, RichText.A_TABLE_PREFIX + "/*", DESCRIPTION_ITEM);
+		matcher.addURI(authority, Descriptions.A_TABLE_PREFIX, DESCRIPTION_DIR);
+		matcher.addURI(authority, Descriptions.A_TABLE_PREFIX + "/*", DESCRIPTION_ITEM);
 		return matcher;
 	}
 
@@ -210,9 +210,9 @@ public class DiscussionsProvider extends ContentProvider {
 			case COMMENTS_ITEM:
 				return Comments.CONTENT_ITEM_TYPE;
 			case DESCRIPTION_DIR:
-				return RichText.CONTENT_DIR_TYPE;
+				return Descriptions.CONTENT_DIR_TYPE;
 			case DESCRIPTION_ITEM:
-				return RichText.CONTENT_ITEM_TYPE;
+				return Descriptions.CONTENT_ITEM_TYPE;
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -262,8 +262,8 @@ public class DiscussionsProvider extends ContentProvider {
 					insertedUri = Comments.buildTableUri(insertedId);
 					break;
 				case DESCRIPTION_DIR:
-					insertedId = db.insertOrThrow(RichText.TABLE_NAME, null, values);
-					insertedUri = RichText.buildTableUri(insertedId);
+					insertedId = db.insertOrThrow(Descriptions.TABLE_NAME, null, values);
+					insertedUri = Descriptions.buildTableUri(insertedId);
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown uri: " + uri);

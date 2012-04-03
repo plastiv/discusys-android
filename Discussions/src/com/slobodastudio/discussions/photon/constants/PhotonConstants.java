@@ -19,10 +19,6 @@ public class PhotonConstants {
 	/** Preffer use tcp over udp. */
 	public static final boolean USE_TCP = false;
 
-	/** TODO: change url to appropriate one. */
-	// public static final String SERVER_URL = "192.168.1.6:5055";
-	// public static final String SERVER_URL = "192.168.1.122:5055";
-	// public static final String SERVER_URL = "192.168.1.3:5055";
 	/** A private Constructor prevents class from instantiating. */
 	private PhotonConstants() {
 

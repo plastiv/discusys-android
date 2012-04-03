@@ -1,5 +1,7 @@
 package com.slobodastudio.discussions.data.odata;
 
+import com.slobodastudio.discussions.ApplicationConstants;
+
 import android.content.Context;
 
 import org.odata4j.consumer.ODataConsumer;
@@ -19,13 +21,16 @@ public class BaseOdataClient {
 		// FIXME catch 404 errors from HTTP RESPONSE
 		mConsumer = ODataJerseyConsumer.newBuilder(ODataConstants.SERVICE_URL).setFormatType(FormatType.JSON)
 				.build();
-		this.mContext = context;
+		if (ApplicationConstants.ODATA_LOCAL) {
+			ODataConsumer.dump.all(true);
+		}
+		mContext = context;
 	}
 
 	public BaseOdataClient(final String serviceRootUri, final Context context) {
 
 		mConsumer = ODataJerseyConsumer.newBuilder(serviceRootUri).setFormatType(FormatType.JSON).build();
-		this.mContext = context;
+		mContext = context;
 	}
 
 	public void logServerMetaData() {

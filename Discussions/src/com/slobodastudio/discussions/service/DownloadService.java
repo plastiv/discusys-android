@@ -21,6 +21,8 @@ public class DownloadService extends IntentService {
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE_ID = "intent.extra.key.EXTRA_VALUE_ID";
 	public static final int TYPE_ALL = 0x0;
+	public static final int TYPE_DESCRIPTION_ITEM = 0x6;
+	public static final int TYPE_DESCRIPTIONS = 0x5;
 	public static final int TYPE_DISCUSSIONS = 0x3;
 	public static final int TYPE_POINT = 0x1;
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
@@ -86,6 +88,12 @@ public class DownloadService extends IntentService {
 				case TYPE_TOPICS:
 					downloadTopics();
 					break;
+				case TYPE_DESCRIPTIONS:
+					downloadDescriptions();
+					break;
+				case TYPE_DESCRIPTION_ITEM:
+					downloadDescription(intent);
+					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: "
 							+ intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE));
@@ -133,9 +141,31 @@ public class DownloadService extends IntentService {
 			logd("[downloadAll] topics completed");
 			odataClient.refreshPoints();
 			logd("[downloadAll] points completed");
+			odataClient.refreshDescriptions();
+			logd("[downloadAll] descriptions completed");
 		}
 	}
 
+	private void downloadDescription(final Intent intent) {
+
+		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
+		if (pointId < 0) {
+			throw new IllegalArgumentException("Illegal point id for download: " + pointId);
+		}
+		logd("[downloadDescription] point id: " + pointId);
+		OdataReadClient odata = new OdataReadClient(this);
+		odata.refreshDescription(pointId);
+	}
+
+	private void downloadDescriptions() {
+
+		logd("[downloadDescriptions]");
+		OdataReadClient odataClient = new OdataReadClient(this);
+		odataClient.refreshDescriptions();
+		logd("[downloadDescriptions] descriptions completed");
+	}
+
+	@Deprecated
 	private void downloadDiscussions() {
 
 		logd("[downloadDiscussions]");
@@ -167,6 +197,7 @@ public class DownloadService extends IntentService {
 		odata.refreshPoints(topicId);
 	}
 
+	@Deprecated
 	private void downloadTopics() {
 
 		logd("[downloadTopics]");

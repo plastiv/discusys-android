@@ -57,6 +57,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 	private SimpleCursorAdapter mUserPointsAdapter;
 	private ListView mUserPointsList;
 	private int personId;
+	private boolean showEmptyOnClose = true;
 	private int topicId;
 
 	public void onActionNew() {
@@ -95,6 +96,10 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				mCurPosition = position;
 				mUserPointsList.setItemChecked(position, true);
 				mOtherPointsList.clearChoices();
+				if (mActionMode != null) {
+					showEmptyOnClose = false;
+					mActionMode.finish();
+				}
 				onActionEdit(id, position);
 			}
 		});
@@ -109,6 +114,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				mOtherPointsList.setItemChecked(position, true);
 				mUserPointsList.clearChoices();
 				if (mActionMode != null) {
+					showEmptyOnClose = false;
 					mActionMode.finish();
 				}
 				onActionView(id, position);
@@ -396,8 +402,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				case R.id.menu_cancel:
 					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
 							.onActionCancel();
-					showEmtyDetails();
-					mUserPointsList.clearChoices();
+					// showEmtyDetails();
+					// mUserPointsList.clearChoices();
 					mode.finish();
 					return true;
 				default:
@@ -411,12 +417,19 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			mode.setTitle(R.string.action_mode_name_points);
 			MenuInflater inflater = mode.getMenuInflater();
 			inflater.inflate(R.menu.actionbar_details_menu, menu);
+			showEmptyOnClose = true;
 			return true;
 		}
 
 		@Override
 		public void onDestroyActionMode(final ActionMode mode) {
 
+			Log.d(TAG, "[onDestroyActionMode]");
+			if (showEmptyOnClose) {
+				showEmtyDetails();
+				mUserPointsList.clearChoices();
+			}
+			// mode.finish();
 			mActionMode = null;
 		}
 

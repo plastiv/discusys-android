@@ -10,7 +10,7 @@ import com.slobodastudio.discussions.data.model.Value;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentResolver;
@@ -43,15 +43,15 @@ public class ProviderTestData {
 	public static void generateDescriptions(final ContentResolver cr) {
 
 		Description description = new Description(1, "my description first", null, 1);
-		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		cr.insert(Descriptions.CONTENT_URI, description.toContentValues());
 		description = new Description(2, "my description second", null, 2);
-		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		cr.insert(Descriptions.CONTENT_URI, description.toContentValues());
 		description = new Description(3, "my description third", null, 3);
-		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		cr.insert(Descriptions.CONTENT_URI, description.toContentValues());
 		description = new Description(4, "my description fourth", null, 4);
-		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		cr.insert(Descriptions.CONTENT_URI, description.toContentValues());
 		description = new Description(5, "my description fifht", null, 5);
-		cr.insert(RichText.CONTENT_URI, description.toContentValues());
+		cr.insert(Descriptions.CONTENT_URI, description.toContentValues());
 	}
 
 	public static void generateDiscussions(final ContentResolver cr) {

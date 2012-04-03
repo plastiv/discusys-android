@@ -1,17 +1,38 @@
 package com.slobodastudio.discussions.data.model;
 
 import com.slobodastudio.discussions.data.DataIoException;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.RichText;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 public class Description implements Value {
 
 	private final Integer discussionId;
-	private final int id;
-	private final Integer pointId;
+	private int id;
+	private Integer pointId;
 	private final String text;
+
+	public Description(final Bundle bundle) {
+
+		super();
+		id = bundle.getInt(Descriptions.Columns.ID);
+		text = bundle.getString(Descriptions.Columns.TEXT);
+		if (bundle.containsKey(Descriptions.Columns.POINT_ID)) {
+			pointId = bundle.getInt(Descriptions.Columns.POINT_ID);
+		} else {
+			pointId = null;
+		}
+		if (bundle.containsKey(Descriptions.Columns.DISCUSSION_ID)) {
+			discussionId = bundle.getInt(Descriptions.Columns.DISCUSSION_ID);
+		} else {
+			discussionId = null;
+		}
+		if ((discussionId == null) && (pointId == null)) {
+			throw new DataIoException("Both foreign key cant be null");
+		}
+	}
 
 	public Description(final Cursor cursor) {
 
@@ -20,10 +41,10 @@ public class Description implements Value {
 			throw new IllegalArgumentException("Cursor shoud contain single value, was: " + cursor.getCount());
 		}
 		if (cursor.moveToFirst()) {
-			int idIndex = cursor.getColumnIndexOrThrow(RichText.Columns.ID);
-			int textIndex = cursor.getColumnIndexOrThrow(RichText.Columns.TEXT);
-			int discussionIdIndex = cursor.getColumnIndexOrThrow(RichText.Columns.DISCUSSION_ID);
-			int pointIdIndex = cursor.getColumnIndexOrThrow(RichText.Columns.POINT_ID);
+			int idIndex = cursor.getColumnIndexOrThrow(Descriptions.Columns.ID);
+			int textIndex = cursor.getColumnIndexOrThrow(Descriptions.Columns.TEXT);
+			int discussionIdIndex = cursor.getColumnIndexOrThrow(Descriptions.Columns.DISCUSSION_ID);
+			int pointIdIndex = cursor.getColumnIndexOrThrow(Descriptions.Columns.POINT_ID);
 			discussionId = cursor.getInt(discussionIdIndex);
 			id = cursor.getInt(idIndex);
 			text = cursor.getString(textIndex);
@@ -45,19 +66,61 @@ public class Description implements Value {
 		this.pointId = pointId;
 	}
 
+	public Integer getDiscussionId() {
+
+		return discussionId;
+	}
+
+	public int getId() {
+
+		return id;
+	}
+
+	public Integer getPointId() {
+
+		return pointId;
+	}
+
 	public String getText() {
 
 		return text;
+	}
+
+	public void setId(final int id) {
+
+		this.id = id;
+	}
+
+	public void setPointId(final Integer pointId) {
+
+		this.pointId = pointId;
+	}
+
+	public Bundle toBundle() {
+
+		Bundle bundle = new Bundle();
+		bundle.putInt(Descriptions.Columns.ID, id);
+		if (pointId != null) {
+			bundle.putInt(Descriptions.Columns.POINT_ID, pointId);
+		}
+		if (discussionId != null) {
+			bundle.putInt(Descriptions.Columns.DISCUSSION_ID, discussionId);
+		}
+		if ((discussionId == null) && (pointId == null)) {
+			throw new DataIoException("Both foreign key cant be null");
+		}
+		bundle.putString(Descriptions.Columns.TEXT, text);
+		return bundle;
 	}
 
 	@Override
 	public ContentValues toContentValues() {
 
 		ContentValues cv = new ContentValues();
-		cv.put(RichText.Columns.ID, id);
-		cv.put(RichText.Columns.TEXT, text);
-		cv.put(RichText.Columns.DISCUSSION_ID, discussionId);
-		cv.put(RichText.Columns.POINT_ID, pointId);
+		cv.put(Descriptions.Columns.ID, id);
+		cv.put(Descriptions.Columns.TEXT, text);
+		cv.put(Descriptions.Columns.DISCUSSION_ID, discussionId);
+		cv.put(Descriptions.Columns.POINT_ID, pointId);
 		return cv;
 	}
 
