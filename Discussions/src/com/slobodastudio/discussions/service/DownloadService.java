@@ -27,6 +27,7 @@ public class DownloadService extends IntentService {
 	public static final int TYPE_POINT = 0x1;
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
 	public static final int TYPE_TOPICS = 0x4;
+	public static final int TYPE_UPDATE_POINT = 0x7;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = DownloadService.class.getSimpleName();
 
@@ -78,6 +79,9 @@ public class DownloadService extends IntentService {
 					break;
 				case TYPE_POINT:
 					downloadPoint(intent);
+					break;
+				case TYPE_UPDATE_POINT:
+					updatePoint(intent);
 					break;
 				case TYPE_POINT_FROM_TOPIC:
 					downloadPointsFromTopic(intent);
@@ -143,6 +147,8 @@ public class DownloadService extends IntentService {
 			logd("[downloadAll] points completed");
 			odataClient.refreshDescriptions();
 			logd("[downloadAll] descriptions completed");
+			odataClient.refreshComments();
+			logd("[downloadAll] comments completed");
 		}
 	}
 
@@ -194,7 +200,7 @@ public class DownloadService extends IntentService {
 		}
 		logd("[downloadPointsFromTopic] topic id: " + topicId);
 		OdataReadClient odata = new OdataReadClient(this);
-		odata.refreshPoints(topicId);
+		odata.updatePointsFromTopic(topicId);
 	}
 
 	@Deprecated
@@ -204,5 +210,16 @@ public class DownloadService extends IntentService {
 		OdataReadClient odataClient = new OdataReadClient(this);
 		odataClient.refreshTopics();
 		logd("[downloadTopics] topics completed");
+	}
+
+	private void updatePoint(final Intent intent) {
+
+		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
+		if (pointId < 0) {
+			throw new IllegalArgumentException("Illegal point id for download: " + pointId);
+		}
+		logd("[updatePoint] point id: " + pointId);
+		OdataReadClient odata = new OdataReadClient(this);
+		odata.updatePoint(pointId);
 	}
 }

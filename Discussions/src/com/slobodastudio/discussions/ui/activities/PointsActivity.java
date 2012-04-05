@@ -33,8 +33,10 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 			Log.d(TAG, "[onArgPointChanged] point id: " + pointId);
 		}
 		// showToast("Point changed: " + pointId);
-		mServiceHelper.downloadPoint(pointId);
-		mServiceHelper.downloadDescription(pointId);
+		// mServiceHelper.downloadPoint(pointId);
+		// mServiceHelper.downloadDescription(pointId);
+		mServiceHelper.updatePoint(pointId);
+		((PointsFragment) mFragment).showEmtyDetails();
 	}
 
 	@Override

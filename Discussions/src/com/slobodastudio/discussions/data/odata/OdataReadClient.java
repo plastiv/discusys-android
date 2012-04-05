@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
@@ -135,6 +136,37 @@ public class OdataReadClient extends BaseOdataClient {
 			ContentValues cv = OEntityToContentValue(entity);
 			mContentResolver.insert(contentUri, cv);
 		}
+	}
+
+	public void refreshComments() {
+
+		log("[refreshComments]");
+		Enumerable<OEntity> comments = getCommentsEntities();
+		log("[refreshComments] comment entities count: " + comments.count());
+		List<Integer> serversIds = new ArrayList<Integer>(comments.count());
+		for (OEntity comment : comments) {
+			serversIds.add(getAsInt(comment, Comments.Columns.ID));
+			insertComment(comment);
+		}
+		log("[refreshComments] all comments was inserted");
+		// check if server has a deleted points
+		Cursor cur = mContentResolver.query(Comments.CONTENT_URI, new String[] { Comments.Columns.ID, },
+				null, null, null);
+		log("[refreshComments] db comments count: " + cur.getCount());
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Comments.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int commentId = cur.getInt(idIndex);
+				if (!serversIds.contains(commentId)) {
+					// delete this row
+					log("[refreshComments] delete point: " + commentId);
+					Uri uri = Comments.buildTableUri(commentId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
 	}
 
 	public void refreshDescription(final int pointId) {
@@ -343,6 +375,97 @@ public class OdataReadClient extends BaseOdataClient {
 		cur.close();
 	}
 
+	public void updateComments(final int pointId) {
+
+		log("[refreshComments]");
+		Enumerable<OEntity> comments = getCommentsEntities(pointId);
+		log("[refreshComments] comment entities count: " + comments.count());
+		List<Integer> serversIds = new ArrayList<Integer>(comments.count());
+		for (OEntity comment : comments) {
+			serversIds.add(getAsInt(comment, Comments.Columns.ID));
+			insertComment(comment);
+		}
+		log("[refreshComments] all comments was inserted");
+		// check if server has a deleted points
+		String where = Comments.Columns.POINT_ID + "=?";
+		String[] args = new String[] { String.valueOf(pointId) };
+		Cursor cur = mContentResolver.query(Comments.CONTENT_URI, new String[] { Comments.Columns.ID, },
+				where, args, null);
+		log("[refreshComments] db comments count: " + cur.getCount());
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Comments.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int commentId = cur.getInt(idIndex);
+				if (!serversIds.contains(commentId)) {
+					// delete this row
+					log("[refreshComments] delete point: " + commentId);
+					Uri uri = Comments.buildTableUri(commentId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
+	}
+
+	public void updatePoint(final int pointId) {
+
+		OEntity entity = mConsumer.getEntity(Points.TABLE_NAME, pointId).expand(
+				Topics.TABLE_NAME + "," + Persons.TABLE_NAME + "," + "Description").execute();
+		updatePoint(entity);
+		updateComments(pointId);
+	}
+
+	public void updatePointsFromTopic(final int topicId) {
+
+		log("[updatePointsFromTopic] topic id: " + topicId);
+		Enumerable<OEntity> points = mConsumer.getEntities(Points.TABLE_NAME).expand(
+				Topics.TABLE_NAME + "," + Persons.TABLE_NAME + "," + "Description").filter(
+				"Topic/Id eq " + String.valueOf(topicId)).execute();
+		log("[updatePointsFromTopic] points entities count: " + points.count());
+		List<Integer> serversIds = new ArrayList<Integer>(points.count());
+		for (OEntity point : points) {
+			serversIds.add(getAsInt(point, Points.Columns.ID));
+			updatePoint(point);
+			updateComments(getAsInt(point, Points.Columns.ID));
+		}
+		log("[updatePointsFromTopic] all points was inserted");
+		// check if server has a deleted points
+		Cursor cur = mContentResolver.query(Points.CONTENT_URI, new String[] { Points.Columns.ID,
+				BaseColumns._ID }, Points.Columns.TOPIC_ID + "=?", new String[] { String.valueOf(topicId) },
+				null);
+		log("[updatePointsFromTopic] db points count: " + cur.getCount());
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Points.Columns.ID);
+			int localIdIndex = cur.getColumnIndexOrThrow(BaseColumns._ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int pointId = cur.getInt(idIndex);
+				if (!serversIds.contains(pointId)) {
+					// delete this row
+					int rowId = cur.getInt(localIdIndex);
+					log("[updatePointsFromTopic] delete point: " + rowId);
+					Uri uri = Points.buildTableUri(rowId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
+	}
+
+	private Enumerable<OEntity> getCommentsEntities() {
+
+		return mConsumer.getEntities(Comments.TABLE_NAME)
+				.expand(Points.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
+	}
+
+	private Enumerable<OEntity> getCommentsEntities(final int pointId) {
+
+		return mConsumer.getEntities(Comments.TABLE_NAME)
+				.expand(Points.TABLE_NAME + "," + Persons.TABLE_NAME).filter(
+						"ArgPoint/Id eq " + String.valueOf(pointId)).execute();
+	}
+
 	private Enumerable<OEntity> getDescriptionsEntities() {
 
 		return mConsumer.getEntities(Descriptions.TABLE_NAME).expand(
@@ -394,6 +517,38 @@ public class OdataReadClient extends BaseOdataClient {
 
 		return mConsumer.getEntities(Topics.TABLE_NAME).expand(
 				Discussions.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
+	}
+
+	private Uri insertComment(final OEntity comment) {
+
+		// get properties
+		ContentValues cv = OEntityToContentValue(comment);
+		// get related point id
+		OEntity point = comment.getLink(Points.TABLE_NAME, ORelatedEntityLinkInline.class).getRelatedEntity();
+		if (point == null) {
+			// TODO: thwo ex here
+			Log.e(TAG, "Related topic link was null for comment: " + getAsInt(comment, Comments.Columns.ID));
+			if (ApplicationConstants.ODATA_SANITIZE) {
+				Log.w(TAG, "Try to delete comment: " + getAsInt(comment, Comments.Columns.ID));
+				mConsumer.deleteEntity(Comments.TABLE_NAME, getAsInt(comment, Comments.Columns.ID)).execute();
+			}
+			return null;
+		}
+		cv.put(Comments.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
+		// get related person id
+		OEntity person = comment.getLink(Persons.TABLE_NAME, ORelatedEntityLinkInline.class)
+				.getRelatedEntity();
+		if (person == null) {
+			// TODO: thwo ex here
+			Log.e(TAG, "Related person link was null for comment: " + getAsInt(comment, Comments.Columns.ID));
+			if (ApplicationConstants.ODATA_SANITIZE) {
+				Log.w(TAG, "Try to delete comment: " + getAsInt(comment, Comments.Columns.ID));
+				mConsumer.deleteEntity(Comments.TABLE_NAME, getAsInt(comment, Comments.Columns.ID)).execute();
+			}
+			return null;
+		}
+		cv.put(Comments.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
+		return mContentResolver.insert(Comments.CONTENT_URI, cv);
 	}
 
 	private Uri insertDescription(final OEntity description) {
@@ -501,5 +656,48 @@ public class OdataReadClient extends BaseOdataClient {
 		if (DEBUG) {
 			Log.d(TAG, message);
 		}
+	}
+
+	private Uri updatePoint(final OEntity point) {
+
+		// get properties
+		ContentValues cv = OEntityToContentValue(point);
+		// get related topic id
+		OEntity topic = point.getLink(Topics.TABLE_NAME, ORelatedEntityLinkInline.class).getRelatedEntity();
+		if (topic == null) {
+			// TODO: thwo ex here
+			Log.e(TAG, "Related topic link was null for point: " + getAsInt(point, Points.Columns.ID));
+			if (ApplicationConstants.ODATA_SANITIZE) {
+				Log.w(TAG, "Try to delete point: " + getAsInt(point, Points.Columns.ID));
+				mConsumer.deleteEntity(Points.TABLE_NAME, getAsInt(point, Points.Columns.ID)).execute();
+			}
+			return null;
+		}
+		cv.put(Points.Columns.TOPIC_ID, getAsInt(topic, Topics.Columns.ID));
+		// get related person id
+		OEntity person = point.getLink(Persons.TABLE_NAME, ORelatedEntityLinkInline.class).getRelatedEntity();
+		if (person == null) {
+			// TODO: thwo ex here
+			Log.e(TAG, "Related person link was null for point: " + getAsInt(point, Points.Columns.ID));
+			if (ApplicationConstants.ODATA_SANITIZE) {
+				Log.w(TAG, "Try to delete point: " + getAsInt(point, Points.Columns.ID));
+				mConsumer.deleteEntity(Points.TABLE_NAME, getAsInt(point, Points.Columns.ID)).execute();
+			}
+			return null;
+		}
+		cv.put(Points.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
+		// TODO no sync cloumn needed
+		cv.put(Points.Columns.SYNC, false);
+		Uri uri = mContentResolver.insert(Points.CONTENT_URI, cv);
+		// description update
+		OEntity description = point.getLink("Description", ORelatedEntityLinkInline.class).getRelatedEntity();
+		if (description != null) {
+			// get properties
+			ContentValues cvDescription = OEntityToContentValue(description);
+			// get related point id
+			cvDescription.put(Descriptions.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
+			mContentResolver.insert(Descriptions.CONTENT_URI, cvDescription);
+		}
+		return uri;
 	}
 }

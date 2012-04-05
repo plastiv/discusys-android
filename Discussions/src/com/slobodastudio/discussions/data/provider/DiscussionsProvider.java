@@ -3,11 +3,11 @@ package com.slobodastudio.discussions.data.provider;
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentProvider;
@@ -349,6 +349,19 @@ public class DiscussionsProvider extends ContentProvider {
 				builder.table(Points.TABLE_NAME).where(Points.Columns.TOPIC_ID + "=?", valueId);
 				notificationUri = Points.CONTENT_URI;
 				break;
+			}
+			case COMMENTS_DIR: {
+				builder.table(Comments.TABLE_NAME + "," + Persons.TABLE_NAME);
+				builder.mapToTable(BaseColumns._ID, Comments.TABLE_NAME).mapToTable(Comments.Columns.ID,
+						Comments.TABLE_NAME);
+				builder.where(Comments.Columns.POINT_ID + "=? AND " + Comments.Columns.PERSON_ID + "="
+						+ Persons.Qualified.PERSON_ID, selectionArgs);
+				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Comments.Columns.ID,
+						Comments.Columns.TEXT, Persons.Columns.NAME }, Comments.Qualified.COMMENT_ID, null,
+						sortOrder, null);
+				notificationUri = Comments.CONTENT_URI;
+				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+				return c;
 			}
 			default:
 				notificationUri = uri;

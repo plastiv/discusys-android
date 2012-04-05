@@ -144,7 +144,7 @@ public class CommentsTableTest extends ProviderTestCase2<DiscussionsProvider> {
 
 		ContentValues cv = new ContentValues();
 		cv.put(Comments.Columns.ID, RANDOM_COMMENT_ID);
-		cv.put(Comments.Columns.NAME, "cool name");
+		cv.put(Comments.Columns.TEXT, "cool name");
 		cv.put(Comments.Columns.PERSON_ID, PERSON_ID);
 		cv.put(Comments.Columns.POINT_ID, POINT_ID);
 		// no connected values

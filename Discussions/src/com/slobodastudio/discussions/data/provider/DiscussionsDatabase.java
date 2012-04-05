@@ -1,11 +1,11 @@
 package com.slobodastudio.discussions.data.provider;
 
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.SyncColumns;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
@@ -21,7 +21,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 30;
+	private static final int DATABASE_VERSION = 31;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -34,7 +34,6 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(final SQLiteDatabase db) {
 
-		// FIXME: on conflict ignore should not be done!
 		// @formatter:off
 		db.execSQL("CREATE TABLE " + Discussions.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -62,7 +61,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 		db.execSQL("CREATE TABLE " + Comments.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ Comments.Columns.ID + " INTEGER NOT NULL,"
-				+ Comments.Columns.NAME + " TEXT NOT NULL,"
+				+ Comments.Columns.TEXT + " TEXT NOT NULL,"
 				+ Comments.Columns.PERSON_ID + " INTEGER " + References.PERSON_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ Comments.Columns.POINT_ID + " INTEGER " + References.POINT_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ " UNIQUE (" + Comments.Columns.ID + ") ON CONFLICT REPLACE)");

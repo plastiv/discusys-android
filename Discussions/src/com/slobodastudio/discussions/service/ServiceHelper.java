@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
 import android.util.Log;
+import android.widget.Toast;
 
 /** Should attach mOdataListener when activity is active. */
 public class ServiceHelper {
@@ -40,6 +41,7 @@ public class ServiceHelper {
 
 	public void downloadAll() {
 
+		assertReady();
 		final Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_ALL);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
@@ -48,6 +50,7 @@ public class ServiceHelper {
 
 	public void downloadDescription(final int pointId) {
 
+		assertReady();
 		// TODO: make a queue of download requests
 		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_DESCRIPTION_ITEM);
@@ -58,6 +61,7 @@ public class ServiceHelper {
 
 	public void downloadDescriptions() {
 
+		assertReady();
 		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_DESCRIPTIONS);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
@@ -66,6 +70,7 @@ public class ServiceHelper {
 
 	public void downloadDiscussions() {
 
+		assertReady();
 		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_DISCUSSIONS);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
@@ -77,6 +82,7 @@ public class ServiceHelper {
 	 * @param pointId */
 	public void downloadPoint(final int pointId) {
 
+		assertReady();
 		// TODO: make a queue of download requests
 		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_POINT);
@@ -87,6 +93,7 @@ public class ServiceHelper {
 
 	public void downloadPointsFromTopic(final int topicId) {
 
+		assertReady();
 		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_POINT_FROM_TOPIC);
 		intent.putExtra(DownloadService.EXTRA_VALUE_ID, topicId);
@@ -97,6 +104,7 @@ public class ServiceHelper {
 	@Deprecated
 	public void downloadTopics() {
 
+		assertReady();
 		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_TOPICS);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
@@ -105,6 +113,7 @@ public class ServiceHelper {
 
 	public void insertDescription(final Bundle descriptionValues) {
 
+		assertReady();
 		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_DESCRIPTION);
 		intent.putExtra(UploadService.EXTRA_VALUE, descriptionValues);
@@ -115,6 +124,7 @@ public class ServiceHelper {
 
 	public void insertPoint(final Bundle pointValue) {
 
+		assertReady();
 		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_POINT);
 		intent.putExtra(UploadService.EXTRA_VALUE, pointValue);
@@ -125,6 +135,7 @@ public class ServiceHelper {
 
 	public void insertPointAndDescription(final Bundle values) {
 
+		assertReady();
 		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_POINT_AND_DESCRIPTION);
 		intent.putExtra(UploadService.EXTRA_VALUE, values);
@@ -145,6 +156,7 @@ public class ServiceHelper {
 
 	public void updateDescription(final Bundle descriptionValues) {
 
+		assertReady();
 		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_UPDATE_DESCRIPTION);
 		intent.putExtra(UploadService.EXTRA_VALUE, descriptionValues);
@@ -155,12 +167,30 @@ public class ServiceHelper {
 
 	public void updatePoint(final Bundle pointValue) {
 
+		assertReady();
 		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_UPDATE_POINT);
 		intent.putExtra(UploadService.EXTRA_VALUE, pointValue);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);
+	}
+
+	public void updatePoint(final int pointId) {
+
+		assertReady();
+		Intent intent = new Intent(DownloadService.ACTION_DOWNLOAD);
+		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_UPDATE_POINT);
+		intent.putExtra(DownloadService.EXTRA_VALUE_ID, pointId);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		mContext.startService(intent);
+	}
+
+	private void assertReady() {
+
+		if (mOdataSyncing) {
+			Toast.makeText(mContext, "Need to finish previous task", Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	public class OdataSyncResultReceiver extends ResultReceiver {

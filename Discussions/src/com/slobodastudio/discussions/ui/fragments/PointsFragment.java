@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -201,13 +202,13 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			case LOADER_USER_POINTS_ID: {
 				String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "=? ";
 				String[] args = { String.valueOf(topicId), String.valueOf(personId) };
-				String sortOrder = Points.Columns.ID + " DESC";
+				String sortOrder = BaseColumns._ID + " DESC";
 				return new CursorLoader(getActivity(), URI, null, where, args, sortOrder);
 			}
 			case LOADER_OTHER_POINTS_ID: {
 				String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "!=? ";
 				String[] args = { String.valueOf(topicId), String.valueOf(personId) };
-				String sortOrder = Points.Columns.ID + " DESC";
+				String sortOrder = BaseColumns._ID + " DESC";
 				return new CursorLoader(getActivity(), URI, null, where, args, sortOrder);
 			}
 			default:
@@ -268,26 +269,45 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		outState.putInt(EXTRA_SELECTED, mSelectedList);
 	}
 
+	public void showEmtyDetails() {
+
+		mUserPointsList.clearChoices();
+		mOtherPointsList.clearChoices();
+		if (mDualPane) {
+			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
+					R.id.frame_layout_details);
+			// Make new fragment to show this selection.
+			details = new PointDetailFragment();
+			details.setEmpty(true);
+			// Execute a transaction, replacing any existing fragment
+			// with this one inside the frame.
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			ft.replace(R.id.frame_layout_details, details);
+			ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+			ft.commit();
+		}
+	}
+
 	void onActionEdit(final long id, final int position) {
 
+		int valueId;
+		if ((mUserPointsAdapter.getCursor() != null)
+				&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
+			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
+			valueId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
+		} else {
+			valueId = PointDetailFragment.INVALID_POINT_ID;
+			return;
+		}
 		if (mDualPane) {
 			// We can display everything in-place with fragments
 			// Check what fragment is currently shown, replace if needed.
-			int valueId;
-			if ((mUserPointsAdapter.getCursor() != null)
-					&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
-				int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
-				valueId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
-			} else {
-				valueId = PointDetailFragment.INVALID_POINT_ID;
-				return;
-			}
 			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
 					R.id.frame_layout_details);
 			if ((details == null) || (details.getPointId() != valueId)) {
 				// Make new fragment to show this selection.
 				details = new PointDetailFragment();
-				Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(id));
+				Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(valueId));
 				details.setArguments(PointDetailFragment.intentToFragmentArguments(intent));
 				// Execute a transaction, replacing any existing fragment
 				// with this one inside the frame.
@@ -299,31 +319,31 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			mActionMode = getSherlockActivity().startActionMode(new EditDetailsActionMode());
 		} else {
 			// Otherwise we need to launch a new activity to display details
-			Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(id));
+			Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(valueId));
 			startActivity(intent);
 		}
 	}
 
 	void onActionView(final long id, final int position) {
 
+		int valueId;
+		if ((mOtherPointsAdapter.getCursor() != null)
+				&& mOtherPointsAdapter.getCursor().moveToPosition(position)) {
+			int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
+			valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
+		} else {
+			valueId = PointDetailFragment.INVALID_POINT_ID;
+			return;
+		}
 		if (mDualPane) {
 			// We can display everything in-place with fragments
 			// Check what fragment is currently shown, replace if needed.
-			int valueId;
-			if ((mOtherPointsAdapter.getCursor() != null)
-					&& mOtherPointsAdapter.getCursor().moveToPosition(position)) {
-				int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
-				valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
-			} else {
-				valueId = PointDetailFragment.INVALID_POINT_ID;
-				return;
-			}
 			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
 					R.id.frame_layout_details);
 			if ((details == null) || (details.getPointId() != valueId)) {
 				// Make new fragment to show this selection.
 				details = new PointDetailFragment();
-				Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(id));
+				Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(valueId));
 				details.setArguments(PointDetailFragment.intentToFragmentArguments(intent));
 				// Execute a transaction, replacing any existing fragment
 				// with this one inside the frame.
@@ -334,7 +354,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			}
 		} else {
 			// Otherwise we need to launch a new activity to display details
-			Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(id));
+			Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(valueId));
 			startActivity(intent);
 		}
 	}
@@ -371,21 +391,6 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		if (DEBUG) {
 			Log.d(TAG, "[initFromIntentExtras] personId: " + personId + ", topicId: " + topicId);
 		}
-	}
-
-	private void showEmtyDetails() {
-
-		PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
-				R.id.frame_layout_details);
-		// Make new fragment to show this selection.
-		details = new PointDetailFragment();
-		details.setEmpty(true);
-		// Execute a transaction, replacing any existing fragment
-		// with this one inside the frame.
-		FragmentTransaction ft = getFragmentManager().beginTransaction();
-		ft.replace(R.id.frame_layout_details, details);
-		ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-		ft.commit();
 	}
 
 	private final class EditDetailsActionMode implements ActionMode.Callback {

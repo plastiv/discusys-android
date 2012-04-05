@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.test.ui.activities;
+package com.slobodastudio.discussions.test.ui.activities.readonly;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.ProviderTestData;
