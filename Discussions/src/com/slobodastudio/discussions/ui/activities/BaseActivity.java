@@ -144,7 +144,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		// This has to be called before setContentView and you must use the
 		// class in com.actionbarsherlock.view and NOT android.view
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		setContentView(com.slobodastudio.discussions.R.layout.base_activity);
+		setContentView(com.slobodastudio.discussions.R.layout.activity_base);
 		FragmentManager fm = getSupportFragmentManager();
 		if (DEBUG) {
 			Log.d(TAG, "[onCreate] savedInstanceState: " + savedInstanceState + ", findFragmentById: "

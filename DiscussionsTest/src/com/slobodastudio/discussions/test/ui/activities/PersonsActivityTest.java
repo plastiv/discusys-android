@@ -1,25 +1,25 @@
 package com.slobodastudio.discussions.test.ui.activities;
 
+import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.ui.activities.DiscussionsActivity;
 import com.slobodastudio.discussions.ui.activities.PersonsActivity;
-import com.slobodastudio.discussions.ui.activities.TopicsActivity;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.test.ActivityInstrumentationTestCase2;
 import android.widget.ListView;
 
+import com.actionbarsherlock.internal.widget.IcsProgressBar;
 import com.jayway.android.robotium.solo.Solo;
 
-public class DiscussionsActivityTest extends ActivityInstrumentationTestCase2<PersonsActivity> {
+public class PersonsActivityTest extends ActivityInstrumentationTestCase2<PersonsActivity> {
 
-	private static final Class<TopicsActivity> nextActivityClass = TopicsActivity.class;
-	private static final Class<DiscussionsActivity> testedActivityClass = DiscussionsActivity.class;
-	private static final String testedActivityName = DiscussionsActivity.class.getSimpleName();
+	private static final String activityName = PersonsActivity.class.getSimpleName();
+	private static final Class<DiscussionsActivity> nextActivityClass = DiscussionsActivity.class;
 	private Solo solo;
 
-	public DiscussionsActivityTest() {
+	public PersonsActivityTest() {
 
 		super(PersonsActivity.class);
 		Uri uri = Persons.CONTENT_URI;
@@ -33,30 +33,22 @@ public class DiscussionsActivityTest extends ActivityInstrumentationTestCase2<Pe
 		solo.finishOpenedActivities();
 	}
 
-	public void testGoHome() {
-
-		setLandscapeOrientation();
-		solo.clickOnImage(0);
-		solo.waitForActivity(PersonsActivity.class.getSimpleName());
-		solo.assertCurrentActivity("Failed go home", PersonsActivity.class);
-		// discussions
-		solo.clickInList(2);
-		solo.waitForActivity(DiscussionsActivity.class.getSimpleName());
-		solo.assertCurrentActivity("Failure to start activity", DiscussionsActivity.class);
-		setPortraitOrientation();
-		solo.clickOnImage(0);
-		solo.waitForActivity(PersonsActivity.class.getSimpleName());
-		solo.assertCurrentActivity("Failed go home", PersonsActivity.class);
-	}
-
 	public void testOpenNextList() {
 
 		setLandscapeOrientation();
 		assertNextListIsOpen();
 		solo.goBack();
-		solo.waitForActivity(testedActivityName);
+		solo.waitForActivity(activityName);
 		setPortraitOrientation();
 		assertNextListIsOpen();
+	}
+
+	public void testRefresh() {
+
+		setLandscapeOrientation();
+		assertProgressBarIsRollingAndFinished();
+		setPortraitOrientation();
+		assertProgressBarIsRollingAndFinished();
 	}
 
 	public void testShowList() {
@@ -71,9 +63,6 @@ public class DiscussionsActivityTest extends ActivityInstrumentationTestCase2<Pe
 	protected void setUp() throws Exception {
 
 		solo = new Solo(getInstrumentation(), getActivity());
-		solo.clickInList(2);
-		solo.waitForActivity(testedActivityName);
-		solo.assertCurrentActivity("Failure to start activity", testedActivityClass);
 	}
 
 	private void assertListViewHasItems() {
@@ -86,21 +75,47 @@ public class DiscussionsActivityTest extends ActivityInstrumentationTestCase2<Pe
 	private void assertNextListIsOpen() {
 
 		// in current activity
-		solo.clickInList(1);
+		solo.clickInList(2);
 		solo.waitForActivity(nextActivityClass.getSimpleName());
 		solo.assertCurrentActivity("Failure to start activity", nextActivityClass);
+		assertListViewHasItems();
+	}
+
+	private void assertProgressBarIsRollingAndFinished() {
+
+		assertListViewHasItems();
+		solo.clickOnView(solo.getView(R.id.menu_refresh));
+		solo.waitForText("Refreshing all data...");
+		solo.waitForView(IcsProgressBar.class);
+		assertNotNull(solo.getView(IcsProgressBar.class, 0));
+		assertListViewHasItems();
+		int triesNum = 15;
+		int i = 0;
+		IcsProgressBar progressBar = (IcsProgressBar) solo.getView(IcsProgressBar.class, 0);
+		while ((progressBar != null)) {
+			if (i > triesNum) {
+				fail("refresh doent work");
+			}
+			try {
+				progressBar = (IcsProgressBar) solo.getView(IcsProgressBar.class, 0);
+			} catch (Throwable t) {
+				progressBar = null;
+			}
+			solo.sleep(1000);
+			i++;
+		}
 		assertListViewHasItems();
 	}
 
 	private void setLandscapeOrientation() {
 
 		solo.setActivityOrientation(Solo.LANDSCAPE);
-		solo.waitForActivity(testedActivityName);
+		solo.waitForActivity(activityName);
 	}
 
 	private void setPortraitOrientation() {
 
 		solo.setActivityOrientation(Solo.PORTRAIT);
-		solo.waitForActivity(testedActivityName);
+		solo.waitForActivity(activityName);
 	}
 }

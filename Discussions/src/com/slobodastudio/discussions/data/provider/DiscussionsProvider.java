@@ -47,6 +47,7 @@ public class DiscussionsProvider extends ContentProvider {
 	private static final int PERSONS_ITEM_TOPICS_DIR = 203;
 	private static final int POINTS_DIR = 301;
 	private static final int POINTS_ITEM = 300;
+	private static final int POINTS_PERSONS_DIR = 302;
 	private static final UriMatcher sUriMatcher = buildUriMatcher();
 	private static final String TAG = DiscussionsProvider.class.getSimpleName();
 	private static final int TOPICS_DIR = 401;
@@ -117,6 +118,7 @@ public class DiscussionsProvider extends ContentProvider {
 		// point
 		matcher.addURI(authority, Points.A_TABLE_PREFIX, POINTS_DIR);
 		matcher.addURI(authority, Points.A_TABLE_PREFIX + "/*", POINTS_ITEM);
+		matcher.addURI(authority, Points.A_TABLE_PREFIX + "," + Persons.A_TABLE_PREFIX, POINTS_PERSONS_DIR);
 		// person
 		matcher.addURI(authority, Persons.A_TABLE_PREFIX, PERSONS_DIR);
 		matcher.addURI(authority, Persons.A_TABLE_PREFIX + "/*", PERSONS_ITEM);
@@ -186,6 +188,8 @@ public class DiscussionsProvider extends ContentProvider {
 			case DISCUSSIONS_ITEM_TOPICS_DIR:
 				return Topics.CONTENT_DIR_TYPE;
 			case POINTS_DIR:
+				return Points.CONTENT_DIR_TYPE;
+			case POINTS_PERSONS_DIR:
 				return Points.CONTENT_DIR_TYPE;
 			case POINTS_ITEM:
 				return Points.CONTENT_ITEM_TYPE;
@@ -315,6 +319,19 @@ public class DiscussionsProvider extends ContentProvider {
 				notificationUri = Points.CONTENT_URI;
 				break;
 			}
+			case POINTS_PERSONS_DIR: {
+				builder.table(Points.TABLE_NAME + "," + Persons.TABLE_NAME);
+				builder.mapToTable(BaseColumns._ID, Points.TABLE_NAME).mapToTable(Points.Columns.ID,
+						Points.TABLE_NAME);
+				builder.where(Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "!=? AND "
+						+ Points.Columns.PERSON_ID + "=" + Persons.Qualified.PERSON_ID, selectionArgs);
+				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Points.Columns.ID,
+						Points.Columns.NAME, Persons.Columns.COLOR }, Points.Qualified.POINT_ID, null,
+						sortOrder, null);
+				notificationUri = Points.CONTENT_URI;
+				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+				return c;
+			}
 			case PERSONS_ITEM_TOPICS_DIR: {
 				final String valueId = Persons.getValueId(uri);
 				builder.table(PersonsTopics.TABLE_NAME + "," + Topics.TABLE_NAME).mapToTable(BaseColumns._ID,
@@ -354,11 +371,13 @@ public class DiscussionsProvider extends ContentProvider {
 				builder.table(Comments.TABLE_NAME + "," + Persons.TABLE_NAME);
 				builder.mapToTable(BaseColumns._ID, Comments.TABLE_NAME).mapToTable(Comments.Columns.ID,
 						Comments.TABLE_NAME);
-				builder.where(Comments.Columns.POINT_ID + "=? AND " + Comments.Columns.PERSON_ID + "="
-						+ Persons.Qualified.PERSON_ID, selectionArgs);
+				if (selectionArgs != null) {
+					builder.where(Comments.Columns.POINT_ID + "=? AND " + Comments.Columns.PERSON_ID + "="
+							+ Persons.Qualified.PERSON_ID, selectionArgs);
+				}
 				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Comments.Columns.ID,
-						Comments.Columns.TEXT, Persons.Columns.NAME }, Comments.Qualified.COMMENT_ID, null,
-						sortOrder, null);
+						Comments.Columns.TEXT, Persons.Columns.NAME, Persons.Columns.COLOR },
+						Comments.Qualified.COMMENT_ID, null, sortOrder, null);
 				notificationUri = Comments.CONTENT_URI;
 				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
 				return c;

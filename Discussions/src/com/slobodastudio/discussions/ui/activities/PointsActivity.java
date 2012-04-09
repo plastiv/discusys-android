@@ -18,7 +18,6 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class PointsActivity extends BaseActivity implements PhotonServiceCallback {
 
-	// TODO: move PhotonServiceCallback to mServiceHelper
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = PointsActivity.class.getSimpleName();
 	private int discussionId;
@@ -32,10 +31,6 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		if (DEBUG) {
 			Log.d(TAG, "[onArgPointChanged] point id: " + pointId);
 		}
-		// showToast("Point changed: " + pointId);
-		// mServiceHelper.downloadPoint(pointId);
-		// mServiceHelper.downloadDescription(pointId);
-		mServiceHelper.updatePoint(pointId);
 		((PointsFragment) mFragment).showEmtyDetails();
 	}
 
@@ -43,7 +38,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	public void onConnect() {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onConnect] ");
+			Log.d(TAG, "[onConnect] Empty. ");
 		}
 	}
 
@@ -51,7 +46,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
 
 		MenuInflater menuInflater = getSupportMenuInflater();
-		menuInflater.inflate(R.menu.actionbar_menu, menu);
+		menuInflater.inflate(R.menu.actionbar_points, menu);
 		// Calling super after populating the menu is necessary here to ensure that the
 		// action bar helpers have a chance to handle this event.
 		return super.onCreateOptionsMenu(menu);
@@ -60,26 +55,23 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	@Override
 	public void onErrorOccured(final String message) {
 
-		Log.e(TAG, "[onErrorOccured] message: " + message);
-		// showToast("[onErrorOccured] message: " + message);
+		Log.e(TAG, "[onErrorOccured] Empty. message: " + message);
 	}
 
 	@Override
 	public void onEventJoin(final DiscussionUser newUser) {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onEventJoin] user come: " + newUser.getUserName());
+			Log.d(TAG, "[onEventJoin] Empty. user come: " + newUser.getUserName());
 		}
-		// showToast("User online: " + newUser.getUserName());
 	}
 
 	@Override
 	public void onEventLeave(final DiscussionUser leftUser) {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onEventLeave] user left: " + leftUser.getUserName());
+			Log.d(TAG, "[onEventLeave] Empty. user left: " + leftUser.getUserName());
 		}
-		// showToast("User offline: " + leftUser.getUserName());
 	}
 
 	@Override
@@ -120,10 +112,8 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	public void onStructureChanged(final int topicId) {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onStructureChanged] topic id: " + topicId);
+			Log.d(TAG, "[onStructureChanged] Empty. topic id: " + topicId);
 		}
-		// showToast("[onStructureChanged] topic id: " + topicId);
-		mServiceHelper.downloadPointsFromTopic(topicId);
 	}
 
 	@Override

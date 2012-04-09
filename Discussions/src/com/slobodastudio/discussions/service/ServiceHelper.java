@@ -133,12 +133,13 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
-	public void insertPointAndDescription(final Bundle values) {
+	public void insertPointAndDescription(final Bundle values, final int discussionId) {
 
 		assertReady();
 		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_POINT_AND_DESCRIPTION);
 		intent.putExtra(UploadService.EXTRA_VALUE, values);
+		intent.putExtra(UploadService.EXTRA_DISCUSSION_ID, discussionId);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);
@@ -165,12 +166,13 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
-	public void updatePoint(final Bundle pointValue) {
+	public void updatePoint(final Bundle pointValue, final int discussionId) {
 
 		assertReady();
 		Intent intent = new Intent(UploadService.ACTION_UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_UPDATE_POINT);
 		intent.putExtra(UploadService.EXTRA_VALUE, pointValue);
+		intent.putExtra(UploadService.EXTRA_DISCUSSION_ID, discussionId);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);

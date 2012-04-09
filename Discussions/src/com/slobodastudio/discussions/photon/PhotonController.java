@@ -38,21 +38,16 @@ import java.util.TimerTask;
 
 public class PhotonController implements IPhotonPeerListener {
 
-	public static final String EXTRA_POINT_ID = "intent.extra.key.EXTRA_POINT_ID";
-	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
-	public static final int STATUS_ARG_POINT_CHANGED = 0x3;
-	public static final int STATUS_STRUCTURE_CHANGED = 0x2;
+	static final String TAG = PhotonController.class.getSimpleName();
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int INVALID_POINT_ID = -1;
-	private static final String TAG = PhotonController.class.getSimpleName();
+	LitePeer peer;
 	Timer timer;
 	private final PhotonServiceCallbackHandler callbackHandler = new PhotonServiceCallbackHandler();
 	private String gameLobbyName;
 	private DiscussionUser localUser;
-	private final ResultReceiver mResultReceiver = new SyncResultReceiver(new Handler());
 	private final SyncResultReceiver mSyncResultReceiver = new SyncResultReceiver(new Handler());
 	private final Hashtable<Integer, DiscussionUser> onlineUsers = new Hashtable<Integer, DiscussionUser>();
-	private LitePeer peer;
 
 	private static Integer[] toIntArray(final List<Integer> integerList) {
 
@@ -178,12 +173,12 @@ public class PhotonController implements IPhotonPeerListener {
 				}
 				// update
 				int pointId = (Integer) event.Parameters.get(DiscussionParameterKey.ARG_POINT_ID);
-				if (pointId != INVALID_POINT_ID) {
-					callbackHandler.onArgPointChanged(pointId);
-				} else {
+				if (pointId == INVALID_POINT_ID) {
 					// special code. new point was added or deleted
 					callbackHandler.onRefreshCurrentTopic();
+					break;
 				}
+				callbackHandler.onArgPointChanged(pointId);
 				break;
 			}
 			case DiscussionEventCode.INSTANT_USER_PLUS_MINUS:
@@ -192,6 +187,7 @@ public class PhotonController implements IPhotonPeerListener {
 			case DiscussionEventCode.USER_CURSOR_CHANGED:
 			case DiscussionEventCode.ANNOTATION_CHANGED:
 			case DiscussionEventCode.USER_ACC_PLUS_MINUS:
+			case DiscussionEventCode.STATS_EVENT:
 				break;
 			// throw new UnsupportedOperationException("Event " + DiscussionEventCode.asString(event.Code)
 			// + " not implemented yet");
@@ -260,6 +256,7 @@ public class PhotonController implements IPhotonPeerListener {
 			case DiscussionOperationCode.NOTIFY_USER_CURSOR_STATE:
 			case DiscussionOperationCode.REQUEST_BADGE_GEOMETRY:
 			case DiscussionOperationCode.REQUEST_SYNC_POINTS:
+			case DiscussionOperationCode.STATS_EVENT:
 				break;
 			// throw new UnsupportedOperationException("Operation: "
 			// + DiscussionOperationCode.asString(opCode) + " not implemented yet");
@@ -356,6 +353,22 @@ public class PhotonController implements IPhotonPeerListener {
 			default:
 				throw new IllegalArgumentException("Unknown status code: " + statusCode.name());
 		}
+	}
+
+	boolean opSendStatsEvent(final int discussionId, final int userId, final int changedTopicId,
+			final int statsEventId) {
+
+		if (!isConnected()) {
+			throw new IllegalStateException(
+					"Cant perfom operation \"opSendStatsEvent\" in disconnected state");
+		}
+		TypedHashMap<Byte, Object> eventStatsParameters = new TypedHashMap<Byte, Object>(Byte.class,
+				Object.class);
+		eventStatsParameters.put(DiscussionParameterKey.DISCUSSION_ID, discussionId);
+		eventStatsParameters.put(DiscussionParameterKey.USER_ID, userId);
+		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, changedTopicId);
+		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEventId);
+		return peer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
 	}
 
 	private void logUsersOnline() {
@@ -457,7 +470,16 @@ public class PhotonController implements IPhotonPeerListener {
 		}
 	}
 
-	private class SyncResultReceiver extends ResultReceiver {
+	public class SyncResultReceiver extends ResultReceiver {
+
+		public static final String EXTRA_DISCUSSION_ID = "intent.extra.key.EXTRA_DISCUSSION_ID";
+		public static final String EXTRA_EVENT_TYPE = "intent.extra.key.EXTRA_EVENT_TYPE";
+		public static final String EXTRA_POINT_ID = "intent.extra.key.EXTRA_POINT_ID";
+		public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
+		public static final String EXTRA_USER_ID = "intent.extra.key.EXTRA_USER_ID";
+		public static final int STATUS_ARG_POINT_CHANGED = 0x3;
+		public static final int STATUS_EVENT_CHANGED = 0x4;
+		public static final int STATUS_STRUCTURE_CHANGED = 0x2;
 
 		public SyncResultReceiver(final Handler handler) {
 
@@ -472,16 +494,25 @@ public class PhotonController implements IPhotonPeerListener {
 			}
 			super.onReceiveResult(resultCode, resultData);
 			switch (resultCode) {
+				case STATUS_ARG_POINT_CHANGED:
+					int pointId = resultData.getInt(EXTRA_POINT_ID);
+					if (isConnected()) {
+						opArgPointChanged(pointId);
+					}
+					break;
 				case STATUS_STRUCTURE_CHANGED:
 					int topicId = resultData.getInt(EXTRA_TOPIC_ID);
 					if (isConnected()) {
 						opSendNotifyStructureChanged(topicId);
 					}
 					break;
-				case STATUS_ARG_POINT_CHANGED:
-					int pointId = resultData.getInt(EXTRA_POINT_ID);
+				case STATUS_EVENT_CHANGED:
+					int discussionsId = resultData.getInt(EXTRA_DISCUSSION_ID);
+					int changedTopicId = resultData.getInt(EXTRA_TOPIC_ID);
+					int userId = resultData.getInt(EXTRA_USER_ID);
+					int statsEventId = resultData.getInt(EXTRA_EVENT_TYPE);
 					if (isConnected()) {
-						opArgPointChanged(pointId);
+						opSendStatsEvent(discussionsId, userId, changedTopicId, statsEventId);
 					}
 					break;
 				default:

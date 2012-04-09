@@ -26,7 +26,7 @@ public class PersonsActivity extends BaseActivity {
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
 
 		MenuInflater menuInflater = getSupportMenuInflater();
-		menuInflater.inflate(R.menu.actionbar_menu_refresh, menu);
+		menuInflater.inflate(R.menu.actionbar_list_refresh, menu);
 		// Calling super after populating the menu is necessary here to ensure that the
 		// action bar helpers have a chance to handle this event.
 		return super.onCreateOptionsMenu(menu);
@@ -37,7 +37,6 @@ public class PersonsActivity extends BaseActivity {
 
 		switch (item.getItemId()) {
 			case R.id.menu_refresh:
-				Toast.makeText(this, "Refreshing all data...", Toast.LENGTH_SHORT).show();
 				mServiceHelper.downloadAll();
 				break;
 		}
@@ -73,7 +72,7 @@ public class PersonsActivity extends BaseActivity {
 			}
 		}
 		super.onCreate(savedInstanceState);
-		setTitle(R.string.activity_name_persons);
+		setTitle(R.string.activity_title_persons);
 		AnalyticsUtils.getInstance(this).trackPageView("/Home");
 	}
 
@@ -91,6 +90,6 @@ public class PersonsActivity extends BaseActivity {
 		} catch (NameNotFoundException e) {
 			throw new RuntimeException();
 		}
-		Toast.makeText(this, "Version " + versionName, Toast.LENGTH_LONG).show();
+		Toast.makeText(this, getString(R.string.toast_version, versionName), Toast.LENGTH_SHORT).show();
 	}
 }

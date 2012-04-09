@@ -17,6 +17,7 @@ public class ControlService extends Service {
 	private final boolean mAllowRebind = true;
 	/** Binder given to clients */
 	private final IBinder mBinder;
+	private final ResolverPhotonServiceCallback mPhotonCallback;
 	private final PhotonController mPhotonController;
 	private final ServiceHelper mServiceHelper;
 
@@ -25,6 +26,8 @@ public class ControlService extends Service {
 		mBinder = new LocalBinder();
 		mPhotonController = new PhotonController();
 		mServiceHelper = new ServiceHelper(this, mPhotonController);
+		mPhotonCallback = new ResolverPhotonServiceCallback(mServiceHelper);
+		mPhotonController.getCallbackHandler().addCallbackListener(mPhotonCallback);
 	}
 
 	public PhotonController getPhotonController() {

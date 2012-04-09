@@ -7,10 +7,10 @@ import com.slobodastudio.discussions.data.model.PersonTopic;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.Topic;
 import com.slobodastudio.discussions.data.model.Value;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentResolver;
@@ -56,15 +56,15 @@ public class ProviderTestData {
 
 	public static void generateDiscussions(final ContentResolver cr) {
 
-		Discussion discussion = new Discussion(1, "Abortion");
+		Discussion discussion = new Discussion(1, true, "Abortion");
 		cr.insert(Discussions.CONTENT_URI, discussion.toContentValues());
-		discussion = new Discussion(2, "News");
+		discussion = new Discussion(2, true, "News");
 		cr.insert(Discussions.CONTENT_URI, discussion.toContentValues());
-		discussion = new Discussion(3, "Nuclear energy");
+		discussion = new Discussion(3, true, "Nuclear energy");
 		cr.insert(Discussions.CONTENT_URI, discussion.toContentValues());
-		discussion = new Discussion(4, "2012 end of the world");
+		discussion = new Discussion(4, true, "2012 end of the world");
 		cr.insert(Discussions.CONTENT_URI, discussion.toContentValues());
-		discussion = new Discussion(5, "How stupic people can be?");
+		discussion = new Discussion(5, true, "How stupic people can be?");
 		cr.insert(Discussions.CONTENT_URI, discussion.toContentValues());
 	}
 

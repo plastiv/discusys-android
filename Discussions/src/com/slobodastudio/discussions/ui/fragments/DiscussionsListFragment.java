@@ -5,17 +5,55 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussio
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class DiscussionsListFragment extends BaseListFragment {
 
 	public DiscussionsListFragment() {
 
-		super(R.string.fragment_empty_discussions, Discussions.Columns.SUBJECT, Discussions.Columns.ID,
+		super(R.string.text_empty_discussions_list, Discussions.Columns.SUBJECT, Discussions.Columns.ID,
 				Discussions.CONTENT_URI);
+	}
+
+	@Override
+	public void onActivityCreated(final Bundle savedInstanceState) {
+
+		super.onActivityCreated(savedInstanceState);
+		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null, new String[] {
+				Discussions.Columns.SUBJECT, Discussions.Columns.ID }, new int[] { R.id.list_item_text,
+				R.id.image_person_color }, 0);
+		mAdapter.setViewBinder(new ViewBinder() {
+
+			@Override
+			public boolean setViewValue(final View view, final Cursor cursor, final int columnIndex) {
+
+				int viewId = view.getId();
+				switch (viewId) {
+					case R.id.image_person_color:
+						ImageView colorView = (ImageView) view;
+						int color = getActivity().getIntent().getExtras()
+								.getInt(IntentExtrasKey.PERSON_COLOR);
+						colorView.setBackgroundColor(color);
+						return true;
+					case R.id.list_item_text:
+						TextView itemText = (TextView) view;
+						itemText.setText(cursor.getString(columnIndex));
+						return true;
+					default:
+						return false;
+				}
+			}
+		});
+		setListAdapter(mAdapter);
 	}
 
 	@Override
@@ -47,6 +85,12 @@ public class DiscussionsListFragment extends BaseListFragment {
 		} else {
 			throw new IllegalStateException("intent was without person id");
 		}
+		if (getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_COLOR)) {
+			intent.putExtra(IntentExtrasKey.PERSON_COLOR, getActivity().getIntent().getExtras().getInt(
+					IntentExtrasKey.PERSON_COLOR));
+		} else {
+			throw new IllegalStateException("intent was without person color");
+		}
 		if (getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_NAME)) {
 			intent.putExtra(IntentExtrasKey.PERSON_NAME, getActivity().getIntent().getExtras().getString(
 					IntentExtrasKey.PERSON_NAME));
@@ -60,6 +104,6 @@ public class DiscussionsListFragment extends BaseListFragment {
 	@Override
 	protected BaseDetailFragment getDetailFragment() {
 
-		return new DiscussionsDetailFragment();
+		return null;
 	}
 }

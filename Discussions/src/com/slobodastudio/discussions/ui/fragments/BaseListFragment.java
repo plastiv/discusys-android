@@ -33,10 +33,10 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = BaseListFragment.class.getSimpleName();
+	// This is the Adapter being used to display the list's data.
+	protected SimpleCursorAdapter mAdapter;
 	protected final String mColumnId;
 	private final Uri baseUri;
-	// This is the Adapter being used to display the list's data.
-	private SimpleCursorAdapter mAdapter;
 	private final String mColumnName;
 	private int mCurCheckPosition = 0;
 	private boolean mDualPane;
@@ -75,7 +75,7 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 
 		super.onActivityCreated(savedInstanceState);
 		Log.v(TAG, "[onActivityCreared] saved state: " + savedInstanceState);
-		registerForContextMenu(getListView());
+		// registerForContextMenu(getListView());
 		// Give some text to display if there is no data. In a real
 		// application this would come from a resource.
 		String emptyText = getResources().getString(mEmptyListStringId);
@@ -83,9 +83,11 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 		// We have a menu item to show in action bar.
 		setHasOptionsMenu(true);
 		// Create an empty adapter we will use to display the loaded data.
-		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.simple_list_item, null,
-				new String[] { mColumnName }, new int[] { R.id.list_item_text }, 0);
-		setListAdapter(mAdapter);
+		// mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.simple_list_item, null, new String[] {
+		// mColumnName, Persons.Columns.COLOR }, new int[] { R.id.list_item_text,
+		// R.id.image_person_color }, 0);
+		// mAdapter.setViewBinder(new ColorTextViewBinder(mColumnName, Color.parseColor("#99CC00")));
+		// setListAdapter(mAdapter);
 		// Start out with a progress indicator.
 		setListShown(false);
 		// Prepare the loader. Either re-connect with an existing one,

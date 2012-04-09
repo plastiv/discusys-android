@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <TextView
+        android:id="@+id/tv_point_name"
+        style="@style/DescriptionItemHeader"
+        android:text="@string/text_point_name" />
+
+    <EditText
+        android:id="@+id/et_point_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_point_name"
+        android:ellipsize="end"
+        android:inputType="textMultiLine"
+        android:maxLines="2"
+        android:scrollbars="vertical" />
+
+    <TextView
+        android:id="@+id/tv_shoose_a_side_code"
+        style="@style/DescriptionItemHeader"
+        android:layout_below="@id/et_point_name"
+        android:text="@string/text_shoose_a_side_code" />
+
+    <Spinner
+        android:id="@+id/spinner_point_agreement_code"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/et_point_name"
+        android:dropDownSelector="@android:layout/simple_spinner_dropdown_item"
+        android:entries="@array/side_codes" >
+    </Spinner>
+
+    <TextView
+        android:id="@+id/tv_shared_to_public"
+        style="@style/DescriptionItemHeader"
+        android:layout_below="@id/spinner_point_agreement_code"
+        android:text="@string/text_shared_to_public" />
+
+    <CheckBox
+        android:id="@+id/chb_share_to_public"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/spinner_point_agreement_code"
+        android:checked="true" />
+
+    <TextView
+        android:id="@+id/tv_point_description"
+        style="@style/DescriptionItemHeader"
+        android:layout_below="@id/chb_share_to_public"
+        android:text="@string/text_point_description" />
+
+    <EditText
+        android:id="@+id/et_point_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_point_description"
+        android:ellipsize="end"
+        android:inputType="textMultiLine"
+        android:maxLines="5"
+        android:scrollbars="vertical" />
+
+</RelativeLayout>

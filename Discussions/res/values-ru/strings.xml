@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="app_name">Доска обсуждения</string>
+    <string name="activity_title_persons">Пользователи</string>
+    <string name="activity_title_discussions">Дискуссии</string>
+    <string name="activity_title_topics">Темы</string>
+    <string name="activity_title_points">Аргументы</string>
+    <string name="activity_title_point">Аргумент</string>
+    <string name="action_mode_title_points">Редактирование аргумента</string>
+    <string name="menu_action_refresh">Обновить</string>
+    <string name="menu_action_new">Добавить</string>
+    <string name="menu_action_save">Сохранить</string>
+    <string name="menu_action_cancel">Отменить</string>
+    <string name="menu_details">Details</string>
+    <string name="menu_discussions">Discussion</string>
+    <string name="menu_persons">Person</string>
+    <string name="menu_points">Point</string>
+    <string name="menu_topics">Topic</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_delete">Delete</string>
+    <string name="text_empty_list">Список пуст</string>
+    <string name="text_empty_persons_list">Список пользователей пуст</string>
+    <string name="text_empty_comments_list">Список комментариев пуст</string>
+    <string name="text_empty_points_list">Список аргументов пуст</string>
+    <string name="text_empty_discussions_list">Список дискуссий пуст</string>
+    <string name="text_empty_topics_list">Список тем пуст</string>
+    <string name="text_select_point">Выберите аргумент слева</string>
+    <string name="text_other_users_points">Другие аргументы</string>
+    <string name="text_current_user_points">Аргументы пользователя</string>
+    <string name="text_shoose_a_side_code">Сторона: </string>
+    <string name="text_point_name">Название: </string>
+    <string name="text_point_description">Описание: </string>
+    <string name="text_point_comment">Комментарии: </string>
+    <string name="text_shared_to_public">Опубликовать: </string>
+    <string name="toast_saved">Сохранено</string>
+    <string name="toast_version">Версия: <xliff:g id="version">%1$s</xliff:g></string>
+    <string name="toast_sync_error">Ошибка синхронизации: <xliff:g id="error">%1$s</xliff:g></string>
+
+</resources>

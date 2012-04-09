@@ -239,6 +239,8 @@ public final class DiscussionsContract {
 
 			/** Type Int32. */
 			public static final String ID = "Id";
+			/** Type Booleam. True - is running */
+			public static final String RUNNING = "Running";
 			/** Type String. */
 			public static final String SUBJECT = "Subject";
 		}
@@ -430,6 +432,8 @@ public final class DiscussionsContract {
 
 		/** Table name in lower case. */
 		public static final String A_TABLE_PREFIX = "point";
+		public static final Uri CONTENT_AND_PERSON_URI = BASE_CONTENT_URI.buildUpon().appendPath(
+				A_TABLE_PREFIX + "," + Persons.A_TABLE_PREFIX).build();
 		/** The MIME type of {@link #CONTENT_URI} providing a directory of points */
 		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
 				+ A_TABLE_PREFIX;
@@ -525,6 +529,13 @@ public final class DiscussionsContract {
 			public static final int CONS = 2;
 			public static final int NEUTRAL = 0;
 			public static final int PROS = 1;
+		}
+
+		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
+		 * needed to work around SQL ambiguity. */
+		static final class Qualified {
+
+			static final String POINT_ID = TABLE_NAME + "." + Columns.ID;
 		}
 	}
 

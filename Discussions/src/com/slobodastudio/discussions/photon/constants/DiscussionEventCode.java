@@ -17,6 +17,7 @@ public class DiscussionEventCode {
 	public static final byte INSTANT_USER_PLUS_MINUS = 5;
 	public static final byte JOIN = LiteEventCode.Join;
 	public static final byte LEAVE = LiteEventCode.Leave;
+	public static final byte STATS_EVENT = 8;
 	/** Client notified server structure was changed, broadcast. */
 	public static final byte STRUCTURE_CHANGED = 2;
 	/** new user account created/deleted */
@@ -52,6 +53,8 @@ public class DiscussionEventCode {
 				return "USER_ACC_PLUS_MINUS";
 			case USER_CURSOR_CHANGED:
 				return "USER_CURSOR_CHANGED";
+			case STATS_EVENT:
+				return "STATS_EVENT";
 			default:
 				throw new IllegalArgumentException("Inknown event code: " + eventCode);
 		}

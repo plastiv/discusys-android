@@ -32,6 +32,7 @@ public class DiscussionOperationCode {
 	public static final byte REQUEST_BADGE_GEOMETRY = 1;
 	/** client asks server to refresh list of points (there are added/deleted points) */
 	public static final byte REQUEST_SYNC_POINTS = 3;
+	public static final byte STATS_EVENT = 11;
 	public static final byte TEST = 0;
 
 	/** A private Constructor prevents class from instantiating. */
@@ -71,6 +72,8 @@ public class DiscussionOperationCode {
 				return "REQUEST_SYNC_POINTS";
 			case TEST:
 				return "TEST";
+			case STATS_EVENT:
+				return "STATS_EVENT";
 			default:
 				throw new IllegalArgumentException("Inknown event code: " + operationCode);
 		}

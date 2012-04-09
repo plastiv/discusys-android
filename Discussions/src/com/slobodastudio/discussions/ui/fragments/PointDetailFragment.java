@@ -19,12 +19,14 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -39,6 +41,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	private static final String EXTRA_ACTION = "extra_key_action";
 	private static final String EXTRA_DESCRIPTION_ID = "extra_description_id";
 	private static final String EXTRA_DESCRIPTION_TEXT = "extra_description_text";
+	private static final String EXTRA_DISCUSSION_ID = IntentExtrasKey.DISCUSSION_ID;
 	private static final String EXTRA_PERSON_ID = IntentExtrasKey.PERSON_ID;
 	private static final String EXTRA_POINT_ID = "extra_point_id";
 	private static final String EXTRA_POINT_NAME = "extra_point_name";
@@ -53,6 +56,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	private static final int TYPE_DIR = 1;
 	private static final int TYPE_ITEM = 0;
 	private int descriptionId = Integer.MIN_VALUE;
+	private int discussionId;
 	private boolean empty = false;
 	private SimpleCursorAdapter mCommentsAdapter;
 	private ListView mCommentsList;
@@ -169,7 +173,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
 					expectedGroupId, pointId, expectedPointName, expectedNumberedPoint, expectedPersonId,
 					expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle());
+			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle(), discussionId);
 		} else {
 			// new point
 			Bundle values;
@@ -187,7 +191,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 					.toString(), null, pointId);
 			// ((BaseActivity) getActivity()).getServiceHelper().insertDescription(description.toBundle());
 			values.putAll(description.toBundle());
-			((BaseActivity) getActivity()).getServiceHelper().insertPointAndDescription(values);
+			((BaseActivity) getActivity()).getServiceHelper().insertPointAndDescription(values, discussionId);
 		}
 	}
 
@@ -228,8 +232,8 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			if (DEBUG) {
 				Log.d(TAG, "[onCreateView] show empty fragment");
 			}
-			TextView text = (TextView) inflater.inflate(R.layout.details_item, null);
-			text.setText(getActivity().getString(R.string.fragment_select_point));
+			TextView text = (TextView) inflater.inflate(R.layout.fragment_empty, null);
+			text.setText(getActivity().getString(R.string.text_select_point));
 			return text;
 		}
 		if ((container == null) || (getArguments() == null)) {
@@ -259,15 +263,39 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			throw new IllegalArgumentException("Unknown type: " + type);
 		}
 		// setup layout
-		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.point_desctiption_item, null);
+		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.fragment_point_description, null);
 		mNameEditText = (EditText) layout.findViewById(R.id.et_point_name);
 		mDesctiptionEditText = (EditText) layout.findViewById(R.id.et_point_description);
 		mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
 		mSharedToPublicCheckBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
 		mCommentsList = (ListView) layout.findViewById(R.id.comments_listview);
-		mCommentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.comments_list_item, null,
-				new String[] { Persons.Columns.NAME, Comments.Columns.TEXT }, new int[] {
-						R.id.text_comment_person_name, R.id.text_comment }, 0);
+		mCommentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_comments, null,
+				new String[] { Persons.Columns.NAME, Comments.Columns.TEXT, Persons.Columns.COLOR },
+				new int[] { R.id.text_comment_person_name, R.id.text_comment, R.id.image_person_color }, 0);
+		mCommentsAdapter.setViewBinder(new ViewBinder() {
+
+			@Override
+			public boolean setViewValue(final View view, final Cursor cursor, final int columnIndex) {
+
+				int viewId = view.getId();
+				switch (viewId) {
+					case R.id.image_person_color:
+						ImageView colorView = (ImageView) view;
+						colorView.setBackgroundColor(cursor.getInt(columnIndex));
+						return true;
+					case R.id.text_comment:
+						TextView itemText = (TextView) view;
+						itemText.setText(cursor.getString(columnIndex));
+						return true;
+					case R.id.text_comment_person_name:
+						TextView itemName = (TextView) view;
+						itemName.setText(cursor.getString(columnIndex));
+						return true;
+					default:
+						return false;
+				}
+			}
+		});
 		mCommentsList.setAdapter(mCommentsAdapter);
 		mCommentsList.setEmptyView(layout.findViewById(R.id.comments_listview_empty));
 		// fill in data
@@ -394,9 +422,20 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 				} else {
 					throw new IllegalStateException("intent was without topic id");
 				}
+				if (getArguments().containsKey(EXTRA_DISCUSSION_ID)) {
+					discussionId = getArguments().getInt(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+				} else {
+					throw new IllegalStateException("intent was without discussion id");
+				}
 				pointId = INVALID_POINT_ID;
+				setupView(true);
 				break;
 			case TYPE_ITEM:
+				if (getArguments().containsKey(EXTRA_DISCUSSION_ID)) {
+					discussionId = getArguments().getInt(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+				} else {
+					throw new IllegalStateException("intent was without discussion id");
+				}
 				if (savedInstanceState == null) {
 					getLoaderManager().initLoader(LOADER_POINT_ID, null, this);
 				} else {

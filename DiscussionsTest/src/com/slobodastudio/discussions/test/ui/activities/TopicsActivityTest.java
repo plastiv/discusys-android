@@ -1,30 +1,30 @@
 package com.slobodastudio.discussions.test.ui.activities;
 
-import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
+import com.slobodastudio.discussions.ui.activities.DiscussionsActivity;
+import com.slobodastudio.discussions.ui.activities.PersonsActivity;
 import com.slobodastudio.discussions.ui.activities.PointsActivity;
 import com.slobodastudio.discussions.ui.activities.TopicsActivity;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.test.ActivityInstrumentationTestCase2;
 import android.widget.ListView;
 
 import com.jayway.android.robotium.solo.Solo;
 
-public class TopicsActivityTest extends ActivityInstrumentationTestCase2 {
+public class TopicsActivityTest extends ActivityInstrumentationTestCase2<PersonsActivity> {
 
+	private static final Class<PointsActivity> nextActivityClass = PointsActivity.class;
+	private static final Class<TopicsActivity> testedActivityClass = TopicsActivity.class;
+	private static final String testedActivityName = TopicsActivity.class.getSimpleName();
 	private Solo solo;
 
 	public TopicsActivityTest() {
 
-		super(TopicsActivity.class);
-		Uri uri = Discussions.buildTopicUri(1);
+		super(PersonsActivity.class);
+		Uri uri = Persons.CONTENT_URI;
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-		intent.putExtra(IntentExtrasKey.PERSON_ID, 2);
 		setActivityIntent(intent);
 	}
 
@@ -34,47 +34,81 @@ public class TopicsActivityTest extends ActivityInstrumentationTestCase2 {
 		solo.finishOpenedActivities();
 	}
 
-	public void testOpenPoints() {
+	public void testGoHome() {
 
+		setLandscapeOrientation();
+		solo.clickOnImage(0);
+		solo.waitForActivity(PersonsActivity.class.getSimpleName());
+		solo.assertCurrentActivity("Failed go home", PersonsActivity.class);
+		// discussions
+		solo.clickInList(2);
+		solo.waitForActivity(DiscussionsActivity.class.getSimpleName());
+		solo.assertCurrentActivity("Failure to start activity", DiscussionsActivity.class);
+		// topics
+		solo.clickInList(1);
 		solo.waitForActivity(TopicsActivity.class.getSimpleName());
 		solo.assertCurrentActivity("Failure to start activity", TopicsActivity.class);
-		solo.clickInList(1);
-		solo.assertCurrentActivity("Failure to start activity", PointsActivity.class);
+		setPortraitOrientation();
+		solo.clickOnImage(0);
+		solo.waitForActivity(PersonsActivity.class.getSimpleName());
+		solo.assertCurrentActivity("Failed go home", PersonsActivity.class);
 	}
 
-	public void testShowEmptyList() {
+	public void testOpenNextList() {
 
-		Uri uri = Discussions.buildTopicUri(3);
-		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-		intent.putExtra(IntentExtrasKey.PERSON_ID, 2);
-		setActivityIntent(intent);
-		solo.getCurrentActivity().startActivity(intent);
-		solo.waitForActivity(TopicsActivity.class.getSimpleName());
-		solo.assertCurrentActivity("Failure to start activity", TopicsActivity.class);
-		assertTrue("List should be empty", solo.searchText(solo.getString(R.string.fragment_empty_topics),
-				true));
+		setLandscapeOrientation();
+		assertNextListIsOpen();
+		solo.goBack();
+		solo.waitForActivity(testedActivityName);
+		setPortraitOrientation();
+		assertNextListIsOpen();
 	}
 
 	public void testShowList() {
 
-		solo.waitForActivity(TopicsActivity.class.getSimpleName());
-		solo.assertCurrentActivity("Failure to start activity", TopicsActivity.class);
-		ListView list = solo.getCurrentListViews().get(0);
-		assertEquals("Topics count", 1, list.getCount());
-		Cursor cursor = (Cursor) list.getItemAtPosition(0);
-		// assert id
-		int idIndex = cursor.getColumnIndexOrThrow(Topics.Columns.ID);
-		int actualId = cursor.getInt(idIndex);
-		assertEquals("Value id", 1, actualId);
-		// assert name
-		int nameIndex = cursor.getColumnIndexOrThrow(Topics.Columns.NAME);
-		String actualName = cursor.getString(nameIndex);
-		assertEquals("Value name", "Abortion pro and cons", actualName);
+		setLandscapeOrientation();
+		assertListViewHasItems();
+		setPortraitOrientation();
+		assertListViewHasItems();
 	}
 
 	@Override
 	protected void setUp() throws Exception {
 
 		solo = new Solo(getInstrumentation(), getActivity());
+		solo.clickInList(2);
+		solo.waitForActivity(DiscussionsActivity.class.getSimpleName());
+		solo.assertCurrentActivity("Failure to start activity", DiscussionsActivity.class);
+		solo.clickInList(1);
+		solo.waitForActivity(testedActivityClass.getSimpleName());
+		solo.assertCurrentActivity("Failure to start activity", testedActivityClass);
+	}
+
+	private void assertListViewHasItems() {
+
+		assertTrue("Cant find list", solo.getCurrentListViews().size() > 0);
+		ListView list = solo.getCurrentListViews().get(0);
+		assertTrue("Failed to open list with items", list.getCount() > 0);
+	}
+
+	private void assertNextListIsOpen() {
+
+		// in current activity
+		solo.clickInList(1);
+		solo.waitForActivity(nextActivityClass.getSimpleName());
+		solo.assertCurrentActivity("Failure to start activity", nextActivityClass);
+		assertListViewHasItems();
+	}
+
+	private void setLandscapeOrientation() {
+
+		solo.setActivityOrientation(Solo.LANDSCAPE);
+		solo.waitForActivity(testedActivityName);
+	}
+
+	private void setPortraitOrientation() {
+
+		solo.setActivityOrientation(Solo.PORTRAIT);
+		solo.waitForActivity(testedActivityName);
 	}
 }

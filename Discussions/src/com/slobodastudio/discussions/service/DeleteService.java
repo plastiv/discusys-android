@@ -4,7 +4,7 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.photon.PhotonService;
+import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.utils.MyLog;
 
@@ -42,8 +42,8 @@ public class DeleteService extends IntentService {
 		logd("[notifyPhoton] changed arg point id: " + pointId + ", photonReceiver: " + photonReceiver);
 		if (photonReceiver != null) {
 			final Bundle bundle = new Bundle();
-			bundle.putInt(PhotonService.EXTRA_POINT_ID, pointId);
-			photonReceiver.send(PhotonService.STATUS_ARG_POINT_CHANGED, bundle);
+			bundle.putInt(SyncResultReceiver.EXTRA_POINT_ID, pointId);
+			photonReceiver.send(SyncResultReceiver.STATUS_ARG_POINT_CHANGED, bundle);
 		}
 	}
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView
+        style="@style/DescriptionItemHeader"
+        android:text="@string/text_point_comment" />
+
+    <ListView
+        android:id="@+id/comments_listview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawSelectorOnTop="false" />
+
+    <TextView
+        android:id="@+id/comments_listview_empty"
+        style="@style/EmptyListText"
+        android:text="@string/text_empty_comments_list" />
+
+</merge>

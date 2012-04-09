@@ -9,19 +9,21 @@ import android.support.v4.app.Fragment;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
-public class PointDetailsActivity extends BaseDetailActivity {
+public class PointDetailsActivity extends BaseActivity {
 
 	private static final String TAG = PointDetailsActivity.class.getSimpleName();
 
 	@Override
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
 
+		MenuInflater menuInflater = getSupportMenuInflater();
 		if (getIntent().getAction().equals(Intent.ACTION_VIEW)) {
-			MenuInflater menuInflater = getSupportMenuInflater();
-			menuInflater.inflate(R.menu.actionbar_details_menu_cancel, menu);
-			// Calling super after populating the menu is necessary here to ensure that the
-			// action bar helpers have a chance to handle this event.
-			return true;
+			menuInflater.inflate(R.menu.actionbar_point_view, menu);
+			return super.onCreateOptionsMenu(menu);
+		}
+		if (getIntent().getAction().equals(Intent.ACTION_EDIT)) {
+			menuInflater.inflate(R.menu.actionbar_point_edit, menu);
+			return super.onCreateOptionsMenu(menu);
 		}
 		return super.onCreateOptionsMenu(menu);
 	}

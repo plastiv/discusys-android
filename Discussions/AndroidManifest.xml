@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
-    android:versionCode="1"
-    android:versionName="0.1.13" >
+    android:versionCode="3"
+    android:versionName="0.1.16" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -16,11 +16,6 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
 
-        <!-- photon -->
-        <activity
-            android:name=".photon.DiscussionBoardPhotonActivity"
-            android:label="@string/app_name" >
-        </activity>
         <!-- persons -->
         <activity
             android:name=".ui.activities.PersonsActivity"
@@ -38,21 +33,11 @@
                 <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.person" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.activities.PersonsDetailsActivity"
-            android:label="@string/activity_name_points" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.person" />
-            </intent-filter>
-        </activity>
         <!-- discussions -->
         <activity
             android:name=".ui.activities.DiscussionsActivity"
-            android:label="@string/activity_name_discussions" >
+            android:label="@string/activity_title_discussions" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -61,21 +46,11 @@
                 <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.discussion" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.activities.DiscussionsDetailsActivity"
-            android:label="@string/activity_name_points" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.discussion" />
-            </intent-filter>
-        </activity>
         <!-- topics -->
         <activity
             android:name=".ui.activities.TopicsActivity"
-            android:label="@string/activity_name_topics" >
+            android:label="@string/activity_title_topics" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -84,21 +59,11 @@
                 <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.topic" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.activities.TopicsDetailsActivity"
-            android:label="@string/activity_name_points" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.topic" />
-            </intent-filter>
-        </activity>
         <!-- point -->
         <activity
             android:name=".ui.activities.PointsActivity"
-            android:label="@string/activity_name_points" >
+            android:label="@string/activity_title_points" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -109,7 +74,7 @@
         </activity>
         <activity
             android:name=".ui.activities.PointDetailsActivity"
-            android:label="@string/activity_name_points" >
+            android:label="@string/activity_title_point" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
