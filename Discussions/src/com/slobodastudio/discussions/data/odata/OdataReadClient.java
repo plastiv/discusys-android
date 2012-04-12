@@ -669,7 +669,7 @@ public class OdataReadClient extends BaseOdataClient {
 			// TODO: thwo ex here
 			Log.e(TAG, "Related discussion link is null for topic: " + getAsInt(entity, Topics.Columns.ID));
 			if (ApplicationConstants.ODATA_SANITIZE) {
-				mConsumer.deleteEntity(Topics.TABLE_NAME, getAsInt(entity, Topics.Columns.ID)).execute();;
+				mConsumer.deleteEntity(Topics.TABLE_NAME, getAsInt(entity, Topics.Columns.ID)).execute();
 			}
 			return null;
 		}

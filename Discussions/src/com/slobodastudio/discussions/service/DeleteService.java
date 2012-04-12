@@ -105,12 +105,10 @@ public class DeleteService extends IntentService {
 
 		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
 		logd("[deletePoint] point id: " + pointId);
-		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(this);
-			odataWrite.deletePoint(pointId);
-			// -1 special value to refresh current topics list
-			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), -1);
-		}
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		odataWrite.deletePoint(pointId);
+		// -1 special value to refresh current topics list
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), -1);
 		String where = Points.Columns.ID + "=?";
 		String[] args = new String[] { String.valueOf(pointId) };
 		getContentResolver().delete(Points.CONTENT_URI, where, args);

@@ -5,26 +5,16 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+@Deprecated
 public class Person implements Value {
 
-	private final byte[] avatar;
 	private final int color;
 	private final String email;
 	private final int id;
 	private final String name;
 	private final boolean online;
-
-	public Person(final byte[] avatar, final int color, final String email, final int id, final String name,
-			final boolean online) {
-
-		super();
-		this.avatar = avatar;
-		this.color = color;
-		this.email = email;
-		this.id = id;
-		this.name = name;
-		this.online = online;
-	}
+	private final int seatId;
+	private final int sessionId;
 
 	public Person(final Cursor cursor) {
 
@@ -38,7 +28,8 @@ public class Person implements Value {
 			int colorIndex = cursor.getColumnIndexOrThrow(Persons.Columns.COLOR);
 			int emailIndex = cursor.getColumnIndexOrThrow(Persons.Columns.EMAIL);
 			int onlineIndex = cursor.getColumnIndexOrThrow(Persons.Columns.ONLINE);
-			int avatarIndex = cursor.getColumnIndexOrThrow(Persons.Columns.AVATAR);
+			int sessionIdIndex = cursor.getColumnIndexOrThrow(Persons.Columns.SESSION_ID);
+			int seatIdIndex = cursor.getColumnIndexOrThrow(Persons.Columns.SEAT_ID);
 			color = cursor.getInt(colorIndex);
 			if (cursor.getInt(onlineIndex) == 0) {
 				online = false;
@@ -50,15 +41,11 @@ public class Person implements Value {
 			id = cursor.getInt(idIndex);
 			name = cursor.getString(nameIndex);
 			email = cursor.getString(emailIndex);
-			avatar = cursor.getBlob(avatarIndex);
+			seatId = cursor.getInt(seatIdIndex);
+			sessionId = cursor.getInt(sessionIdIndex);
 		} else {
 			throw new IllegalArgumentException("Cursor was without value");
 		}
-	}
-
-	public byte[] getAvatar() {
-
-		return avatar;
 	}
 
 	public int getColor() {
@@ -81,6 +68,16 @@ public class Person implements Value {
 		return name;
 	}
 
+	public int getSeatId() {
+
+		return seatId;
+	}
+
+	public int getSessionId() {
+
+		return sessionId;
+	}
+
 	public boolean isOnline() {
 
 		return online;
@@ -90,7 +87,8 @@ public class Person implements Value {
 	public ContentValues toContentValues() {
 
 		ContentValues cv = new ContentValues();
-		cv.put(Persons.Columns.AVATAR, avatar);
+		cv.put(Persons.Columns.SESSION_ID, sessionId);
+		cv.put(Persons.Columns.SEAT_ID, seatId);
 		cv.put(Persons.Columns.COLOR, color);
 		cv.put(Persons.Columns.EMAIL, email);
 		cv.put(Persons.Columns.ID, id);

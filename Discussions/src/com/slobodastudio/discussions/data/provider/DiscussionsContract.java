@@ -372,8 +372,6 @@ public final class DiscussionsContract {
 		/** List of columns names. */
 		public static final class Columns implements BaseColumns {
 
-			/** Type Binary. */
-			public static final String AVATAR = "Avatar";
 			/** Type Int32. */
 			public static final String COLOR = "Color";
 			/** Type String. */
@@ -384,6 +382,10 @@ public final class DiscussionsContract {
 			public static final String NAME = "Name";
 			/** Type Bit. */
 			public static final String ONLINE = "Online";
+			/** Type Int32. */
+			public static final String SEAT_ID = "SeatId";
+			/** Type Int32. */
+			public static final String SESSION_ID = "Session_Id";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when

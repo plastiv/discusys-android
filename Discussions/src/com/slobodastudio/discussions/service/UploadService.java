@@ -154,13 +154,11 @@ public class UploadService extends IntentService {
 		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Description description = new Description(descriptionBundle);
 		logd("[insertDescription] " + description.toMyString());
-		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(this);
-			OEntity entity = odataWrite.insertDescription(description);
-			int newId = (Integer) entity.getProperty(Descriptions.Columns.ID).getValue();
-			logd("[insertDescription] new description id: " + newId);
-			description.setId(newId);
-		}
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		OEntity entity = odataWrite.insertDescription(description);
+		int newId = (Integer) entity.getProperty(Descriptions.Columns.ID).getValue();
+		logd("[insertDescription] new description id: " + newId);
+		description.setId(newId);
 		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
 	}
 
@@ -170,15 +168,13 @@ public class UploadService extends IntentService {
 		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Point point = new Point(pointBundle);
 		logd("[insertPoint] " + point.toMyString());
-		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(this);
-			OEntity entity = odataWrite.insertPoint(point);
-			int newPointId = (Integer) entity.getProperty(Points.Columns.ID).getValue();
-			logd("[insertPoint] new point id: " + newPointId);
-			point.setId(newPointId);
-			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-					point.getId());
-		}
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		OEntity entity = odataWrite.insertPoint(point);
+		int newPointId = (Integer) entity.getProperty(Points.Columns.ID).getValue();
+		logd("[insertPoint] new point id: " + newPointId);
+		point.setId(newPointId);
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), point
+				.getId());
 		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
 	}
 
@@ -190,26 +186,24 @@ public class UploadService extends IntentService {
 		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Description description = new Description(descriptionBundle);
 		logd("[insertDescription] " + description.toMyString());
-		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(this);
-			OEntity entity = odataWrite.insertPoint(point);
-			int newPointId = (Integer) entity.getProperty(Points.Columns.ID).getValue();
-			logd("[insertPoint] new point id: " + newPointId);
-			point.setId(newPointId);
-			description.setPointId(newPointId);
-			OEntity entityDesription = odataWrite.insertDescription(description);
-			int newId = (Integer) entityDesription.getProperty(Descriptions.Columns.ID).getValue();
-			logd("[insertDescription] new description id: " + newId);
-			description.setId(newId);
-			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-					point.getId());
-			if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-				throw new IllegalArgumentException("[updatePoint] called without required discussion id");
-			}
-			int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-			notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-					discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_CREATED);
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		OEntity entity = odataWrite.insertPoint(point);
+		int newPointId = (Integer) entity.getProperty(Points.Columns.ID).getValue();
+		logd("[insertPoint] new point id: " + newPointId);
+		point.setId(newPointId);
+		description.setPointId(newPointId);
+		OEntity entityDesription = odataWrite.insertDescription(description);
+		int newId = (Integer) entityDesription.getProperty(Descriptions.Columns.ID).getValue();
+		logd("[insertDescription] new description id: " + newId);
+		description.setId(newId);
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), point
+				.getId());
+		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
+			throw new IllegalArgumentException("[updatePoint] called without required discussion id");
 		}
+		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_CREATED);
 		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
 		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
 	}
@@ -219,10 +213,8 @@ public class UploadService extends IntentService {
 		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Description description = new Description(descriptionBundle);
 		logd("[updateDescription] " + description.toMyString());
-		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(this);
-			odataWrite.updateDescription(description);
-		}
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		odataWrite.updateDescription(description);
 		String where = Descriptions.Columns.ID + "=?";
 		String[] args = new String[] { String.valueOf(description.getId()) };
 		getContentResolver().update(Descriptions.CONTENT_URI, description.toContentValues(), where, args);
@@ -233,19 +225,17 @@ public class UploadService extends IntentService {
 		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Point point = new Point(pointBundle);
 		logd("[updatePoint] " + point.toMyString());
-		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(this);
-			odataWrite.updatePoint(point);
-			// TODO: send another event to photon
-			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-					point.getId());
-			if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-				throw new IllegalArgumentException("[updatePoint] called without required discussion id");
-			}
-			int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-			notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-					discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_EDITED);
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		odataWrite.updatePoint(point);
+		// TODO: send another event to photon
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), point
+				.getId());
+		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
+			throw new IllegalArgumentException("[updatePoint] called without required discussion id");
 		}
+		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_EDITED);
 		String where = Points.Columns.ID + "=?";
 		String[] args = new String[] { String.valueOf(point.getId()) };
 		getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where, args);

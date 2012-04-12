@@ -2,7 +2,6 @@ package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.DataIoException;
-import com.slobodastudio.discussions.data.ProviderTestData;
 import com.slobodastudio.discussions.data.odata.OdataReadClient;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.utils.MyLog;
@@ -167,25 +166,20 @@ public class DownloadService extends IntentService {
 
 	private void downloadAll() {
 
-		logd("[downloadAll] local: " + ApplicationConstants.PROVIDER_LOCAL);
-		if (ApplicationConstants.PROVIDER_LOCAL) {
-			ProviderTestData.deleteData(this);
-			ProviderTestData.generateData(this);
-		} else {
-			OdataReadClient odataClient = new OdataReadClient(this);
-			odataClient.refreshPersons();
-			logd("[downloadAll] persons completed");
-			odataClient.refreshDiscussions();
-			logd("[downloadAll] discussions completed");
-			odataClient.refreshTopics();
-			logd("[downloadAll] topics completed");
-			odataClient.refreshPoints();
-			logd("[downloadAll] points completed");
-			odataClient.refreshDescriptions();
-			logd("[downloadAll] descriptions completed");
-			odataClient.refreshComments();
-			logd("[downloadAll] comments completed");
-		}
+		logd("[downloadAll]");
+		OdataReadClient odataClient = new OdataReadClient(this);
+		odataClient.refreshPersons();
+		logd("[downloadAll] persons completed");
+		odataClient.refreshDiscussions();
+		logd("[downloadAll] discussions completed");
+		odataClient.refreshTopics();
+		logd("[downloadAll] topics completed");
+		odataClient.refreshPoints();
+		logd("[downloadAll] points completed");
+		odataClient.refreshDescriptions();
+		logd("[downloadAll] descriptions completed");
+		odataClient.refreshComments();
+		logd("[downloadAll] comments completed");
 	}
 
 	private void downloadDescription(final Intent intent) {
