@@ -2,54 +2,40 @@ package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
-import org.odata4j.consumer.ODataConsumer;
+import android.content.Context;
+import android.database.Cursor;
+
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OModifyRequest;
 import org.odata4j.core.OProperties;
-import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 
-public class OdataWriteClient {
+public class OdataWriteClient extends BaseOdataClient {
 
-	private final ODataConsumer consumer;
+	public OdataWriteClient(final Context context) {
 
-	/** Create a new odata consumer pointing to the odata read-write service.
-	 * 
-	 * @param serviceRootUri
-	 *            the service uri e.g. http://services.odata.org/Northwind/Northwind.svc/ */
-	public OdataWriteClient() {
-
-		// FIXME: check if network is accessible
-		consumer = ODataJerseyConsumer.newBuilder(ODataConstants.SERVICE_URL).build();
-	}
-
-	// FIXME catch 404 errors from HTTP RESPONSE
-	/** Create a new odata consumer pointing to the odata read-write service.
-	 * 
-	 * @param serviceRootUri
-	 *            the service uri e.g. http://services.odata.org/Northwind/Northwind.svc/ */
-	public OdataWriteClient(final String serviceRootUri) {
-
-		// FIXME: check if network is accessible
-		consumer = ODataJerseyConsumer.newBuilder(serviceRootUri).build();
+		super(context);
 	}
 
 	public void deletePoint(final int pointId) {
 
-		consumer.deleteEntity(Points.TABLE_NAME, pointId).execute();
+		deleteCommentsByPointId(pointId);
+		deleteDescriptionByPointId(pointId);
+		mConsumer.deleteEntity(Points.TABLE_NAME, pointId).execute();
 	}
 
 	public OEntity insertDescription(final Description description) {
 
 		// @formatter:off
-		OCreateRequest<OEntity> request = consumer.createEntity(Descriptions.TABLE_NAME)
+		OCreateRequest<OEntity> request = mConsumer.createEntity(Descriptions.TABLE_NAME)
 				.properties(OProperties.string(Descriptions.Columns.TEXT, description.getText()));
 		
 		// @formatter:on
@@ -67,7 +53,7 @@ public class OdataWriteClient {
 	public OEntity insertDiscussion(final String subject) {
 
 		// @formatter:off
-		return consumer.createEntity(Discussions.TABLE_NAME)
+		return mConsumer.createEntity(Discussions.TABLE_NAME)
 				.properties(OProperties.string(Discussions.Columns.SUBJECT, subject))
 				.execute();
 		// @formatter:on
@@ -77,7 +63,7 @@ public class OdataWriteClient {
 			final boolean online) {
 
 		// @formatter:off
-		return consumer.createEntity(Persons.TABLE_NAME)
+		return mConsumer.createEntity(Persons.TABLE_NAME)
 				.properties(OProperties.string(Persons.Columns.NAME, name))
 				.properties(OProperties.string(Persons.Columns.EMAIL, email))
 				.properties(OProperties.int32(Persons.Columns.COLOR, color))
@@ -91,7 +77,7 @@ public class OdataWriteClient {
 			final boolean sharedToPublic, final int sideCode, final int topicId) {
 
 		// @formatter:off
-		OCreateRequest<OEntity> request = consumer.createEntity(Points.TABLE_NAME)
+		OCreateRequest<OEntity> request = mConsumer.createEntity(Points.TABLE_NAME)
 				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, Integer.valueOf(agreementCode)))				
 				.properties(OProperties.boolean_(Points.Columns.EXPANDED, Boolean.valueOf(expanded)))	
 				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
@@ -117,7 +103,7 @@ public class OdataWriteClient {
 	public OEntity insertPoint(final Point point) {
 
 		// @formatter:off
-		return consumer.createEntity(Points.TABLE_NAME)
+		return mConsumer.createEntity(Points.TABLE_NAME)
 				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, point.getAgreementCode()))
 				.properties(OProperties.binary(Points.Columns.DRAWING, point.getDrawing()))
 				.properties(OProperties.boolean_(Points.Columns.EXPANDED, point.isExpanded()))
@@ -135,7 +121,7 @@ public class OdataWriteClient {
 	public OEntity insertTopic(final String topicName, final int discussionId, final int personId) {
 
 		// @formatter:off
-		return consumer.createEntity(Topics.TABLE_NAME)
+		return mConsumer.createEntity(Topics.TABLE_NAME)
 				.link(Topics.Columns.DISCUSSION_ID, OEntityKey.parse(String.valueOf(discussionId)))
 				.properties(OProperties.string(Topics.Columns.NAME, topicName))	
 				.link(Topics.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
@@ -146,7 +132,7 @@ public class OdataWriteClient {
 	public boolean updateDescription(final Description description) {
 
 		// @formatter:off
-		OModifyRequest<OEntity> request=  consumer.mergeEntity(Descriptions.TABLE_NAME, description.getId())				
+		OModifyRequest<OEntity> request=  mConsumer.mergeEntity(Descriptions.TABLE_NAME, description.getId())				
 				.properties(OProperties.string(Descriptions.Columns.TEXT, description.getText()));
 		// @formatter:on
 		if (description.getPointId() != null) {
@@ -163,7 +149,7 @@ public class OdataWriteClient {
 	public boolean updatePoint(final Point point) {
 
 		// @formatter:off
-		return consumer.mergeEntity(Points.TABLE_NAME, point.getId())
+		return mConsumer.mergeEntity(Points.TABLE_NAME, point.getId())
 				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, point.getAgreementCode()))
 				.properties(OProperties.binary(Points.Columns.DRAWING, point.getDrawing()))
 				.properties(OProperties.boolean_(Points.Columns.EXPANDED, point.isExpanded()))
@@ -176,5 +162,31 @@ public class OdataWriteClient {
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())))
 				.execute();
 		// @formatter:on
+	}
+
+	private void deleteCommentsByPointId(final int pointId) {
+
+		String[] projection = new String[] { Comments.Columns.ID };
+		String where = Comments.Columns.POINT_ID + "=" + pointId;
+		Cursor commentsCursor = mContentResolver.query(Comments.CONTENT_URI, projection, where, null, null);
+		for (commentsCursor.moveToFirst(); !commentsCursor.isAfterLast(); commentsCursor.moveToNext()) {
+			int commentId = commentsCursor.getInt(commentsCursor.getColumnIndexOrThrow(Comments.Columns.ID));
+			mConsumer.deleteEntity(Comments.TABLE_NAME, commentId).execute();
+		}
+		commentsCursor.close();
+	}
+
+	private void deleteDescriptionByPointId(final int pointId) {
+
+		String[] projection = new String[] { Descriptions.Columns.ID };
+		String where = Descriptions.Columns.POINT_ID + "=" + pointId;
+		Cursor descriptionCur = mContentResolver.query(Descriptions.CONTENT_URI, projection, where, null,
+				null);
+		for (descriptionCur.moveToFirst(); !descriptionCur.isAfterLast(); descriptionCur.moveToNext()) {
+			int descriptionId = descriptionCur.getInt(descriptionCur
+					.getColumnIndexOrThrow(Descriptions.Columns.ID));
+			mConsumer.deleteEntity(Descriptions.TABLE_NAME, descriptionId).execute();
+		}
+		descriptionCur.close();
 	}
 }

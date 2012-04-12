@@ -9,6 +9,7 @@
     <string name="activity_title_point">Аргумент</string>
     <string name="action_mode_title_points">Редактирование аргумента</string>
     <string name="menu_action_refresh">Обновить</string>
+    <string name="menu_action_delete">Удалить</string>
     <string name="menu_action_new">Добавить</string>
     <string name="menu_action_save">Сохранить</string>
     <string name="menu_action_cancel">Отменить</string>

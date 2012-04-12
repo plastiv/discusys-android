@@ -170,6 +170,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		}
 		setSupportProgressBarIndeterminateVisibility(false);
 		getSupportActionBar().setHomeButtonEnabled(true);
+		getSupportActionBar().setIcon(R.drawable.ic_action_home);
 	}
 
 	/** Called in <code>onCreate</code> when the fragment constituting this activity is needed. The returned

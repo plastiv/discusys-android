@@ -8,9 +8,6 @@ import android.os.StrictMode;
 
 import com.bugsense.trace.BugSenseHandler;
 
-/** The Class BackupApplication.
- * 
- * @author Sergii Pechenizkyi <pechenizkyi gmail com> */
 public class DiscussionsApplication extends Application {
 
 	@Override
@@ -20,6 +17,7 @@ public class DiscussionsApplication extends Application {
 		if (ApplicationConstants.DEV_MODE) {
 			StrictMode
 					.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());
+			StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyLog().build());
 		} else {
 			BugSenseHandler.setup(this, ApplicationConstants.BUG_SENSE_API_KEY);
 		}

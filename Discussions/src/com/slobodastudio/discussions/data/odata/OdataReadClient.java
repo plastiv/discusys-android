@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
@@ -10,7 +11,6 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.utils.MyLog;
 
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -35,18 +35,10 @@ public class OdataReadClient extends BaseOdataClient {
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final boolean LOGV = false && ApplicationConstants.DEV_MODE;
 	private static final String TAG = OdataReadClient.class.getSimpleName();
-	private final ContentResolver mContentResolver;
 
 	public OdataReadClient(final Context context) {
 
 		super(context);
-		mContentResolver = mContext.getContentResolver();
-	}
-
-	public OdataReadClient(final String serviceRootUri, final Context context) {
-
-		super(serviceRootUri, context);
-		mContentResolver = mContext.getContentResolver();
 	}
 
 	private static int getAsInt(final OEntity entity, final String valueColumn) {
@@ -548,7 +540,21 @@ public class OdataReadClient extends BaseOdataClient {
 			return null;
 		}
 		cv.put(Comments.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
-		return mContentResolver.insert(Comments.CONTENT_URI, cv);
+		try {
+			return mContentResolver.insert(Comments.CONTENT_URI, cv);
+		} catch (DataIoException e) {
+			// TODO: send an exception here. in case of db structure change it would not be able to understood
+			// that applications is not working
+			Log.e(TAG, "Unable insert comment " + getAsInt(comment, Comments.Columns.ID), e);
+			if (ApplicationConstants.ODATA_SANITIZE) {
+				Log.w(TAG, "Try to delete comment: " + getAsInt(comment, Comments.Columns.ID));
+				mConsumer.deleteEntity(Comments.TABLE_NAME, getAsInt(comment, Comments.Columns.ID)).execute();
+			}
+			String where = Comments.Columns.ID + "=?";
+			String[] args = new String[] { String.valueOf(getAsInt(comment, Comments.Columns.ID)) };
+			mContentResolver.delete(Comments.CONTENT_URI, where, args);
+			return null;
+		}
 	}
 
 	private Uri insertDescription(final OEntity description) {
@@ -579,7 +585,27 @@ public class OdataReadClient extends BaseOdataClient {
 			}
 			return null;
 		}
-		return mContentResolver.insert(Descriptions.CONTENT_URI, cv);
+		return insertDescriptionToDb(cv);
+	}
+
+	private Uri insertDescriptionToDb(final ContentValues descriptionValues) {
+
+		try {
+			return mContentResolver.insert(Descriptions.CONTENT_URI, descriptionValues);
+		} catch (DataIoException e) {
+			// TODO: send an exception here. in case of db structure change it would not be able to understood
+			// that applications is not working
+			int descriptionId = descriptionValues.getAsInteger(Descriptions.Columns.ID);
+			Log.e(TAG, "Unable insert description " + descriptionId, e);
+			if (ApplicationConstants.ODATA_SANITIZE) {
+				Log.w(TAG, "Try to delete point: " + descriptionId);
+				mConsumer.deleteEntity(Descriptions.TABLE_NAME, descriptionId).execute();
+			}
+			String where = Descriptions.Columns.ID + "=?";
+			String[] args = new String[] { String.valueOf(descriptionId) };
+			mContentResolver.delete(Descriptions.CONTENT_URI, where, args);
+			return null;
+		}
 	}
 
 	private void insertPersonsTopics(final OEntity topic) {
@@ -694,9 +720,10 @@ public class OdataReadClient extends BaseOdataClient {
 		if (description != null) {
 			// get properties
 			ContentValues cvDescription = OEntityToContentValue(description);
-			// get related point id
+			// // get related point id
 			cvDescription.put(Descriptions.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
-			mContentResolver.insert(Descriptions.CONTENT_URI, cvDescription);
+			// mContentResolver.insert(Descriptions.CONTENT_URI, cvDescription);
+			insertDescriptionToDb(cvDescription);
 		}
 		return uri;
 	}

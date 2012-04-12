@@ -239,8 +239,6 @@ public final class DiscussionsContract {
 
 			/** Type Int32. */
 			public static final String ID = "Id";
-			/** Type Booleam. True - is running */
-			public static final String RUNNING = "Running";
 			/** Type String. */
 			public static final String SUBJECT = "Subject";
 		}

@@ -89,10 +89,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 				}
 				return true;
 			case R.id.menu_refresh:
-				mServiceHelper.downloadPointsFromTopic(topicId);
-				// TODO: dont download all descriptions
-				// download only associated with points
-				mServiceHelper.downloadDescriptions();
+				onRefreshCurrentTopic();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -161,6 +158,9 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		personName = getIntent().getExtras().getString(IntentExtrasKey.PERSON_NAME);
 		personId = getIntent().getExtras().getInt(IntentExtrasKey.PERSON_ID);
 		topicId = getIntent().getExtras().getInt(IntentExtrasKey.TOPIC_ID);
+		if (topicId == -1) {
+			throw new IllegalStateException("Activity intent has illegal topic id -1");
+		}
 		discussionId = getIntent().getExtras().getInt(IntentExtrasKey.DISCUSSION_ID);
 		if (DEBUG) {
 			Log.d(TAG, "[initFromIntentExtras] personId: " + personId + ", topicId: " + topicId

@@ -134,6 +134,23 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		}
 	}
 
+	public void onActionDelete() {
+
+		String action = getArguments().getString(EXTRA_ACTION);
+		if (!Intent.ACTION_EDIT.equals(action)) {
+			throw new IllegalArgumentException("[onActionDelete] was called with incorrect action: " + action);
+		}
+		if (typeId != TYPE_ITEM) {
+			throw new IllegalArgumentException("[onActionDelete] was called with incorrect type id: "
+					+ typeId);
+		}
+		if (pointId == INVALID_POINT_ID) {
+			throw new IllegalArgumentException("[onActionDelete] was called with incorrect point id: "
+					+ pointId);
+		}
+		((BaseActivity) getActivity()).getServiceHelper().deletePoint(pointId);
+	}
+
 	public void onActionSave() {
 
 		// description is first because notify server by point change
@@ -237,9 +254,11 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			return text;
 		}
 		if ((container == null) || (getArguments() == null)) {
+			// TODO ; throw ex if arguments null
 			if (DEBUG) {
 				Log.d(TAG, "[onCreateView] container and arguments was null");
 			}
+			empty = true;
 			// We have different layouts, and in one of them this
 			// fragment's containing frame doesn't exist. The fragment
 			// may still be created from its saved state, but there is
@@ -263,7 +282,8 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			throw new IllegalArgumentException("Unknown type: " + type);
 		}
 		// setup layout
-		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.fragment_point_description, null);
+		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.fragment_point_description, container,
+				false);
 		mNameEditText = (EditText) layout.findViewById(R.id.et_point_name);
 		mDesctiptionEditText = (EditText) layout.findViewById(R.id.et_point_description);
 		mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);

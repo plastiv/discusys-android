@@ -39,6 +39,10 @@ public class PointDetailsActivity extends BaseActivity {
 			case R.id.menu_cancel:
 				finish();
 				return true;
+			case R.id.menu_delete:
+				((PointDetailFragment) mFragment).onActionDelete();
+				finish();
+				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}

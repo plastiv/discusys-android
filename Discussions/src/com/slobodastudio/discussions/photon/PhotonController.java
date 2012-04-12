@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.photon.constants.LiteLobbyOpKey;
 import com.slobodastudio.discussions.photon.constants.LiteOpParameterKey;
 import com.slobodastudio.discussions.photon.constants.LiteOpPropertyType;
 import com.slobodastudio.discussions.photon.constants.PhotonConstants;
+import com.slobodastudio.discussions.utils.MyLog;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,11 +29,13 @@ import de.exitgames.client.photon.StatusCode;
 import de.exitgames.client.photon.TypedHashMap;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -41,6 +44,7 @@ public class PhotonController implements IPhotonPeerListener {
 	static final String TAG = PhotonController.class.getSimpleName();
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int INVALID_POINT_ID = -1;
+	private static final int INVALID_TOPIC_ID = -1;
 	LitePeer peer;
 	Timer timer;
 	private final PhotonServiceCallbackHandler callbackHandler = new PhotonServiceCallbackHandler();
@@ -158,6 +162,11 @@ public class PhotonController implements IPhotonPeerListener {
 				if (actorId != localUser.getActorNumber()) {
 					int changedTopicId = (Integer) event.Parameters
 							.get(DiscussionParameterKey.CHANGED_TOPIC_ID);
+					if (changedTopicId == INVALID_TOPIC_ID) {
+						// special code. new point was added or deleted
+						callbackHandler.onRefreshCurrentTopic();
+						break;
+					}
 					callbackHandler.onStructureChanged(changedTopicId);
 				}
 				break;
@@ -419,6 +428,7 @@ public class PhotonController implements IPhotonPeerListener {
 
 	private void startPeerUpdateTimer() {
 
+		// FIXME: stop this timer
 		timer = new Timer("main loop");
 		TimerTask timerTask = new TimerTask() {
 
@@ -431,14 +441,19 @@ public class PhotonController implements IPhotonPeerListener {
 				if (peer == null) {
 					throw new IllegalStateException("Run timer on null peer");
 				}
-				// TODO: check how to long is this timer live
 				// test if it's time to dispatch all incoming commands to the application. Dispatching
 				// will empty the queue of incoming messages and will fire the related callbacks.
 				if ((System.currentTimeMillis() - lastDispatchTime) > PhotonConstants.DISPATCH_INTERVAL) {
 					lastDispatchTime = System.currentTimeMillis();
 					// dispatch all incoming commands
-					while (peer.dispatchIncomingCommands()) {
-						// wait until false in dispatchIncomingCommands
+					try {
+						while (peer.dispatchIncomingCommands()) {
+							// wait until false in dispatchIncomingCommands
+						}
+					} catch (ConcurrentModificationException e) {
+						MyLog.e(TAG, "[peerService] cant dispatch incoming command", e);
+					} catch (NoSuchElementException e) {
+						MyLog.e(TAG, "[peerService] cant dispatch incoming command", e);
 					}
 				}
 				// to spare some overhead, we will send outgoing packets in certain intervals, as defined

@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.ProviderTestData;
 import com.slobodastudio.discussions.data.odata.OdataReadClient;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
@@ -34,6 +35,30 @@ public class DownloadService extends IntentService {
 	public DownloadService() {
 
 		super(TAG);
+	}
+
+	private static final String getTypeAsString(final int typeId) {
+
+		switch (typeId) {
+			case TYPE_ALL:
+				return "ALL";
+			case TYPE_POINT:
+				return "point";
+			case TYPE_UPDATE_POINT:
+				return "updated point";
+			case TYPE_POINT_FROM_TOPIC:
+				return "points for topic";
+			case TYPE_DISCUSSIONS:
+				return "discussions";
+			case TYPE_TOPICS:
+				return "topics";
+			case TYPE_DESCRIPTIONS:
+				return "descriptions";
+			case TYPE_DESCRIPTION_ITEM:
+				return "single description";
+			default:
+				throw new IllegalArgumentException("Illegal type id: " + typeId);
+		}
 	}
 
 	private static void logd(final String message) {
@@ -103,10 +128,21 @@ public class DownloadService extends IntentService {
 							+ intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE));
 			}
 		} catch (ClientHandlerException e) {
-			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
+			MyLog.e(TAG, "[onHandleIntent] ClientHandlerException. Intent action: " + intent.getAction(), e);
 			if (receiver != null) {
 				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT, "Network error");
+				bundle.putString(Intent.EXTRA_TEXT,
+						"Network error. Check if wifi is on and server is working.");
+				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
+			}
+			stopSelf();
+			return;
+		} catch (DataIoException e) {
+			MyLog.e(TAG, "[onHandleIntent] DataIoException. Intent action: " + intent.getAction(), e);
+			if (receiver != null) {
+				final Bundle bundle = new Bundle();
+				bundle.putString(Intent.EXTRA_TEXT, "Data structure error while downloading "
+						+ getTypeAsString(intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE)));
 				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
 			}
 			stopSelf();

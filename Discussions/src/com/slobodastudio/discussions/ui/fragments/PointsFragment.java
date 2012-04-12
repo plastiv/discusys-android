@@ -220,25 +220,25 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
 
 		super.onCreateContextMenu(menu, v, menuInfo);
-		if (v.equals(mUserPointsList)) {
-			AdapterView.AdapterContextMenuInfo info;
-			try {
-				// Casts the incoming data object into the type for AdapterView objects.
-				info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-			} catch (ClassCastException e) {
-				// If the menu object can't be cast, logs an error.
-				throw new RuntimeException("bad menuInfo: " + menuInfo, e);
-			}
-			Cursor cursor = (Cursor) mUserPointsAdapter.getItem(info.position);
-			if (cursor == null) {
-				// For some reason the requested item isn't available, do nothing
-				return;
-			}
-			int columnIndex = cursor.getColumnIndexOrThrow(mColumnName);
-			menu.setHeaderTitle(cursor.getString(columnIndex));// if your table name is name
-			android.view.MenuInflater inflater = getActivity().getMenuInflater();
-			inflater.inflate(R.menu.list_context_delete_menu, menu);
-		}
+		// if (v.equals(mUserPointsList)) {
+		// AdapterView.AdapterContextMenuInfo info;
+		// try {
+		// // Casts the incoming data object into the type for AdapterView objects.
+		// info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		// } catch (ClassCastException e) {
+		// // If the menu object can't be cast, logs an error.
+		// throw new RuntimeException("bad menuInfo: " + menuInfo, e);
+		// }
+		// Cursor cursor = (Cursor) mUserPointsAdapter.getItem(info.position);
+		// if (cursor == null) {
+		// // For some reason the requested item isn't available, do nothing
+		// return;
+		// }
+		// int columnIndex = cursor.getColumnIndexOrThrow(mColumnName);
+		// menu.setHeaderTitle(cursor.getString(columnIndex));// if your table name is name
+		// android.view.MenuInflater inflater = getActivity().getMenuInflater();
+		// inflater.inflate(R.menu.list_context_delete_menu, menu);
+		// }
 	}
 
 	@Override
@@ -325,10 +325,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		mUserPointsList.clearChoices();
 		mOtherPointsList.clearChoices();
 		if (mDualPane) {
-			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
-					R.id.frame_layout_details);
 			// Make new fragment to show this selection.
-			details = new PointDetailFragment();
+			PointDetailFragment details = new PointDetailFragment();
 			details.setEmpty(true);
 			// Execute a transaction, replacing any existing fragment
 			// with this one inside the frame.
@@ -466,6 +464,11 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 							.onActionCancel();
 					mode.finish();
 					return true;
+				case R.id.menu_delete:
+					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
+							.onActionDelete();
+					mode.finish();
+					return true;
 				default:
 					throw new IllegalArgumentException("Unknown menuitem id: " + item.getItemId());
 			}
@@ -484,10 +487,9 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		@Override
 		public void onDestroyActionMode(final ActionMode mode) {
 
-			Log.d(TAG, "[onDestroyActionMode]");
+			Log.d(TAG, "[onDestroyActionMode] showEmptyOnClose: " + showEmptyOnClose);
 			if (showEmptyOnClose) {
 				showEmtyDetails();
-				mUserPointsList.clearChoices();
 			}
 			mActionMode = null;
 		}

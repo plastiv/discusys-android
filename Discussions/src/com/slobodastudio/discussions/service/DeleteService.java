@@ -1,7 +1,6 @@
 package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
-import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
@@ -107,7 +106,7 @@ public class DeleteService extends IntentService {
 		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
 		logd("[deletePoint] point id: " + pointId);
 		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL);
+			OdataWriteClient odataWrite = new OdataWriteClient(this);
 			odataWrite.deletePoint(pointId);
 			// -1 special value to refresh current topics list
 			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), -1);

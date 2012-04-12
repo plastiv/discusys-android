@@ -3,7 +3,6 @@ package com.slobodastudio.discussions.service;
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
-import com.slobodastudio.discussions.data.odata.ODataConstants;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -156,7 +155,7 @@ public class UploadService extends IntentService {
 		Description description = new Description(descriptionBundle);
 		logd("[insertDescription] " + description.toMyString());
 		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient();
+			OdataWriteClient odataWrite = new OdataWriteClient(this);
 			OEntity entity = odataWrite.insertDescription(description);
 			int newId = (Integer) entity.getProperty(Descriptions.Columns.ID).getValue();
 			logd("[insertDescription] new description id: " + newId);
@@ -172,7 +171,7 @@ public class UploadService extends IntentService {
 		Point point = new Point(pointBundle);
 		logd("[insertPoint] " + point.toMyString());
 		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL);
+			OdataWriteClient odataWrite = new OdataWriteClient(this);
 			OEntity entity = odataWrite.insertPoint(point);
 			int newPointId = (Integer) entity.getProperty(Points.Columns.ID).getValue();
 			logd("[insertPoint] new point id: " + newPointId);
@@ -192,7 +191,7 @@ public class UploadService extends IntentService {
 		Description description = new Description(descriptionBundle);
 		logd("[insertDescription] " + description.toMyString());
 		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL);
+			OdataWriteClient odataWrite = new OdataWriteClient(this);
 			OEntity entity = odataWrite.insertPoint(point);
 			int newPointId = (Integer) entity.getProperty(Points.Columns.ID).getValue();
 			logd("[insertPoint] new point id: " + newPointId);
@@ -221,7 +220,7 @@ public class UploadService extends IntentService {
 		Description description = new Description(descriptionBundle);
 		logd("[updateDescription] " + description.toMyString());
 		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient();
+			OdataWriteClient odataWrite = new OdataWriteClient(this);
 			odataWrite.updateDescription(description);
 		}
 		String where = Descriptions.Columns.ID + "=?";
@@ -235,7 +234,7 @@ public class UploadService extends IntentService {
 		Point point = new Point(pointBundle);
 		logd("[updatePoint] " + point.toMyString());
 		if (!ApplicationConstants.PROVIDER_LOCAL) {
-			OdataWriteClient odataWrite = new OdataWriteClient(ODataConstants.SERVICE_URL);
+			OdataWriteClient odataWrite = new OdataWriteClient(this);
 			odataWrite.updatePoint(point);
 			// TODO: send another event to photon
 			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),

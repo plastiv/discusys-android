@@ -21,7 +21,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 32;
+	private static final int DATABASE_VERSION = 33;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context

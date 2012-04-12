@@ -374,6 +374,8 @@ public class DiscussionsProvider extends ContentProvider {
 				if (selectionArgs != null) {
 					builder.where(Comments.Columns.POINT_ID + "=? AND " + Comments.Columns.PERSON_ID + "="
 							+ Persons.Qualified.PERSON_ID, selectionArgs);
+				} else {
+					builder.where(selection, (String[]) null);
 				}
 				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Comments.Columns.ID,
 						Comments.Columns.TEXT, Persons.Columns.NAME, Persons.Columns.COLOR },

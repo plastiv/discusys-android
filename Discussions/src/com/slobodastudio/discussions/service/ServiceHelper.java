@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
 import android.util.Log;
-import android.widget.Toast;
 
 /** Should attach mOdataListener when activity is active. */
 public class ServiceHelper {
@@ -191,7 +190,7 @@ public class ServiceHelper {
 	private void assertReady() {
 
 		if (mOdataSyncing) {
-			Toast.makeText(mContext, "Need to finish previous task", Toast.LENGTH_SHORT).show();
+			// Toast.makeText(mContext, "Need to finish previous task", Toast.LENGTH_SHORT).show();
 		}
 	}
 
