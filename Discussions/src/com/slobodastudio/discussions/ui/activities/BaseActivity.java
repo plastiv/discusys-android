@@ -14,8 +14,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
@@ -26,7 +24,7 @@ import com.actionbarsherlock.view.Window;
 
 public abstract class BaseActivity extends SherlockFragmentActivity {
 
-	public static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	protected static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = BaseActivity.class.getSimpleName();
 	protected boolean mBound = false;
 	protected final ServiceConnection mConnection = new ServiceConnection() {
@@ -57,7 +55,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 			mServiceHelper = null;
 		}
 	};
-	protected Fragment mFragment;
+	// protected Fragment mFragment;
 	protected ControlService mService;
 	protected ServiceHelper mServiceHelper;
 	private final OdataSyncResultListener mListener = new OdataSyncResultListener() {
@@ -72,11 +70,6 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		@Override
 		public void updateSyncStatus(final boolean syncing) {
 
-			if (syncing) {
-				// Toast.makeText(BaseActivity.this, "Syncing data...", Toast.LENGTH_LONG).show();
-			} else {
-				// Toast.makeText(BaseActivity.this, "Data synced", Toast.LENGTH_LONG).show();
-			}
 			setSupportProgressBarIndeterminateVisibility(syncing);
 		}
 	};
@@ -104,22 +97,13 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	}
 
 	@Override
-	public boolean onKeyDown(final int keyCode, final KeyEvent event) {
-
-		if (keyCode == KeyEvent.KEYCODE_MENU) {
-			return true;
-		}
-		return false || super.onKeyDown(keyCode, event);
-	}
-
-	@Override
 	public boolean onKeyLongPress(final int keyCode, final KeyEvent event) {
 
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
 			goHome();
 			return true;
 		}
-		return false || super.onKeyLongPress(keyCode, event);
+		return super.onKeyLongPress(keyCode, event);
 	}
 
 	@Override
@@ -144,30 +128,6 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		// This has to be called before setContentView and you must use the
 		// class in com.actionbarsherlock.view and NOT android.view
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		setContentView(com.slobodastudio.discussions.R.layout.activity_base);
-		FragmentManager fm = getSupportFragmentManager();
-		if (DEBUG) {
-			Log.d(TAG, "[onCreate] savedInstanceState: " + savedInstanceState + ", findFragmentById: "
-					+ (fm.findFragmentById(R.id.frame_layout_list) == null));
-		}
-		if (savedInstanceState == null) {
-			// Create the list fragment and add it as our sole content.
-			if (fm.findFragmentById(R.id.frame_layout_list) == null) {
-				mFragment = onCreatePane();
-				if (mFragment == null) {
-					return;
-				}
-				fm.beginTransaction().add(R.id.frame_layout_list, mFragment).commit();
-			}
-		} else {
-			if (fm.findFragmentById(R.id.frame_layout_list) != null) {
-				mFragment = fm.findFragmentById(R.id.frame_layout_list);
-				//
-				// fm.beginTransaction().add(R.id.frame_layout_list, mFragment).commit();
-			} else {
-				throw new IllegalStateException("fragment should be created here");
-			}
-		}
 		setSupportProgressBarIndeterminateVisibility(false);
 		getSupportActionBar().setHomeButtonEnabled(true);
 		getSupportActionBar().setIcon(R.drawable.ic_action_home);
@@ -175,8 +135,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 
 	/** Called in <code>onCreate</code> when the fragment constituting this activity is needed. The returned
 	 * fragment's arguments will be set to the intent used to invoke this activity. */
-	protected abstract Fragment onCreatePane();
-
+	// protected abstract Fragment onCreatePane();
 	@Override
 	protected void onPause() {
 

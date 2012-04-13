@@ -1,6 +1,5 @@
 package com.slobodastudio.discussions.ui.activities;
 
-import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.photon.DiscussionUser;
 import com.slobodastudio.discussions.photon.PhotonServiceCallback;
@@ -9,7 +8,7 @@ import com.slobodastudio.discussions.ui.IntentExtrasKey;
 import com.slobodastudio.discussions.ui.fragments.PointsFragment;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -18,8 +17,8 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class PointsActivity extends BaseActivity implements PhotonServiceCallback {
 
-	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = PointsActivity.class.getSimpleName();
+	PointsFragment mFragment;
 	private int discussionId;
 	private int personId;
 	private String personName;
@@ -31,7 +30,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		if (DEBUG) {
 			Log.d(TAG, "[onArgPointChanged] point id: " + pointId);
 		}
-		((PointsFragment) mFragment).showEmtyDetails();
+		mFragment.showEmtyDetails();
 	}
 
 	@Override
@@ -83,7 +82,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		switch (item.getItemId()) {
 			case R.id.menu_new:
 				if (mFragment != null) {
-					((PointsFragment) mFragment).onActionNew();
+					mFragment.onActionNew();
 				} else {
 					Toast.makeText(this, "New button press was skipped", Toast.LENGTH_SHORT).show();
 				}
@@ -106,10 +105,10 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	}
 
 	@Override
-	public void onStructureChanged(final int topicId) {
+	public void onStructureChanged(final int changedTopicId) {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onStructureChanged] Empty. topic id: " + topicId);
+			Log.d(TAG, "[onStructureChanged] Empty. topic id: " + changedTopicId);
 		}
 	}
 
@@ -124,12 +123,9 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 
 		super.onCreate(savedInstanceState);
 		initFromIntentExtra();
-	}
-
-	@Override
-	protected Fragment onCreatePane() {
-
-		return new PointsFragment();
+		setContentView(R.layout.activity_points);
+		FragmentManager fm = getSupportFragmentManager();
+		mFragment = (PointsFragment) fm.findFragmentById(R.id.fragment_points);
 	}
 
 	private void connectPhoton() {

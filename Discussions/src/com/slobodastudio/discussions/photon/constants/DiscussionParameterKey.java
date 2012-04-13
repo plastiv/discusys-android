@@ -13,6 +13,7 @@ public class DiscussionParameterKey {
 	public static final byte BOX_HEIGHT = 9;
 	public static final byte BOX_WIDTH = 8;
 	public static final byte CHANGED_TOPIC_ID = 13;
+	public static final byte DEVICE_TYPE = 24;
 	public static final byte DISCUSSION_ID = 22;
 	/** structure change notification not fired on initiating client. but when moderator dashboad is open, and
 	 * moderator adds/removes topic, and private board is open, we want the list of topics in private board to

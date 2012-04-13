@@ -1,15 +1,11 @@
 package com.slobodastudio.discussions.ui.activities;
 
-import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
-import com.slobodastudio.discussions.ui.fragments.PersonsListFragment;
-import com.slobodastudio.discussions.utils.AnalyticsUtils;
 
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -18,7 +14,6 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class PersonsActivity extends BaseActivity {
 
-	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = PersonsActivity.class.getSimpleName();
 	private boolean firstTimeSync = false;
 
@@ -27,8 +22,6 @@ public class PersonsActivity extends BaseActivity {
 
 		MenuInflater menuInflater = getSupportMenuInflater();
 		menuInflater.inflate(R.menu.actionbar_list_refresh, menu);
-		// Calling super after populating the menu is necessary here to ensure that the
-		// action bar helpers have a chance to handle this event.
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -73,13 +66,8 @@ public class PersonsActivity extends BaseActivity {
 		}
 		super.onCreate(savedInstanceState);
 		setTitle(R.string.activity_title_persons);
-		AnalyticsUtils.getInstance(this).trackPageView("/Home");
-	}
-
-	@Override
-	protected Fragment onCreatePane() {
-
-		return new PersonsListFragment();
+		setContentView(R.layout.activity_persons);
+		// AnalyticsUtils.getInstance(this).trackPageView("/Home");
 	}
 
 	private void showCurrentVersionInToast() {

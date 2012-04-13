@@ -4,9 +4,8 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
-import com.slobodastudio.discussions.ui.activities.BaseActivity;
-import com.slobodastudio.discussions.utils.MyLog;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -20,8 +19,6 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,13 +63,39 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 	private boolean showEmptyOnClose = true;
 	private int topicId;
 
+	private static Intent createViewPointIntent(final int pointId) {
+
+		Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(pointId));
+		intent.putExtra(IntentExtrasKey.POINT_ID, pointId);
+		return intent;
+	}
+
 	public void onActionNew() {
 
-		Intent intent = new Intent(Intent.ACTION_EDIT, Points.CONTENT_URI);
-		intent.putExtra(IntentExtrasKey.PERSON_ID, personId);
-		intent.putExtra(IntentExtrasKey.TOPIC_ID, topicId);
-		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
-		startActivity(intent);
+		if (mDualPane) {
+			// We can display everything in-place with fragments
+			// Check what fragment is currently shown, replace if needed.
+			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
+					R.id.frame_layout_details);
+			if ((details == null) || (details.isEmpty())) {
+				// Make new fragment to show this selection.
+				Log.d(TAG, "hellp");
+				details = new PointDetailFragment();
+				Intent intent = createNewPointIntent();
+				details.setArguments(PointDetailFragment.intentToFragmentArguments(intent));
+				// Execute a transaction, replacing any existing fragment
+				// with this one inside the frame.
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.frame_layout_details, details);
+				ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+				ft.commit();
+			}
+			mActionMode = getSherlockActivity().startActionMode(new EditDetailsActionMode(false));
+		} else {
+			// Otherwise we need to launch a new activity to display details
+			Intent intent = createNewPointIntent();
+			startActivity(intent);
+		}
 	}
 
 	@Override
@@ -83,8 +106,6 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			Log.d(TAG, "[onActivityCreared] saved state: " + savedInstanceState);
 		}
 		initFromIntentExtra();
-		registerForContextMenu(mUserPointsList);
-		registerForContextMenu(mOtherPointsList);
 		// Create an empty adapter we will use to display the loaded data.
 		mUserPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null,
 				new String[] { Points.Columns.NAME, Points.Columns.ID }, new int[] { R.id.list_item_text,
@@ -203,45 +224,6 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 	}
 
 	@Override
-	public boolean onContextItemSelected(final android.view.MenuItem item) {
-
-		MyLog.v(TAG, (String) item.getTitle());
-		switch (item.getItemId()) {
-			case R.id.menu_delete:
-				int pointId = getItemId(item);
-				((BaseActivity) getActivity()).getServiceHelper().deletePoint(pointId);
-				return true;
-			default:
-				return super.onContextItemSelected(item);
-		}
-	}
-
-	@Override
-	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
-
-		super.onCreateContextMenu(menu, v, menuInfo);
-		// if (v.equals(mUserPointsList)) {
-		// AdapterView.AdapterContextMenuInfo info;
-		// try {
-		// // Casts the incoming data object into the type for AdapterView objects.
-		// info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		// } catch (ClassCastException e) {
-		// // If the menu object can't be cast, logs an error.
-		// throw new RuntimeException("bad menuInfo: " + menuInfo, e);
-		// }
-		// Cursor cursor = (Cursor) mUserPointsAdapter.getItem(info.position);
-		// if (cursor == null) {
-		// // For some reason the requested item isn't available, do nothing
-		// return;
-		// }
-		// int columnIndex = cursor.getColumnIndexOrThrow(mColumnName);
-		// menu.setHeaderTitle(cursor.getString(columnIndex));// if your table name is name
-		// android.view.MenuInflater inflater = getActivity().getMenuInflater();
-		// inflater.inflate(R.menu.list_context_delete_menu, menu);
-		// }
-	}
-
-	@Override
 	public Loader<Cursor> onCreateLoader(final int id, final Bundle arguments) {
 
 		// This is called when a new Loader needs to be created.
@@ -339,13 +321,13 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 
 	void onActionEdit(final long id, final int position) {
 
-		int valueId;
+		int pointId;
 		if ((mUserPointsAdapter.getCursor() != null)
 				&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
 			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
-			valueId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
+			pointId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
 		} else {
-			valueId = PointDetailFragment.INVALID_POINT_ID;
+			pointId = PointDetailFragment.INVALID_POINT_ID;
 			return;
 		}
 		if (mDualPane) {
@@ -353,11 +335,10 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			// Check what fragment is currently shown, replace if needed.
 			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
 					R.id.frame_layout_details);
-			if ((details == null) || (details.getPointId() != valueId)) {
+			if ((details == null) || (details.getPointId() != pointId)) {
 				// Make new fragment to show this selection.
 				details = new PointDetailFragment();
-				Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(valueId));
-				intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
+				Intent intent = createEditPointIntent(pointId);
 				details.setArguments(PointDetailFragment.intentToFragmentArguments(intent));
 				// Execute a transaction, replacing any existing fragment
 				// with this one inside the frame.
@@ -366,11 +347,10 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
 				ft.commit();
 			}
-			mActionMode = getSherlockActivity().startActionMode(new EditDetailsActionMode());
+			mActionMode = getSherlockActivity().startActionMode(new EditDetailsActionMode(true));
 		} else {
 			// Otherwise we need to launch a new activity to display details
-			Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(valueId));
-			intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
+			Intent intent = createEditPointIntent(pointId);
 			startActivity(intent);
 		}
 	}
@@ -394,7 +374,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			if ((details == null) || (details.getPointId() != valueId)) {
 				// Make new fragment to show this selection.
 				details = new PointDetailFragment();
-				Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(valueId));
+				Intent intent = createViewPointIntent(valueId);
 				details.setArguments(PointDetailFragment.intentToFragmentArguments(intent));
 				// Execute a transaction, replacing any existing fragment
 				// with this one inside the frame.
@@ -405,7 +385,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			}
 		} else {
 			// Otherwise we need to launch a new activity to display details
-			Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(valueId));
+			Intent intent = createViewPointIntent(valueId);
 			startActivity(intent);
 		}
 	}
@@ -429,6 +409,23 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		return cursor.getInt(columnIndex);
 	}
 
+	private Intent createEditPointIntent(final int pointId) {
+
+		Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(pointId));
+		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
+		intent.putExtra(IntentExtrasKey.POINT_ID, pointId);
+		return intent;
+	}
+
+	private Intent createNewPointIntent() {
+
+		Intent intent = new Intent(IntentAction.NEW, Points.CONTENT_URI);
+		intent.putExtra(IntentExtrasKey.PERSON_ID, personId);
+		intent.putExtra(IntentExtrasKey.TOPIC_ID, topicId);
+		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
+		return intent;
+	}
+
 	private void initFromIntentExtra() {
 
 		if (!getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_ID)) {
@@ -449,6 +446,13 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 	}
 
 	private final class EditDetailsActionMode implements ActionMode.Callback {
+
+		private final boolean showDeleteAction;
+
+		public EditDetailsActionMode(final boolean showDeleteAction) {
+
+			this.showDeleteAction = showDeleteAction;
+		}
 
 		@Override
 		public boolean onActionItemClicked(final ActionMode mode, final MenuItem item) {
@@ -479,7 +483,11 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 
 			mode.setTitle(R.string.action_mode_title_points);
 			MenuInflater inflater = mode.getMenuInflater();
-			inflater.inflate(R.menu.actionbar_point_edit, menu);
+			if (showDeleteAction) {
+				inflater.inflate(R.menu.actionbar_point_edit, menu);
+			} else {
+				inflater.inflate(R.menu.actionbar_point_new, menu);
+			}
 			showEmptyOnClose = true;
 			return true;
 		}

@@ -8,12 +8,12 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.IntentExtrasKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -39,22 +39,19 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	public static final int INVALID_POINT_ID = Integer.MIN_VALUE;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String EXTRA_ACTION = "extra_key_action";
+	private static final String EXTRA_AGREEMENT_CODE = "extra_side_code";
 	private static final String EXTRA_DESCRIPTION_ID = "extra_description_id";
 	private static final String EXTRA_DESCRIPTION_TEXT = "extra_description_text";
 	private static final String EXTRA_DISCUSSION_ID = IntentExtrasKey.DISCUSSION_ID;
 	private static final String EXTRA_PERSON_ID = IntentExtrasKey.PERSON_ID;
-	private static final String EXTRA_POINT_ID = "extra_point_id";
+	private static final String EXTRA_POINT_ID = IntentExtrasKey.POINT_ID;
 	private static final String EXTRA_POINT_NAME = "extra_point_name";
 	private static final String EXTRA_SHARED_TO_PUBLIC = "extra_shared_to_public";
-	private static final String EXTRA_SIDE_CODE = "extra_side_code";
 	private static final String EXTRA_TOPIC_ID = IntentExtrasKey.TOPIC_ID;
-	private static final String EXTRA_URI = "extra_key_uri";
 	private static final int LOADER_COMMENTS_ID = 2;
 	private static final int LOADER_DESCRIPTION_ID = 1;
 	private static final int LOADER_POINT_ID = 0;
 	private static final String TAG = PointDetailFragment.class.getSimpleName();
-	private static final int TYPE_DIR = 1;
-	private static final int TYPE_ITEM = 0;
 	private int descriptionId = Integer.MIN_VALUE;
 	private int discussionId;
 	private boolean empty = false;
@@ -69,7 +66,6 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	private int personId;
 	private int pointId = INVALID_POINT_ID;
 	private int topicId;
-	private int typeId;
 
 	/** Converts an intent into a {@link Bundle} suitable for use as fragment arguments. */
 	public static Bundle intentToFragmentArguments(final Intent intent) {
@@ -77,10 +73,6 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		Bundle arguments = new Bundle();
 		if (intent == null) {
 			return arguments;
-		}
-		final Uri data = intent.getData();
-		if (data != null) {
-			arguments.putParcelable(EXTRA_URI, data);
 		}
 		final String action = intent.getAction();
 		if (action != null) {
@@ -107,31 +99,30 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 		// discard changes
 		String action = getArguments().getString(EXTRA_ACTION);
-		if (action.equals(Intent.ACTION_EDIT)) {
-			switch (typeId) {
-				case TYPE_DIR:
-					throw new UnsupportedOperationException();
-				case TYPE_ITEM: {
-					if (mPointCursor.getCount() == 1) {
-						Point value = new Point(mPointCursor);
-						pointId = value.getId();
-						personId = value.getPersonId();
-						topicId = value.getTopicId();
-						mNameEditText.setText(value.getName());
-						mSideCodeSpinner.setSelection(value.getAgreementCode());
-						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
-					} else {
-						throw new IllegalStateException("Expected single value in cursor, was: "
-								+ mPointCursor.getCount());
-					}
-					break;
-				}
-				default:
-					throw new IllegalArgumentException("Unknown type id: " + typeId);
-			}
-		} else {
-			throw new IllegalArgumentException("Unknown action: " + action);
+		// if (IntentAction.NEW.equals(action)) {
+		// return;
+		// }
+		if (!Intent.ACTION_EDIT.equals(action) && !IntentAction.NEW.equals(action)) {
+			throw new UnsupportedOperationException("Operation [onActionCancel] doesnt support this intent: "
+					+ action);
 		}
+		return;
+		// if (mPointCursor.getCount() != 1) {
+		// throw new IllegalStateException("Expected single value in cursor, was: "
+		// + mPointCursor.getCount());
+		// }
+		// Point value = new Point(mPointCursor);
+		// pointId = value.getId();
+		// personId = value.getPersonId();
+		// topicId = value.getTopicId();
+		// mNameEditText.setText(value.getName());
+		// mSideCodeSpinner.setSelection(value.getAgreementCode());
+		// mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+		// if (mDescriptionCursor.moveToFirst()) {
+		// Description description = new Description(mDescriptionCursor);
+		// mDesctiptionEditText.setText(description.getText());
+		// }
+		// TODO: or simple show empty fragment with "select point to see details"
 	}
 
 	public void onActionDelete() {
@@ -139,10 +130,6 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		String action = getArguments().getString(EXTRA_ACTION);
 		if (!Intent.ACTION_EDIT.equals(action)) {
 			throw new IllegalArgumentException("[onActionDelete] was called with incorrect action: " + action);
-		}
-		if (typeId != TYPE_ITEM) {
-			throw new IllegalArgumentException("[onActionDelete] was called with incorrect type id: "
-					+ typeId);
 		}
 		if (pointId == INVALID_POINT_ID) {
 			throw new IllegalArgumentException("[onActionDelete] was called with incorrect point id: "
@@ -215,25 +202,27 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	@Override
 	public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
 
+		if (!arguments.containsKey(EXTRA_POINT_ID)) {
+			throw new IllegalArgumentException("Loader was called without point id");
+		}
+		int myPointId = arguments.getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
+		if (DEBUG) {
+			Log.d(TAG, "[onCreateLoader] point id: " + myPointId);
+		}
 		switch (loaderId) {
 			case LOADER_POINT_ID: {
-				Uri uri = getArguments().getParcelable(EXTRA_URI);
-				if (DEBUG) {
-					Log.d(TAG, "[onCreateLoader] point uri: " + uri);
-				}
-				String id = Points.getValueId(uri);
 				String where = Points.Columns.ID + "=?";
-				String[] args = new String[] { id };
+				String[] args = new String[] { String.valueOf(myPointId) };
 				return new CursorLoader(getActivity(), Points.CONTENT_URI, null, where, args, null);
 			}
 			case LOADER_DESCRIPTION_ID: {
 				String where = Descriptions.Columns.POINT_ID + "=?";
-				String[] args = new String[] { String.valueOf(pointId) };
+				String[] args = new String[] { String.valueOf(myPointId) };
 				return new CursorLoader(getActivity(), Descriptions.CONTENT_URI, null, where, args, null);
 			}
 			case LOADER_COMMENTS_ID: {
 				String where = Comments.Columns.POINT_ID + "=?";
-				String[] args = new String[] { String.valueOf(pointId) };
+				String[] args = new String[] { String.valueOf(myPointId) };
 				return new CursorLoader(getActivity(), Comments.CONTENT_URI, null, where, args, null);
 			}
 			default:
@@ -245,41 +234,13 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
-		if (isEmpty()) {
+		if (isEmpty() || (container == null) || (getArguments() == null)) {
 			if (DEBUG) {
 				Log.d(TAG, "[onCreateView] show empty fragment");
 			}
 			TextView text = (TextView) inflater.inflate(R.layout.fragment_empty, null);
 			text.setText(getActivity().getString(R.string.text_select_point));
 			return text;
-		}
-		if ((container == null) || (getArguments() == null)) {
-			// TODO ; throw ex if arguments null
-			if (DEBUG) {
-				Log.d(TAG, "[onCreateView] container and arguments was null");
-			}
-			empty = true;
-			// We have different layouts, and in one of them this
-			// fragment's containing frame doesn't exist. The fragment
-			// may still be created from its saved state, but there is
-			// no reason to try to create its view hierarchy because it
-			// won't be displayed. Note this is not needed -- we could
-			// just run the code below, where we would create and return
-			// the view hierarchy; it would just never be used.
-			return null;
-		}
-		if (DEBUG) {
-			Log.d(TAG, "[onCreateView] arguments: " + getArguments().toString());
-		}
-		// set type
-		Uri uri = getArguments().getParcelable(EXTRA_URI);
-		String type = getActivity().getContentResolver().getType(uri);
-		if (type.equals(Points.CONTENT_DIR_TYPE)) {
-			typeId = TYPE_DIR;
-		} else if (type.equals(Points.CONTENT_ITEM_TYPE)) {
-			typeId = TYPE_ITEM;
-		} else {
-			throw new IllegalArgumentException("Unknown type: " + type);
 		}
 		// setup layout
 		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.fragment_point_description, container,
@@ -318,12 +279,21 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		});
 		mCommentsList.setAdapter(mCommentsAdapter);
 		mCommentsList.setEmptyView(layout.findViewById(R.id.comments_listview_empty));
+		if (getArguments() == null) {
+			// at this point we are expected to show point details
+			throw new IllegalArgumentException("Fragment was called without arguments");
+		}
+		if (DEBUG) {
+			Log.d(TAG, "[onCreateView] arguments: " + getArguments().toString());
+		}
 		// fill in data
 		String action = getArguments().getString(EXTRA_ACTION);
-		if (action.equals(Intent.ACTION_EDIT)) {
+		if (Intent.ACTION_EDIT.equals(action)) {
 			onActionEdit(savedInstanceState);
-		} else if (action.equals(Intent.ACTION_VIEW)) {
-			onActionView();
+		} else if (Intent.ACTION_VIEW.equals(action)) {
+			onActionView(savedInstanceState);
+		} else if (IntentAction.NEW.equals(action)) {
+			onActionNew(savedInstanceState);
 		} else {
 			throw new IllegalArgumentException("Unknown action: " + action);
 		}
@@ -356,27 +326,33 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		}
 		switch (loader.getId()) {
 			case LOADER_POINT_ID: {
-				mPointCursor = data;
-				if (data.getCount() > 0) {
-					Point value = new Point(mPointCursor);
-					pointId = value.getId();
-					personId = value.getPersonId();
-					topicId = value.getTopicId();
-					mNameEditText.setText(value.getName());
-					mSideCodeSpinner.setSelection(value.getSideCode(), true);
-					mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
-					getLoaderManager().initLoader(LOADER_DESCRIPTION_ID, null, this);
-					getLoaderManager().initLoader(LOADER_COMMENTS_ID, null, this);
+				if (data.getCount() != 1) {
+					// TODO: provide more details in exception here
+					throw new IllegalStateException("Cant get asked point from content provider");
 				}
+				mPointCursor = data;
+				Point value = new Point(mPointCursor);
+				pointId = value.getId();
+				personId = value.getPersonId();
+				topicId = value.getTopicId();
+				mNameEditText.setText(value.getName());
+				mSideCodeSpinner.setSelection(value.getSideCode(), true);
+				mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+				Bundle args = new Bundle();
+				args.putInt(EXTRA_POINT_ID, pointId);
+				getLoaderManager().initLoader(LOADER_DESCRIPTION_ID, args, this);
+				getLoaderManager().initLoader(LOADER_COMMENTS_ID, args, this);
 				break;
 			}
 			case LOADER_DESCRIPTION_ID:
-				mDescriptionCursor = data;
-				if (data.getCount() > 0) {
-					Description description = new Description(mDescriptionCursor);
-					mDesctiptionEditText.setText(description.getText());
-					descriptionId = description.getId();
+				if (data.getCount() != 1) {
+					// TODO: provide more details in exception here
+					throw new IllegalStateException("Cant get asked description from content provider");
 				}
+				mDescriptionCursor = data;
+				Description description = new Description(mDescriptionCursor);
+				mDesctiptionEditText.setText(description.getText());
+				descriptionId = description.getId();
 				break;
 			case LOADER_COMMENTS_ID:
 				mCommentsAdapter.swapCursor(data);
@@ -393,7 +369,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		if (!isEmpty()) {
 			outState.putBoolean(EXTRA_SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
 			outState.putString(EXTRA_POINT_NAME, mNameEditText.getText().toString());
-			outState.putInt(EXTRA_SIDE_CODE, getSelectedSideCodeId());
+			outState.putInt(EXTRA_AGREEMENT_CODE, getSelectedSideCodeId());
 			outState.putInt(EXTRA_PERSON_ID, personId);
 			outState.putInt(EXTRA_TOPIC_ID, topicId);
 			outState.putInt(EXTRA_POINT_ID, pointId);
@@ -429,69 +405,101 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 	private void onActionEdit(final Bundle savedInstanceState) {
 
-		switch (typeId) {
-			case TYPE_DIR:
-				// leave empty fields to create new point
-				if (getArguments().containsKey(EXTRA_PERSON_ID)) {
-					personId = getArguments().getInt(EXTRA_PERSON_ID);
-				} else {
-					throw new IllegalStateException("intent was without person id");
-				}
-				if (getArguments().containsKey(EXTRA_TOPIC_ID)) {
-					topicId = getArguments().getInt(EXTRA_TOPIC_ID);
-				} else {
-					throw new IllegalStateException("intent was without topic id");
-				}
-				if (getArguments().containsKey(EXTRA_DISCUSSION_ID)) {
-					discussionId = getArguments().getInt(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-				} else {
-					throw new IllegalStateException("intent was without discussion id");
-				}
-				pointId = INVALID_POINT_ID;
-				setupView(true);
-				break;
-			case TYPE_ITEM:
-				if (getArguments().containsKey(EXTRA_DISCUSSION_ID)) {
-					discussionId = getArguments().getInt(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-				} else {
-					throw new IllegalStateException("intent was without discussion id");
-				}
-				if (savedInstanceState == null) {
-					getLoaderManager().initLoader(LOADER_POINT_ID, null, this);
-				} else {
-					pointId = savedInstanceState.getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
-					personId = savedInstanceState.getInt(EXTRA_PERSON_ID, Integer.MIN_VALUE);
-					topicId = savedInstanceState.getInt(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
-					mNameEditText.setText(savedInstanceState.getString(EXTRA_POINT_NAME));
-					mDesctiptionEditText.setText(savedInstanceState.getString(EXTRA_DESCRIPTION_TEXT));
-					mSideCodeSpinner.setSelection(savedInstanceState.getInt(EXTRA_SIDE_CODE,
-							Integer.MIN_VALUE));
-					mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(EXTRA_SHARED_TO_PUBLIC));
-				}
-				setupView(true);
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown type id: " + typeId);
+		if (!getArguments().containsKey(EXTRA_DISCUSSION_ID)) {
+			throw new IllegalStateException("intent was without discussion id");
 		}
+		if (!getArguments().containsKey(EXTRA_POINT_ID)) {
+			throw new IllegalStateException("Fragment was called without point id in arguments");
+		}
+		discussionId = getArguments().getInt(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		if (savedInstanceState == null) {
+			int initialPointId = getArguments().getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
+			Bundle args = new Bundle();
+			args.putInt(EXTRA_POINT_ID, initialPointId);
+			getLoaderManager().initLoader(LOADER_POINT_ID, args, this);
+		} else {
+			populateFromSavedInstanceState(savedInstanceState);
+		}
+		setViewsEnabled(true);
 	}
 
-	private void onActionView() {
+	private void onActionNew(final Bundle savedInstanceState) {
 
-		switch (typeId) {
-			case TYPE_DIR:
-				throw new IllegalStateException("Should not reach here. No sense to view empty point");
-			case TYPE_ITEM:
-				getLoaderManager().initLoader(LOADER_POINT_ID, null, this);
-				setupView(false);
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown type id: " + typeId);
+		if (!getArguments().containsKey(EXTRA_PERSON_ID)) {
+			throw new IllegalStateException("intent was without person id");
 		}
+		if (!getArguments().containsKey(EXTRA_TOPIC_ID)) {
+			throw new IllegalStateException("intent was without topic id");
+		}
+		if (!getArguments().containsKey(EXTRA_DISCUSSION_ID)) {
+			throw new IllegalStateException("intent was without discussion id");
+		}
+		if (savedInstanceState == null) {
+			// leave empty fields to create new point
+			personId = getArguments().getInt(EXTRA_PERSON_ID, Integer.MIN_VALUE);
+			topicId = getArguments().getInt(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
+			discussionId = getArguments().getInt(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+			pointId = INVALID_POINT_ID;
+		} else {
+			populateFromSavedInstanceState(savedInstanceState);
+		}
+		setViewsEnabled(true);
 	}
 
-	private void setupView(final boolean editable) {
+	private void onActionView(final Bundle savedInstanceState) {
 
-		if (!editable) {
+		if (!getArguments().containsKey(EXTRA_POINT_ID)) {
+			throw new IllegalStateException("Fragment was called without point id in arguments");
+		}
+		if (savedInstanceState == null) {
+			int initialPointId = getArguments().getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
+			Bundle args = new Bundle();
+			args.putInt(EXTRA_POINT_ID, initialPointId);
+			getLoaderManager().initLoader(LOADER_POINT_ID, args, this);
+		} else {
+			populateFromSavedInstanceState(savedInstanceState);
+		}
+		setViewsEnabled(false);
+	}
+
+	private void populateFromSavedInstanceState(final Bundle savedInstanceState) {
+
+		if (!savedInstanceState.containsKey(EXTRA_POINT_ID)) {
+			throw new IllegalStateException("SavedInstanceState doesnt contain point id");
+		}
+		if (!savedInstanceState.containsKey(EXTRA_PERSON_ID)) {
+			throw new IllegalStateException("SavedInstanceState doesnt contain person id");
+		}
+		if (!savedInstanceState.containsKey(EXTRA_TOPIC_ID)) {
+			throw new IllegalStateException("SavedInstanceState doesnt contain topic id");
+		}
+		if (!savedInstanceState.containsKey(EXTRA_POINT_NAME)) {
+			throw new IllegalStateException("SavedInstanceState doesnt contain point name");
+		}
+		if (!savedInstanceState.containsKey(EXTRA_DESCRIPTION_TEXT)) {
+			throw new IllegalStateException("SavedInstanceState doesnt contain description text");
+		}
+		if (!savedInstanceState.containsKey(EXTRA_AGREEMENT_CODE)) {
+			throw new IllegalStateException("SavedInstanceState doesnt contain agreement code");
+		}
+		if (!savedInstanceState.containsKey(EXTRA_SHARED_TO_PUBLIC)) {
+			throw new IllegalStateException("SavedInstanceState doesnt contain shared to public");
+		}
+		pointId = savedInstanceState.getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
+		personId = savedInstanceState.getInt(EXTRA_PERSON_ID, Integer.MIN_VALUE);
+		topicId = savedInstanceState.getInt(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
+		mNameEditText.setText(savedInstanceState.getString(EXTRA_POINT_NAME));
+		mDesctiptionEditText.setText(savedInstanceState.getString(EXTRA_DESCRIPTION_TEXT));
+		mSideCodeSpinner.setSelection(savedInstanceState.getInt(EXTRA_AGREEMENT_CODE, Integer.MIN_VALUE));
+		mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(EXTRA_SHARED_TO_PUBLIC));
+		Bundle args = new Bundle();
+		args.putInt(EXTRA_POINT_ID, pointId);
+		getLoaderManager().initLoader(LOADER_COMMENTS_ID, args, this);
+	}
+
+	private void setViewsEnabled(final boolean enabled) {
+
+		if (!enabled) {
 			mDesctiptionEditText.setEnabled(false);
 			mNameEditText.setEnabled(false);
 			mDesctiptionEditText.setEnabled(false);

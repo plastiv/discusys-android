@@ -1,5 +1,7 @@
 package com.slobodastudio.discussions.data;
 
+/** Runtime unchecked exception indicates problems with data CRUD operation raised in content provider or
+ * remote open data protocol layer. */
 public class DataIoException extends RuntimeException {
 
 	private static final long serialVersionUID = -983728235361740002L;
@@ -7,24 +9,20 @@ public class DataIoException extends RuntimeException {
 	public DataIoException() {
 
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public DataIoException(final String detailMessage) {
 
 		super(detailMessage);
-		// TODO Auto-generated constructor stub
 	}
 
 	public DataIoException(final String detailMessage, final Throwable throwable) {
 
 		super(detailMessage, throwable);
-		// TODO Auto-generated constructor stub
 	}
 
 	public DataIoException(final Throwable throwable) {
 
 		super(throwable);
-		// TODO Auto-generated constructor stub
 	}
 }

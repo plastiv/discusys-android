@@ -1,22 +1,21 @@
 package com.slobodastudio.discussions.ui.activities;
 
-import com.slobodastudio.discussions.ui.fragments.TopicsListFragment;
+import com.slobodastudio.discussions.R;
 
-import android.support.v4.app.Fragment;
+import android.os.Bundle;
 
 public class TopicsActivity extends BaseActivity {
-
-	private static final String TAG = TopicsActivity.class.getSimpleName();
 
 	@Override
 	protected void onControlServiceConnected() {
 
-		// TODO Auto-generated method stub
+		// No operation with service in this activity
 	}
 
 	@Override
-	protected Fragment onCreatePane() {
+	protected void onCreate(final Bundle savedInstanceState) {
 
-		return new TopicsListFragment();
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_topics);
 	}
 }

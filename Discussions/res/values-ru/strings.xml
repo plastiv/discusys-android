@@ -2,24 +2,20 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="app_name">Доска обсуждения</string>
+    <!-- titles -->
     <string name="activity_title_persons">Пользователи</string>
     <string name="activity_title_discussions">Дискуссии</string>
     <string name="activity_title_topics">Темы</string>
     <string name="activity_title_points">Аргументы</string>
     <string name="activity_title_point">Аргумент</string>
     <string name="action_mode_title_points">Редактирование аргумента</string>
+    <!-- menus -->
     <string name="menu_action_refresh">Обновить</string>
     <string name="menu_action_delete">Удалить</string>
     <string name="menu_action_new">Добавить</string>
     <string name="menu_action_save">Сохранить</string>
     <string name="menu_action_cancel">Отменить</string>
-    <string name="menu_details">Details</string>
-    <string name="menu_discussions">Discussion</string>
-    <string name="menu_persons">Person</string>
-    <string name="menu_points">Point</string>
-    <string name="menu_topics">Topic</string>
-    <string name="menu_edit">Edit</string>
-    <string name="menu_delete">Delete</string>
+    <!-- texts -->
     <string name="text_empty_list">Список пуст</string>
     <string name="text_empty_persons_list">Список пользователей пуст</string>
     <string name="text_empty_comments_list">Список комментариев пуст</string>
@@ -34,6 +30,7 @@
     <string name="text_point_description">Описание: </string>
     <string name="text_point_comment">Комментарии: </string>
     <string name="text_shared_to_public">Опубликовать: </string>
+    <!-- toasts -->
     <string name="toast_saved">Сохранено</string>
     <string name="toast_version">Версия: <xliff:g id="version">%1$s</xliff:g></string>
     <string name="toast_sync_error">Ошибка синхронизации: <xliff:g id="error">%1$s</xliff:g></string>

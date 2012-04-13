@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -51,39 +50,6 @@ public class PersonsListFragment extends BaseListFragment {
 			}
 		});
 		setListAdapter(mAdapter);
-	}
-
-	@Override
-	public boolean onContextItemSelected(final MenuItem item) {
-
-		switch (item.getItemId()) {
-			case R.id.menu_topics: {
-				// Otherwise we need to launch a new activity to display
-				// the dialog fragment with selected text.
-				Uri uri = Persons.buildTopicUri(getItemId(item));
-				Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-				startActivity(intent);
-				return true;
-			}
-			case R.id.menu_discussions: {
-				// Otherwise we need to launch a new activity to display
-				// the dialog fragment with selected text.
-				Uri uri = Persons.buildDiscussionUri(getItemId(item));
-				Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-				startActivity(intent);
-				return true;
-			}
-			case R.id.menu_points: {
-				// Otherwise we need to launch a new activity to display
-				// the dialog fragment with selected text.
-				Uri uri = Persons.buildPointUri(getItemId(item));
-				Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-				startActivity(intent);
-				return true;
-			}
-			default:
-				return super.onContextItemSelected(item);
-		}
 	}
 
 	@Override

@@ -2,24 +2,20 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="app_name">Discusys</string>
+    <!-- titles -->
     <string name="activity_title_persons">Persons</string>
     <string name="activity_title_discussions">Discussions</string>
     <string name="activity_title_topics">Topics</string>
     <string name="activity_title_points">Points</string>
     <string name="activity_title_point">Edit point</string>
     <string name="action_mode_title_points">Edit point</string>
+    <!-- menus -->
     <string name="menu_action_refresh">Refresh</string>
     <string name="menu_action_delete">Delete</string>
     <string name="menu_action_new">New</string>
     <string name="menu_action_save">Save</string>
     <string name="menu_action_cancel">Cancel</string>
-    <string name="menu_details">Details</string>
-    <string name="menu_discussions">Discussion</string>
-    <string name="menu_persons">Person</string>
-    <string name="menu_points">Point</string>
-    <string name="menu_topics">Topic</string>
-    <string name="menu_edit">Edit</string>
-    <string name="menu_delete">Delete</string>
+    <!-- texts -->
     <string name="text_empty_list">Empty list</string>
     <string name="text_empty_persons_list">No persons found</string>
     <string name="text_empty_comments_list">No comments</string>
@@ -34,6 +30,7 @@
     <string name="text_point_description">Description: </string>
     <string name="text_point_comment">Comments: </string>
     <string name="text_shared_to_public">Shared to public: </string>
+    <!-- toasts -->
     <string name="toast_saved">Saved</string>
     <string name="toast_version">Version: <xliff:g id="version">%1$s</xliff:g></string>
     <string name="toast_sync_error"> Sync error: <xliff:g id="error">%1$s</xliff:g></string>

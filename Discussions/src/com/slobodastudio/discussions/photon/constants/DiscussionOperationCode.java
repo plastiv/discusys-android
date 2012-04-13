@@ -21,6 +21,10 @@ public class DiscussionOperationCode {
 	 * disconnection and puts the user offline. it takes time. client can send this notification to inform
 	 * server it's about to disconnect to speed up things. lite leave request doesn't work */
 	public static final byte NOTIFY_LEAVE_USER = 8;
+	/** when user changes his name after login (by clicking user name near avatar at top right of main form)
+	 * other clients show previous name in online list. By sending this to server, client ensures that server
+	 * broadcasts [acc plus minus] event to force all clients to update online list */
+	public static final byte NOTIFY_NAME_CHANGED = 12;
 	/** group/ungroup or drag/drop operation happened */
 	public static final byte NOTIFY_STRUCTURE_CHANGED = 5;
 	/** when moderator creates new user account or deletes existing one, the client sends this to server.

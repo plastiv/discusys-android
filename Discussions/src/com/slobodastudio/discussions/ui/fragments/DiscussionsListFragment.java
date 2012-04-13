@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -24,10 +23,27 @@ public class DiscussionsListFragment extends BaseListFragment {
 				Discussions.CONTENT_URI);
 	}
 
+	private static void validateExtras(final Bundle extras) {
+
+		if (extras == null) {
+			throw new NullPointerException("Extras was null");
+		}
+		if (!extras.containsKey(IntentExtrasKey.PERSON_ID)) {
+			throw new IllegalArgumentException("Extras doesnt contain person id");
+		}
+		if (!extras.containsKey(IntentExtrasKey.PERSON_COLOR)) {
+			throw new IllegalArgumentException("Extras doesnt contain person color");
+		}
+		if (!extras.containsKey(IntentExtrasKey.PERSON_NAME)) {
+			throw new IllegalArgumentException("Extras doesnt contain person name");
+		}
+	}
+
 	@Override
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
+		validateExtras(getActivity().getIntent().getExtras());
 		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null, new String[] {
 				Discussions.Columns.SUBJECT, Discussions.Columns.ID }, new int[] { R.id.list_item_text,
 				R.id.image_person_color }, 0);
@@ -57,47 +73,11 @@ public class DiscussionsListFragment extends BaseListFragment {
 	}
 
 	@Override
-	public boolean onContextItemSelected(final MenuItem item) {
-
-		switch (item.getItemId()) {
-			case R.id.menu_topics: {
-				// Otherwise we need to launch a new activity to display
-				// the dialog fragment with selected text.
-				Uri uri = Discussions.buildTopicUri(getItemId(item));
-				Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-				startActivity(intent);
-				return true;
-			}
-			default:
-				return super.onContextItemSelected(item);
-		}
-	}
-
-	@Override
 	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
 
 		super.onListItemClick(l, v, position, id);
-		Uri uri = Discussions.buildTopicUri(getItemId(position));
-		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-		if (getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_ID)) {
-			intent.putExtra(IntentExtrasKey.PERSON_ID, getActivity().getIntent().getExtras().getInt(
-					IntentExtrasKey.PERSON_ID));
-		} else {
-			throw new IllegalStateException("intent was without person id");
-		}
-		if (getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_COLOR)) {
-			intent.putExtra(IntentExtrasKey.PERSON_COLOR, getActivity().getIntent().getExtras().getInt(
-					IntentExtrasKey.PERSON_COLOR));
-		} else {
-			throw new IllegalStateException("intent was without person color");
-		}
-		if (getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_NAME)) {
-			intent.putExtra(IntentExtrasKey.PERSON_NAME, getActivity().getIntent().getExtras().getString(
-					IntentExtrasKey.PERSON_NAME));
-		} else {
-			throw new IllegalStateException("intent was without person name");
-		}
-		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, getItemId(position));
+		int discussionId = getItemId(position);
+		Intent intent = createTopicIntent(discussionId);
 		startActivity(intent);
 	}
 
@@ -105,5 +85,21 @@ public class DiscussionsListFragment extends BaseListFragment {
 	protected BaseDetailFragment getDetailFragment() {
 
 		return null;
+	}
+
+	private Intent createTopicIntent(final int discussionId) {
+
+		Bundle extras = getActivity().getIntent().getExtras();
+		validateExtras(extras);
+		Uri uri = Discussions.buildTopicUri(discussionId);
+		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+		int personId = extras.getInt(IntentExtrasKey.PERSON_ID, Integer.MIN_VALUE);
+		int personColor = extras.getInt(IntentExtrasKey.PERSON_COLOR, Integer.MIN_VALUE);
+		int personName = extras.getInt(IntentExtrasKey.PERSON_NAME, Integer.MIN_VALUE);
+		intent.putExtra(IntentExtrasKey.PERSON_ID, personId);
+		intent.putExtra(IntentExtrasKey.PERSON_COLOR, personColor);
+		intent.putExtra(IntentExtrasKey.PERSON_NAME, personName);
+		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
+		return intent;
 	}
 }

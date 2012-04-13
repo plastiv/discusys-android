@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.photon;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.photon.constants.ActorPropertiesCode;
+import com.slobodastudio.discussions.photon.constants.DeviceType;
 import com.slobodastudio.discussions.photon.constants.DiscussionEventCode;
 import com.slobodastudio.discussions.photon.constants.DiscussionOperationCode;
 import com.slobodastudio.discussions.photon.constants.DiscussionParameterKey;
@@ -16,7 +17,6 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 import android.util.Log;
 
-import de.exitgames.client.photon.DebugLevel;
 import de.exitgames.client.photon.EventData;
 import de.exitgames.client.photon.IPhotonPeerListener;
 import de.exitgames.client.photon.LiteEventKey;
@@ -24,9 +24,10 @@ import de.exitgames.client.photon.LiteOpCode;
 import de.exitgames.client.photon.LiteOpKey;
 import de.exitgames.client.photon.LitePeer;
 import de.exitgames.client.photon.OperationResponse;
-import de.exitgames.client.photon.PhotonPeer.PeerStateValue;
 import de.exitgames.client.photon.StatusCode;
 import de.exitgames.client.photon.TypedHashMap;
+import de.exitgames.client.photon.enums.DebugLevel;
+import de.exitgames.client.photon.enums.PeerStateValue;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -103,7 +104,8 @@ public class PhotonController implements IPhotonPeerListener {
 				throw new IllegalStateException("Peer was null at the disconnect point");
 			}
 			peer.opCustom(DiscussionOperationCode.NOTIFY_LEAVE_USER, null, true);
-			peer.opLeave(gameLobbyName);
+			// run this method off the ui thread
+			peer.opLeave();
 		}
 	}
 
@@ -119,7 +121,7 @@ public class PhotonController implements IPhotonPeerListener {
 
 	public boolean isConnected() {
 
-		return (peer != null) && (peer.getPeerState() == PeerStateValue.Connected.value());
+		return (peer != null) && (peer.getPeerState() == PeerStateValue.Connected);
 	}
 
 	@Override
@@ -274,6 +276,45 @@ public class PhotonController implements IPhotonPeerListener {
 		}
 	}
 
+	@Override
+	public void onStatusChanged(final StatusCode statusCode) {
+
+		switch (statusCode) {
+			case Connect:
+				debugReturn(DebugLevel.INFO, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
+						+ peer.getPeerState());
+				opJoinFromLobby();
+				break;
+			case Disconnect:
+				debugReturn(DebugLevel.INFO, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
+						+ peer.getPeerState());
+				localUser = null;
+				timer.cancel();
+				break;
+			case DisconnectByServer:
+			case DisconnectByServerLogic:
+			case DisconnectByServerUserLimit:
+			case EncryptionEstablished:
+			case EncryptionFailedToEstablish:
+			case Exception:
+			case InternalReceiveException:
+			case QueueIncomingReliableWarning:
+			case QueueIncomingUnreliableWarning:
+			case QueueOutgoingAcksWarning:
+			case QueueOutgoingReliableError:
+			case QueueOutgoingReliableWarning:
+			case QueueOutgoingUnreliableWarning:
+			case QueueSentWarning:
+			case SendError:
+			case TimeoutDisconnect:
+				debugReturn(DebugLevel.ERROR, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
+						+ peer.getPeerState());
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown status code: " + statusCode.name());
+		}
+	}
+
 	public boolean opArgPointChanged(final int changedPointId) {
 
 		if (DEBUG) {
@@ -324,46 +365,6 @@ public class PhotonController implements IPhotonPeerListener {
 				true);
 	}
 
-	@Override
-	public void peerStatusCallback(final StatusCode statusCode) {
-
-		switch (statusCode) {
-			case Connect:
-				debugReturn(DebugLevel.INFO, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
-						+ peer.getPeerState());
-				opJoinFromLobby();
-				break;
-			case Disconnect:
-				debugReturn(DebugLevel.INFO, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
-						+ peer.getPeerState());
-				localUser = null;
-				timer.cancel();
-				break;
-			case DisconnectByServer:
-			case DisconnectByServerLogic:
-			case DisconnectByServerUserLimit:
-			case EncryptionEstablished:
-			case EncryptionFailedToEstablish:
-			case Exception:
-			case Exception_Connect:
-			case InternalReceiveException:
-			case QueueIncomingReliableWarning:
-			case QueueIncomingUnreliableWarning:
-			case QueueOutgoingAcksWarning:
-			case QueueOutgoingReliableError:
-			case QueueOutgoingReliableWarning:
-			case QueueOutgoingUnreliableWarning:
-			case QueueSentWarning:
-			case SendError:
-			case TimeoutDisconnect:
-				debugReturn(DebugLevel.ERROR, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
-						+ peer.getPeerState());
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown status code: " + statusCode.name());
-		}
-	}
-
 	boolean opSendStatsEvent(final int discussionId, final int userId, final int changedTopicId,
 			final int statsEventId) {
 
@@ -371,12 +372,17 @@ public class PhotonController implements IPhotonPeerListener {
 			throw new IllegalStateException(
 					"Cant perfom operation \"opSendStatsEvent\" in disconnected state");
 		}
+		if (DEBUG) {
+			Log.d(TAG, "[opSendStatsEvent] topic id: " + changedTopicId + ", userId: " + userId
+					+ ", discussionId: " + discussionId);
+		}
 		TypedHashMap<Byte, Object> eventStatsParameters = new TypedHashMap<Byte, Object>(Byte.class,
 				Object.class);
 		eventStatsParameters.put(DiscussionParameterKey.DISCUSSION_ID, discussionId);
 		eventStatsParameters.put(DiscussionParameterKey.USER_ID, userId);
 		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, changedTopicId);
 		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEventId);
+		eventStatsParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
 		return peer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
 	}
 
