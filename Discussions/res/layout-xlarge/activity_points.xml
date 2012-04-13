@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_root_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <FrameLayout
+        android:id="@+id/frame_layout_details"
+        style="@style/listViewBackgroundStyle"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="0.5" />
+
+    <fragment
+        android:id="@+id/fragment_points"
+        android:name="com.slobodastudio.discussions.ui.fragments.PointsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="0.5" >
+        <!-- Preview: layout=@layout/fragment_points -->
+    </fragment>
+
+</LinearLayout>
