@@ -6,6 +6,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
 
+import java.io.UnsupportedEncodingException;
+
 public class Point implements Value {
 
 	private final int agreementCode;
@@ -204,7 +206,13 @@ public class Point implements Value {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(Points.Columns.AGREEMENT_CODE).append(':').append(agreementCode).append('\n');
-		sb.append(Points.Columns.DRAWING).append(':').append(drawing).append('\n');
+		String drawingStr;
+		try {
+			drawingStr = new String(drawing, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException("Cant convert drawing to UTF-8 string", e);
+		}
+		sb.append(Points.Columns.DRAWING).append(':').append(drawingStr).append('\n');
 		sb.append(Points.Columns.EXPANDED).append(':').append(expanded).append('\n');
 		sb.append(Points.Columns.GROUP_ID).append(':').append(groupId).append('\n');
 		sb.append(Points.Columns.ID).append(':').append(id).append('\n');

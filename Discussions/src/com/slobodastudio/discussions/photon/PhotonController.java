@@ -1,7 +1,7 @@
 package com.slobodastudio.discussions.photon;
 
 import com.slobodastudio.discussions.ApplicationConstants;
-import com.slobodastudio.discussions.photon.constants.ActorPropertiesCode;
+import com.slobodastudio.discussions.photon.constants.ActorPropertiesKey;
 import com.slobodastudio.discussions.photon.constants.DeviceType;
 import com.slobodastudio.discussions.photon.constants.DiscussionEventCode;
 import com.slobodastudio.discussions.photon.constants.DiscussionOperationCode;
@@ -339,8 +339,9 @@ public class PhotonController implements IPhotonPeerListener {
 	public void opJoinFromLobby() {
 
 		HashMap<Byte, Object> actorProperties = new HashMap<Byte, Object>();
-		actorProperties.put(ActorPropertiesCode.Name, localUser.getUserName());
-		actorProperties.put(ActorPropertiesCode.DbId, localUser.getUserId());
+		actorProperties.put(ActorPropertiesKey.NAME, localUser.getUserName());
+		actorProperties.put(ActorPropertiesKey.DB_ID, localUser.getUserId());
+		actorProperties.put(ActorPropertiesKey.DEVICE_TYPE, DeviceType.ANDROID);
 		opJoinFromLobby(gameLobbyName, PhotonConstants.LOBBY, actorProperties, true);
 	}
 

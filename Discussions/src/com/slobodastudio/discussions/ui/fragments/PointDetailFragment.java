@@ -326,33 +326,33 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		}
 		switch (loader.getId()) {
 			case LOADER_POINT_ID: {
-				if (data.getCount() != 1) {
-					// TODO: provide more details in exception here
-					throw new IllegalStateException("Cant get asked point from content provider");
+				if (data.getCount() == 1) {
+					mPointCursor = data;
+					Point value = new Point(mPointCursor);
+					pointId = value.getId();
+					personId = value.getPersonId();
+					topicId = value.getTopicId();
+					mNameEditText.setText(value.getName());
+					mSideCodeSpinner.setSelection(value.getSideCode(), true);
+					mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+					Bundle args = new Bundle();
+					args.putInt(EXTRA_POINT_ID, pointId);
+					getLoaderManager().initLoader(LOADER_DESCRIPTION_ID, args, this);
+					getLoaderManager().initLoader(LOADER_COMMENTS_ID, args, this);
+				} else {
+					Log.w(TAG, "[onLoadFinished] LOADER_POINT_ID count was: " + data.getCount());
 				}
-				mPointCursor = data;
-				Point value = new Point(mPointCursor);
-				pointId = value.getId();
-				personId = value.getPersonId();
-				topicId = value.getTopicId();
-				mNameEditText.setText(value.getName());
-				mSideCodeSpinner.setSelection(value.getSideCode(), true);
-				mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
-				Bundle args = new Bundle();
-				args.putInt(EXTRA_POINT_ID, pointId);
-				getLoaderManager().initLoader(LOADER_DESCRIPTION_ID, args, this);
-				getLoaderManager().initLoader(LOADER_COMMENTS_ID, args, this);
 				break;
 			}
 			case LOADER_DESCRIPTION_ID:
-				if (data.getCount() != 1) {
-					// TODO: provide more details in exception here
-					throw new IllegalStateException("Cant get asked description from content provider");
+				if (data.getCount() == 1) {
+					mDescriptionCursor = data;
+					Description description = new Description(mDescriptionCursor);
+					mDesctiptionEditText.setText(description.getText());
+					descriptionId = description.getId();
+				} else {
+					Log.w(TAG, "[onLoadFinished] LOADER_DESCRIPTION_ID count was: " + data.getCount());
 				}
-				mDescriptionCursor = data;
-				Description description = new Description(mDescriptionCursor);
-				mDesctiptionEditText.setText(description.getText());
-				descriptionId = description.getId();
 				break;
 			case LOADER_COMMENTS_ID:
 				mCommentsAdapter.swapCursor(data);

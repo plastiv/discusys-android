@@ -14,7 +14,8 @@ public class PhotonConstants {
 	public static final String LOBBY = "discussion_lobby";
 	/** To spare some overhead, we will send outgoing packets in certain intervals. */
 	public static final int SEND_INTERVAL = 50;
-	public static final String SERVER_URL = ApplicationConstants.PHOTON_LOCAL ? "192.168.1.122:5055"
+	public static final String SERVER_URL = ApplicationConstants.PHOTON_LOCAL ? (ApplicationConstants.PHOTON_LOCAL ? "192.168.1.45:5055"
+			: "192.168.1.122:5055")
 			: "123.108.5.30:5055";
 	/** Preffer use tcp over udp. */
 	public static final boolean USE_TCP = false;

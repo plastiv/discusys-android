@@ -21,7 +21,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 34;
+	private static final int DATABASE_VERSION = 35;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -50,6 +50,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Persons.Columns.ONLINE + " INTEGER NOT NULL,"
 				+ Persons.Columns.SEAT_ID + " INTEGER,"
 				+ Persons.Columns.SESSION_ID + " INTEGER,"
+				+ Persons.Columns.ONLINE_DEVICE_TYPE + " INTEGER,"
 				+ " UNIQUE (" + Persons.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		db.execSQL("CREATE TABLE " + Topics.TABLE_NAME + " (" 

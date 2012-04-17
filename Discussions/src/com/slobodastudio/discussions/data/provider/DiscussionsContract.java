@@ -383,6 +383,8 @@ public final class DiscussionsContract {
 			/** Type Bit. */
 			public static final String ONLINE = "Online";
 			/** Type Int32. */
+			public static final String ONLINE_DEVICE_TYPE = "OnlineDevType";
+			/** Type Int32. */
 			public static final String SEAT_ID = "SeatId";
 			/** Type Int32. */
 			public static final String SESSION_ID = "Session_Id";

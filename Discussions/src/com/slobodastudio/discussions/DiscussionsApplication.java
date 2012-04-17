@@ -18,7 +18,8 @@ public class DiscussionsApplication extends Application {
 			StrictMode
 					.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());
 			StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyLog().build());
-		} else {
+		}
+		if (ApplicationConstants.BUG_SENSE_ON) {
 			BugSenseHandler.setup(this, ApplicationConstants.BUG_SENSE_API_KEY);
 		}
 	}
