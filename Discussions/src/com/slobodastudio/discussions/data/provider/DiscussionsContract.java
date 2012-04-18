@@ -387,7 +387,7 @@ public final class DiscussionsContract {
 			/** Type Int32. */
 			public static final String SEAT_ID = "SeatId";
 			/** Type Int32. */
-			public static final String SESSION_ID = "Session_Id";
+			public static final String SESSION_ID = "SessionId";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
@@ -538,6 +538,156 @@ public final class DiscussionsContract {
 		static final class Qualified {
 
 			static final String POINT_ID = TABLE_NAME + "." + Columns.ID;
+		}
+	}
+
+	/** Describes seat's table. */
+	public static final class Seats {
+
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "seat";
+		/** The MIME type of {@link #CONTENT_URI} providing a directory of tuples */
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The MIME type of {@link #CONTENT_URI} providing a single tuple */
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The content:// style URL for this table */
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
+		/** Default "ORDER BY" clause. */
+		public static final String DEFAULT_SORT = Columns.NAME + " ASC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "Seat";
+
+		/** A private Constructor prevents class from instantiating. */
+		private Seats() {
+
+			throw new UnsupportedOperationException("Class is prevented from instantiation");
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique value identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final long valueId) {
+
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique row identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
+		 * 
+		 * @param uri
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
+
+			return uri.getPathSegments().get(1);
+		}
+
+		/** List of columns names. */
+		public static final class Columns implements BaseColumns {
+
+			/** Type Int32. */
+			public static final String COLOR = "Color";
+			/** Type Int32. */
+			public static final String ID = "Id";
+			/** Type String. */
+			public static final String NAME = "SeatName";
+		}
+
+		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
+		 * needed to work around SQL ambiguity. */
+		static final class Qualified {
+
+			static final String SEAT_ID = TABLE_NAME + "." + Columns.ID;
+		}
+	}
+
+	/** Describes session's table. */
+	public static final class Sessions {
+
+		/** Table name in lower case. */
+		public static final String A_TABLE_PREFIX = "session";
+		/** The MIME type of {@link #CONTENT_URI} providing a directory of tuples */
+		public static final String CONTENT_DIR_TYPE = "vnd.android.cursor.dir/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The MIME type of {@link #CONTENT_URI} providing a single tuple */
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.discussions."
+				+ A_TABLE_PREFIX;
+		/** The content:// style URL for this table */
+		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
+		/** Default "ORDER BY" clause. */
+		public static final String DEFAULT_SORT = Columns.NAME + " ASC";
+		/** Server's database table name */
+		public static final String TABLE_NAME = "Session";
+
+		/** A private Constructor prevents class from instantiating. */
+		private Sessions() {
+
+			throw new UnsupportedOperationException("Class is prevented from instantiation");
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique value identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final long valueId) {
+
+			return ContentUris.withAppendedId(CONTENT_URI, valueId);
+		}
+
+		/** Build {@link Uri} for requested {@link Columns#_ID}.
+		 * 
+		 * @param valueId
+		 *            unique row identifier
+		 * @return a Uri for the given id */
+		public static Uri buildTableUri(final String valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		/** Read {@link Columns#_ID} from this table {@link Uri}.
+		 * 
+		 * @param uri
+		 *            a uri that contains value id
+		 * @return a unique identifier provided by table uri */
+		public static String getValueId(final Uri uri) {
+
+			return uri.getPathSegments().get(1);
+		}
+
+		/** List of columns names. */
+		public static final class Columns implements BaseColumns {
+
+			/** Type DateTime. Format YYYY-MM-DDTHH:MM:SS.SSS */
+			public static final String ESTIMATED_DATA_TIME = "EstimatedDateTime";
+			/** Type Int32. Fixed set of values: 0, 1, 2 */
+			public static final String ESTIMATED_TIME_SLOT = "EstimatedTimeSlot";
+			/** Type Int32. */
+			public static final String ID = "Id";
+			/** Type String. */
+			public static final String NAME = "Name";
+			/** Type Boolean. */
+			public static final String RUNNING = "Running";
+		}
+
+		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
+		 * needed to work around SQL ambiguity. */
+		static final class Qualified {
+
+			static final String SESSION_ID = TABLE_NAME + "." + Columns.ID;
 		}
 	}
 

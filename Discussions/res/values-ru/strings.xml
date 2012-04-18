@@ -2,13 +2,19 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="app_name">Доска обсуждения</string>
+    <string name="app_regular_mode">Доска обсуждения</string>
+    <string name="app_experiment_mode">Доска обсуждения эксперимент</string>
     <!-- titles -->
     <string name="activity_title_persons">Пользователи</string>
     <string name="activity_title_discussions">Дискуссии</string>
     <string name="activity_title_topics">Темы</string>
     <string name="activity_title_points">Аргументы</string>
     <string name="activity_title_point">Аргумент</string>
+    <string name="activity_title_sessions">Сессии</string>
+    <string name="activity_title_seats">Места</string>
     <string name="action_mode_title_points">Редактирование аргумента</string>
+    <string name="dialog_title_user_name">Введите имя пользователя</string>
+    <string name="dialog_title_creating_user">Создание пользователя...</string>
     <!-- menus -->
     <string name="menu_action_refresh">Обновить</string>
     <string name="menu_action_delete">Удалить</string>
@@ -22,6 +28,8 @@
     <string name="text_empty_points_list">Список аргументов пуст</string>
     <string name="text_empty_discussions_list">Список дискуссий пуст</string>
     <string name="text_empty_topics_list">Список тем пуст</string>
+    <string name="text_empty_sessions_list">Список сессий пуст</string>
+    <string name="text_empty_seats_list">Список мест пуст</string>
     <string name="text_select_point">Выберите аргумент слева</string>
     <string name="text_other_users_points">Другие аргументы</string>
     <string name="text_current_user_points">Аргументы пользователя</string>

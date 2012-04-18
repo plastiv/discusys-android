@@ -160,8 +160,8 @@ public class PhotonController implements IPhotonPeerListener {
 				logUsersOnline();
 				break;
 			case DiscussionEventCode.STRUCTURE_CHANGED: {
-				int actorId = (Integer) event.Parameters.get(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR);
-				if (actorId != localUser.getActorNumber()) {
+				int personId = (Integer) event.Parameters.get(DiscussionParameterKey.USER_ID);
+				if (personId != localUser.getUserId()) {
 					int changedTopicId = (Integer) event.Parameters
 							.get(DiscussionParameterKey.CHANGED_TOPIC_ID);
 					if (changedTopicId == INVALID_TOPIC_ID) {
@@ -360,8 +360,9 @@ public class PhotonController implements IPhotonPeerListener {
 		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
 				Object.class);
 		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, activeTopicId);
-		structureChangedParameters.put(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR, localUser
-				.getActorNumber());
+		structureChangedParameters.put(DiscussionParameterKey.FORCE_SELF_NOTIFICATION, (byte) 1);
+		structureChangedParameters.put(DiscussionParameterKey.USER_ID, localUser.getUserId());
+		structureChangedParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
 		return peer.opCustom(DiscussionOperationCode.NOTIFY_STRUCTURE_CHANGED, structureChangedParameters,
 				true);
 	}

@@ -9,11 +9,14 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OEntityId;
+import org.odata4j.core.OEntityIds;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OModifyRequest;
 import org.odata4j.core.OProperties;
@@ -23,6 +26,11 @@ public class OdataWriteClient extends BaseOdataClient {
 	public OdataWriteClient(final Context context) {
 
 		super(context);
+	}
+
+	public static void insertPersonTopicLink(final int personId, final int topicId) {
+
+		HttpUtil.insertPersonTopic(personId, topicId);
 	}
 
 	public void deletePoint(final int pointId) {
@@ -59,6 +67,28 @@ public class OdataWriteClient extends BaseOdataClient {
 		// @formatter:on
 	}
 
+	public OEntity insertPerson(final ContentValues person) {
+
+		String name = person.getAsString(Persons.Columns.NAME);
+		String email = person.getAsString(Persons.Columns.EMAIL);
+		boolean online = person.getAsBoolean(Persons.Columns.ONLINE);
+		int color = person.getAsInteger(Persons.Columns.COLOR);
+		int seatId = person.getAsInteger(Persons.Columns.SEAT_ID);
+		int sessionId = person.getAsInteger(Persons.Columns.SESSION_ID);
+		int onlineDeviceType = person.getAsInteger(Persons.Columns.ONLINE_DEVICE_TYPE);
+		// @formatter:off
+		return mConsumer.createEntity(Persons.TABLE_NAME)
+				.properties(OProperties.string(Persons.Columns.NAME, name))
+				.properties(OProperties.string(Persons.Columns.EMAIL, email))
+				.properties(OProperties.int32(Persons.Columns.COLOR, color))
+				.properties(OProperties.boolean_(Persons.Columns.ONLINE, online))
+				.properties(OProperties.int32(Persons.Columns.SEAT_ID, seatId))
+				.properties(OProperties.int32(Persons.Columns.SESSION_ID, sessionId))
+				.properties(OProperties.int32(Persons.Columns.ONLINE_DEVICE_TYPE, onlineDeviceType))
+				.execute();
+		// @formatter:on
+	}
+
 	public OEntity insertPerson(final String name, final String email, final Integer color,
 			final boolean online) {
 
@@ -70,6 +100,15 @@ public class OdataWriteClient extends BaseOdataClient {
 				.properties(OProperties.boolean_(Persons.Columns.ONLINE, online))
 				.execute();
 		// @formatter:on
+	}
+
+	public void insertPersonTopicLinks(final int personId, final int[] topicIds) {
+
+		OEntityId personEntityId = OEntityIds.create(Persons.TABLE_NAME, personId);
+		for (int topicId : topicIds) {
+			OEntityId topicEntityId = OEntityIds.create(Topics.TABLE_NAME, topicId);
+			mConsumer.createLink(topicEntityId, Topics.Columns.PERSON_ID, personEntityId).execute();
+		}
 	}
 
 	public OEntity insertPoint(final int agreementCode, final Byte[] drawing, final boolean expanded,
@@ -144,6 +183,12 @@ public class OdataWriteClient extends BaseOdataClient {
 					.getDiscussionId())));
 		}
 		return request.execute();
+	}
+
+	public boolean updatePerson(final int personId, final String personName) {
+
+		return mConsumer.mergeEntity(Persons.TABLE_NAME, personId).properties(
+				OProperties.string(Persons.Columns.NAME, personName)).execute();
 	}
 
 	public boolean updatePoint(final Point point) {

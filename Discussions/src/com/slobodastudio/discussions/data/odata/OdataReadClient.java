@@ -8,6 +8,8 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussio
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.utils.MyLog;
 
@@ -19,6 +21,7 @@ import android.provider.BaseColumns;
 import android.util.Log;
 
 import org.core4j.Enumerable;
+import org.joda.time.LocalDateTime;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OProperty;
 import org.odata4j.core.ORelatedEntitiesLinkInline;
@@ -75,64 +78,14 @@ public class OdataReadClient extends BaseOdataClient {
 			cv.put(property.getName(), (Boolean) property.getValue());
 		} else if (classType.equals(byte[].class)) {
 			cv.put(property.getName(), (byte[]) property.getValue());
+		} else if (classType.equals(LocalDateTime.class)) {
+			cv.put(property.getName(), property.getValue().toString());
 		} else {
 			throw new IllegalArgumentException("Unknown property name: " + property.getName() + " type: "
 					+ property.getType() + " value: " + property.getValue() + "javaType: "
 					+ classType.getCanonicalName());
 		}
 		return cv;
-	}
-
-	@Deprecated
-	public void downloadAllValues() {
-
-		downloadValuesWithoutNavigationIds(Persons.TABLE_NAME, Persons.CONTENT_URI);
-		downloadValuesWithoutNavigationIds(Discussions.TABLE_NAME, Discussions.CONTENT_URI);
-		downloadTopics();
-		downloadPoints();
-		// downloadDescriptions();
-	}
-
-	@Deprecated
-	public void downloadDescriptions() {
-
-		for (OEntity entity : mConsumer.getEntities(Descriptions.TABLE_NAME).execute()) {
-			insertDescription(entity);
-		}
-	}
-
-	@Deprecated
-	public void downloadPoints() {
-
-		for (OEntity entity : getPointsEntities()) {
-			insertPoint(entity);
-		}
-	}
-
-	@Deprecated
-	public void downloadPoints(final int topicId) {
-
-		for (OEntity entity : getPointsEntities(topicId)) {
-			insertPoint(entity);
-		}
-	}
-
-	@Deprecated
-	public void downloadTopics() {
-
-		for (OEntity entity : getTopicsEntities()) {
-			insertTopic(entity);
-			insertPersonsTopics(entity);
-		}
-	}
-
-	@Deprecated
-	public void downloadValuesWithoutNavigationIds(final String tableName, final Uri contentUri) {
-
-		for (OEntity entity : mConsumer.getEntities(tableName).execute()) {
-			ContentValues cv = OEntityToContentValue(entity);
-			mContentResolver.insert(contentUri, cv);
-		}
 	}
 
 	public void refreshComments() {
@@ -333,6 +286,68 @@ public class OdataReadClient extends BaseOdataClient {
 					int rowId = cur.getInt(localIdIndex);
 					logd("[refreshPoints] delete point: " + rowId);
 					Uri uri = Points.buildTableUri(rowId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
+	}
+
+	public void refreshSeats() {
+
+		logd("[refreshSeats]");
+		Enumerable<OEntity> seats = mConsumer.getEntities(Seats.TABLE_NAME).execute();
+		logd("[refreshSeats] entities count: " + seats.count());
+		List<Integer> serversIds = new ArrayList<Integer>(seats.count());
+		for (OEntity seat : seats) {
+			serversIds.add(getAsInt(seat, Seats.Columns.ID));
+			ContentValues cv = OEntityToContentValue(seat);
+			mContentResolver.insert(Seats.CONTENT_URI, cv);
+		}
+		logd("[refreshSeats] all seats was inserted");
+		// check if server has a deleted points
+		Cursor cur = mContentResolver.query(Seats.CONTENT_URI, new String[] { Seats.Columns.ID }, null, null,
+				null);
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Seats.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int seatId = cur.getInt(idIndex);
+				if (!serversIds.contains(seatId)) {
+					// delete this row
+					logd("[refreshSeats] delete seat: " + seatId);
+					Uri uri = Seats.buildTableUri(seatId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
+	}
+
+	public void refreshSessions() {
+
+		logd("[refreshSessions]");
+		Enumerable<OEntity> sessions = mConsumer.getEntities(Sessions.TABLE_NAME).execute();
+		logd("[refreshSessions] entities count: " + sessions.count());
+		List<Integer> serversIds = new ArrayList<Integer>(sessions.count());
+		for (OEntity session : sessions) {
+			serversIds.add(getAsInt(session, Sessions.Columns.ID));
+			ContentValues cv = OEntityToContentValue(session);
+			mContentResolver.insert(Sessions.CONTENT_URI, cv);
+		}
+		logd("[refreshSessions] all sessions was inserted");
+		// check if server has a deleted points
+		Cursor cur = mContentResolver.query(Sessions.CONTENT_URI, new String[] { Sessions.Columns.ID }, null,
+				null, null);
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Sessions.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int sessionId = cur.getInt(idIndex);
+				if (!serversIds.contains(sessionId)) {
+					// delete this row
+					logd("[refreshSessions] delete session: " + sessionId);
+					Uri uri = Sessions.buildTableUri(sessionId);
 					mContentResolver.delete(uri, null, null);
 				}
 			}

@@ -168,6 +168,10 @@ public class DownloadService extends IntentService {
 
 		logd("[downloadAll]");
 		OdataReadClient odataClient = new OdataReadClient(this);
+		odataClient.refreshSessions();
+		logd("[downloadAll] sessions completed");
+		odataClient.refreshSeats();
+		logd("[downloadAll] seats completed");
 		odataClient.refreshPersons();
 		logd("[downloadAll] persons completed");
 		odataClient.refreshDiscussions();

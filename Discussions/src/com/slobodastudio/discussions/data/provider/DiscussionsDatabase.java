@@ -6,6 +6,8 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussio
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.SyncColumns;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
@@ -21,7 +23,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 35;
+	private static final int DATABASE_VERSION = 38;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -35,6 +37,22 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	public void onCreate(final SQLiteDatabase db) {
 
 		// @formatter:off
+		db.execSQL("CREATE TABLE " + Sessions.TABLE_NAME + " (" 
+				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ Sessions.Columns.ID + " INTEGER NOT NULL,"
+				+ Sessions.Columns.NAME + " TEXT NOT NULL,"
+				+ Sessions.Columns.RUNNING + " INTEGER NOT NULL,"
+				+ Sessions.Columns.ESTIMATED_TIME_SLOT + " INTEGER NOT NULL,"
+				+ Sessions.Columns.ESTIMATED_DATA_TIME + " TEXT NOT NULL,"
+				+ " UNIQUE (" + Sessions.Columns.ID + ") ON CONFLICT REPLACE)");
+		
+		db.execSQL("CREATE TABLE " + Seats.TABLE_NAME + " (" 
+				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ Seats.Columns.ID + " INTEGER NOT NULL,"
+				+ Seats.Columns.NAME + " TEXT NOT NULL,"
+				+ Seats.Columns.COLOR + " INTEGER NOT NULL,"
+				+ " UNIQUE (" + Seats.Columns.ID + ") ON CONFLICT REPLACE)");
+		
 		db.execSQL("CREATE TABLE " + Discussions.TABLE_NAME + " (" 
 				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ Discussions.Columns.ID + " INTEGER NOT NULL,"
@@ -48,8 +66,8 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Persons.Columns.EMAIL + " TEXT NOT NULL,"
 				+ Persons.Columns.COLOR + " INTEGER NOT NULL,"
 				+ Persons.Columns.ONLINE + " INTEGER NOT NULL,"
-				+ Persons.Columns.SEAT_ID + " INTEGER,"
-				+ Persons.Columns.SESSION_ID + " INTEGER,"
+				+ Persons.Columns.SEAT_ID + " INTEGER "  + References.SEAT_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
+				+ Persons.Columns.SESSION_ID + " INTEGER "  + References.SESSION_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ Persons.Columns.ONLINE_DEVICE_TYPE + " INTEGER,"
 				+ " UNIQUE (" + Persons.Columns.ID + ") ON CONFLICT REPLACE)");
 		
@@ -131,6 +149,8 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 			db.execSQL("DROP TABLE IF EXISTS " + PersonsTopics.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Comments.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Descriptions.TABLE_NAME);
+			db.execSQL("DROP TABLE IF EXISTS " + Seats.TABLE_NAME);
+			db.execSQL("DROP TABLE IF EXISTS " + Sessions.TABLE_NAME);
 			db.execSQL("DROP TRIGGER IF EXISTS " + Triggers.PERSONS_DELETE_TOPICS);
 			onCreate(db);
 		}
@@ -148,6 +168,9 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Discussions.Columns.ID + ")";
 		static final String PERSON_ID = "REFERENCES " + Persons.TABLE_NAME + "(" + Persons.Columns.ID + ")";
 		static final String POINT_ID = "REFERENCES " + Points.TABLE_NAME + "(" + Points.Columns.ID + ")";
+		static final String SEAT_ID = "REFERENCES " + Seats.TABLE_NAME + "(" + Seats.Columns.ID + ")";
+		static final String SESSION_ID = "REFERENCES " + Sessions.TABLE_NAME + "(" + Sessions.Columns.ID
+				+ ")";
 		static final String TOPIC_ID = "REFERENCES " + Topics.TABLE_NAME + "(" + Topics.Columns.ID + ")";
 	}
 }

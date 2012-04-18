@@ -2,13 +2,19 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="app_name">Discusys</string>
+    <string name="app_regular_mode">Discusys Regular</string>
+    <string name="app_experiment_mode">Discusys Experiment</string>
     <!-- titles -->
     <string name="activity_title_persons">Persons</string>
     <string name="activity_title_discussions">Discussions</string>
     <string name="activity_title_topics">Topics</string>
     <string name="activity_title_points">Points</string>
     <string name="activity_title_point">Edit point</string>
+    <string name="activity_title_sessions">Sessions</string>
+    <string name="activity_title_seats">Seats</string>
     <string name="action_mode_title_points">Edit point</string>
+    <string name="dialog_title_user_name">Input user name</string>
+    <string name="dialog_title_creating_user">Creating user...</string>
     <!-- menus -->
     <string name="menu_action_refresh">Refresh</string>
     <string name="menu_action_delete">Delete</string>
@@ -17,11 +23,13 @@
     <string name="menu_action_cancel">Cancel</string>
     <!-- texts -->
     <string name="text_empty_list">Empty list</string>
-    <string name="text_empty_persons_list">No persons found</string>
+    <string name="text_empty_persons_list">No persons</string>
     <string name="text_empty_comments_list">No comments</string>
-    <string name="text_empty_points_list">No points found</string>
-    <string name="text_empty_discussions_list">No discussions found</string>
-    <string name="text_empty_topics_list">No topics found</string>
+    <string name="text_empty_points_list">No points</string>
+    <string name="text_empty_discussions_list">No discussions</string>
+    <string name="text_empty_topics_list">No topics</string>
+    <string name="text_empty_sessions_list">No sessions</string>
+    <string name="text_empty_seats_list">No seats</string>
     <string name="text_select_point">Select point to see details</string>
     <string name="text_other_users_points">Other points</string>
     <string name="text_current_user_points">User\'s points</string>

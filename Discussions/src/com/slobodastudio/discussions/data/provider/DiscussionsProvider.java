@@ -8,6 +8,8 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussio
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTopics;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentProvider;
@@ -48,6 +50,10 @@ public class DiscussionsProvider extends ContentProvider {
 	private static final int POINTS_DIR = 301;
 	private static final int POINTS_ITEM = 300;
 	private static final int POINTS_PERSONS_DIR = 302;
+	private static final int SEATS_DIR = 801;
+	private static final int SEATS_ITEM = 800;
+	private static final int SESSIONS_DIR = 901;
+	private static final int SESSIONS_ITEM = 900;
 	private static final UriMatcher sUriMatcher = buildUriMatcher();
 	private static final String TAG = DiscussionsProvider.class.getSimpleName();
 	private static final int TOPICS_DIR = 401;
@@ -67,6 +73,18 @@ public class DiscussionsProvider extends ContentProvider {
 			case DISCUSSIONS_ITEM: {
 				final String valueId = Discussions.getValueId(uri);
 				return builder.table(Discussions.TABLE_NAME).where(Discussions.Columns.ID + "=?", valueId);
+			}
+			case SEATS_DIR:
+				return builder.table(Seats.TABLE_NAME);
+			case SEATS_ITEM: {
+				final String valueId = Seats.getValueId(uri);
+				return builder.table(Seats.TABLE_NAME).where(Seats.Columns.ID + "=?", valueId);
+			}
+			case SESSIONS_DIR:
+				return builder.table(Sessions.TABLE_NAME);
+			case SESSIONS_ITEM: {
+				final String valueId = Sessions.getValueId(uri);
+				return builder.table(Sessions.TABLE_NAME).where(Sessions.Columns.ID + "=?", valueId);
 			}
 			case POINTS_DIR:
 				return builder.table(Points.TABLE_NAME);
@@ -139,6 +157,12 @@ public class DiscussionsProvider extends ContentProvider {
 		// description
 		matcher.addURI(authority, Descriptions.A_TABLE_PREFIX, DESCRIPTION_DIR);
 		matcher.addURI(authority, Descriptions.A_TABLE_PREFIX + "/*", DESCRIPTION_ITEM);
+		// seat
+		matcher.addURI(authority, Seats.A_TABLE_PREFIX, SEATS_DIR);
+		matcher.addURI(authority, Seats.A_TABLE_PREFIX + "/*", SEATS_ITEM);
+		// seat
+		matcher.addURI(authority, Sessions.A_TABLE_PREFIX, SESSIONS_DIR);
+		matcher.addURI(authority, Sessions.A_TABLE_PREFIX + "/*", SESSIONS_ITEM);
 		return matcher;
 	}
 
@@ -217,6 +241,14 @@ public class DiscussionsProvider extends ContentProvider {
 				return Descriptions.CONTENT_DIR_TYPE;
 			case DESCRIPTION_ITEM:
 				return Descriptions.CONTENT_ITEM_TYPE;
+			case SEATS_DIR:
+				return Seats.CONTENT_DIR_TYPE;
+			case SEATS_ITEM:
+				return Seats.CONTENT_ITEM_TYPE;
+			case SESSIONS_DIR:
+				return Sessions.CONTENT_DIR_TYPE;
+			case SESSIONS_ITEM:
+				return Sessions.CONTENT_ITEM_TYPE;
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -268,6 +300,14 @@ public class DiscussionsProvider extends ContentProvider {
 				case DESCRIPTION_DIR:
 					insertedId = db.insertOrThrow(Descriptions.TABLE_NAME, null, values);
 					insertedUri = Descriptions.buildTableUri(insertedId);
+					break;
+				case SEATS_DIR:
+					insertedId = db.insertOrThrow(Seats.TABLE_NAME, null, values);
+					insertedUri = Seats.buildTableUri(insertedId);
+					break;
+				case SESSIONS_DIR:
+					insertedId = db.insertOrThrow(Sessions.TABLE_NAME, null, values);
+					insertedUri = Sessions.buildTableUri(insertedId);
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown uri: " + uri);

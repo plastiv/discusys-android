@@ -4,10 +4,8 @@ package com.slobodastudio.discussions;
 public class ApplicationConstants {
 
 	public static final String BUG_SENSE_API_KEY = "8b8433f6";
-	public static final boolean BUG_SENSE_ON = true;
 	/** TODO: set up false in release .apk */
-	public static final boolean DEV_MODE = true;
-	public static final boolean LOCAL_DMITRY = true && DEV_MODE;
+	public static final boolean DEV_MODE = false;
 	public static final boolean ODATA_LOCAL = true && DEV_MODE;
 	/** Clean up servers database if row with null foreign key found. */
 	public static final boolean ODATA_SANITIZE = false && DEV_MODE;
