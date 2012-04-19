@@ -2,7 +2,7 @@ package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.ExtraKey;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -19,7 +19,7 @@ public class TopicsListFragment extends BaseListFragment {
 
 	public TopicsListFragment() {
 
-		super(R.string.text_empty_topics_list, Topics.Columns.NAME, Topics.Columns.ID, Topics.CONTENT_URI);
+		super(R.string.text_empty_topics_list, Topics.Columns.ID, Topics.CONTENT_URI);
 	}
 
 	private static void validateExtras(final Bundle extras) {
@@ -27,16 +27,16 @@ public class TopicsListFragment extends BaseListFragment {
 		if (extras == null) {
 			throw new NullPointerException("Extras was null");
 		}
-		if (!extras.containsKey(IntentExtrasKey.PERSON_ID)) {
+		if (!extras.containsKey(ExtraKey.PERSON_ID)) {
 			throw new IllegalArgumentException("Extras doesnt contain person id");
 		}
-		if (!extras.containsKey(IntentExtrasKey.PERSON_COLOR)) {
+		if (!extras.containsKey(ExtraKey.PERSON_COLOR)) {
 			throw new IllegalArgumentException("Extras doesnt contain person color");
 		}
-		if (!extras.containsKey(IntentExtrasKey.PERSON_NAME)) {
+		if (!extras.containsKey(ExtraKey.PERSON_NAME)) {
 			throw new IllegalArgumentException("Extras doesnt contain person name");
 		}
-		if (!extras.containsKey(IntentExtrasKey.DISCUSSION_ID)) {
+		if (!extras.containsKey(ExtraKey.DISCUSSION_ID)) {
 			throw new IllegalArgumentException("Extras doesnt contain discussion id");
 		}
 	}
@@ -58,7 +58,7 @@ public class TopicsListFragment extends BaseListFragment {
 					case R.id.image_person_color:
 						ImageView colorView = (ImageView) view;
 						int color = getActivity().getIntent().getExtras()
-								.getInt(IntentExtrasKey.PERSON_COLOR);
+								.getInt(ExtraKey.PERSON_COLOR);
 						colorView.setBackgroundColor(color);
 						return true;
 					case R.id.list_item_text:
@@ -93,15 +93,15 @@ public class TopicsListFragment extends BaseListFragment {
 		validateExtras(extras);
 		Uri uri = Topics.buildPointUri(pointId);
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-		int personId = extras.getInt(IntentExtrasKey.PERSON_ID, Integer.MIN_VALUE);
-		int personColor = extras.getInt(IntentExtrasKey.PERSON_COLOR, Integer.MIN_VALUE);
-		int personName = extras.getInt(IntentExtrasKey.PERSON_NAME, Integer.MIN_VALUE);
-		int discussionId = extras.getInt(IntentExtrasKey.DISCUSSION_ID, Integer.MIN_VALUE);
-		intent.putExtra(IntentExtrasKey.PERSON_ID, personId);
-		intent.putExtra(IntentExtrasKey.PERSON_COLOR, personColor);
-		intent.putExtra(IntentExtrasKey.PERSON_NAME, personName);
-		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
-		intent.putExtra(IntentExtrasKey.TOPIC_ID, pointId);
+		int personId = extras.getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
+		int personColor = extras.getInt(ExtraKey.PERSON_COLOR, Integer.MIN_VALUE);
+		int personName = extras.getInt(ExtraKey.PERSON_NAME, Integer.MIN_VALUE);
+		int discussionId = extras.getInt(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
+		intent.putExtra(ExtraKey.PERSON_ID, personId);
+		intent.putExtra(ExtraKey.PERSON_COLOR, personColor);
+		intent.putExtra(ExtraKey.PERSON_NAME, personName);
+		intent.putExtra(ExtraKey.DISCUSSION_ID, discussionId);
+		intent.putExtra(ExtraKey.TOPIC_ID, pointId);
 		return intent;
 	}
 }

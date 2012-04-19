@@ -10,4 +10,10 @@ public class LiteLobbyOpKey {
 	public static final byte LobbyName = (byte) 242;
 	/** RoomName is a better name, instead of ActorSessionInstanceId (Asid). */
 	public static final byte RoomName = LiteOpKey.GameId.value();
+
+	/** A private Constructor prevents class from instantiating. */
+	private LiteLobbyOpKey() {
+
+		throw new UnsupportedOperationException("Class is prevented from instantiation");
+	}
 }

@@ -121,7 +121,7 @@
                 <data android:mimeType="vnd.android.cursor.item/vnd.discussions.point" />
             </intent-filter>
             <intent-filter>
-                <action android:name="slobodastudio.intent.action.NEW" />
+                <action android:name="com.slobodastudio.intent.action.NEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
 
@@ -133,21 +133,21 @@
         <service android:name=".service.ControlService" />
         <service android:name=".service.UploadService" >
             <intent-filter>
-                <action android:name="com.slobodastudio.action.upload" />
+                <action android:name="com.slobodastudio.intent.action.UPLOAD" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
         <service android:name=".service.DownloadService" >
             <intent-filter>
-                <action android:name="com.slobodastudio.action.download" />
+                <action android:name="com.slobodastudio.intent.action.DOWNLOAD" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
         <service android:name=".service.DeleteService" >
             <intent-filter>
-                <action android:name="com.slobodastudio.action.delete" />
+                <action android:name="com.slobodastudio.intent.action.DELETE" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

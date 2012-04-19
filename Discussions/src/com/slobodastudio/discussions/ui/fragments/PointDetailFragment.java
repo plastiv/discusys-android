@@ -8,8 +8,8 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 
 import android.content.Intent;
@@ -38,34 +38,32 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 	public static final int INVALID_POINT_ID = Integer.MIN_VALUE;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
-	private static final String EXTRA_ACTION = "extra_key_action";
-	private static final String EXTRA_AGREEMENT_CODE = "extra_side_code";
-	private static final String EXTRA_DESCRIPTION_ID = "extra_description_id";
-	private static final String EXTRA_DESCRIPTION_TEXT = "extra_description_text";
-	private static final String EXTRA_DISCUSSION_ID = IntentExtrasKey.DISCUSSION_ID;
-	private static final String EXTRA_PERSON_ID = IntentExtrasKey.PERSON_ID;
-	private static final String EXTRA_POINT_ID = IntentExtrasKey.POINT_ID;
-	private static final String EXTRA_POINT_NAME = "extra_point_name";
-	private static final String EXTRA_SHARED_TO_PUBLIC = "extra_shared_to_public";
-	private static final String EXTRA_TOPIC_ID = IntentExtrasKey.TOPIC_ID;
 	private static final int LOADER_COMMENTS_ID = 2;
 	private static final int LOADER_DESCRIPTION_ID = 1;
 	private static final int LOADER_POINT_ID = 0;
 	private static final String TAG = PointDetailFragment.class.getSimpleName();
-	private int descriptionId = Integer.MIN_VALUE;
-	private int discussionId;
-	private boolean empty = false;
 	private SimpleCursorAdapter mCommentsAdapter;
 	private ListView mCommentsList;
 	private Cursor mDescriptionCursor;
+	private int mDescriptionId;
 	private EditText mDesctiptionEditText;
+	private int mDiscussionId;
+	private boolean mIsEmpty;
 	private EditText mNameEditText;
+	private int mPersonId;
 	private Cursor mPointCursor;
+	private int mPointId;
 	private CheckBox mSharedToPublicCheckBox;
 	private Spinner mSideCodeSpinner;
-	private int personId;
-	private int pointId = INVALID_POINT_ID;
-	private int topicId;
+	private int mTopicId;
+
+	public PointDetailFragment() {
+
+		// initialize default values
+		mPointId = INVALID_POINT_ID;
+		mIsEmpty = false;
+		mDescriptionId = Integer.MIN_VALUE;
+	}
 
 	/** Converts an intent into a {@link Bundle} suitable for use as fragment arguments. */
 	public static Bundle intentToFragmentArguments(final Intent intent) {
@@ -76,7 +74,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		}
 		final String action = intent.getAction();
 		if (action != null) {
-			arguments.putString(EXTRA_ACTION, action);
+			arguments.putString(ExtraKey.ACTION, action);
 		}
 		final Bundle extras = intent.getExtras();
 		if (extras != null) {
@@ -87,64 +85,45 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 	public int getPointId() {
 
-		return pointId;
+		return mPointId;
 	}
 
 	public boolean isEmpty() {
 
-		return empty;
+		return mIsEmpty;
 	}
 
 	public void onActionCancel() {
 
 		// discard changes
-		String action = getArguments().getString(EXTRA_ACTION);
-		// if (IntentAction.NEW.equals(action)) {
-		// return;
-		// }
+		String action = getArguments().getString(ExtraKey.ACTION);
 		if (!Intent.ACTION_EDIT.equals(action) && !IntentAction.NEW.equals(action)) {
 			throw new UnsupportedOperationException("Operation [onActionCancel] doesnt support this intent: "
 					+ action);
 		}
 		return;
-		// if (mPointCursor.getCount() != 1) {
-		// throw new IllegalStateException("Expected single value in cursor, was: "
-		// + mPointCursor.getCount());
-		// }
-		// Point value = new Point(mPointCursor);
-		// pointId = value.getId();
-		// personId = value.getPersonId();
-		// topicId = value.getTopicId();
-		// mNameEditText.setText(value.getName());
-		// mSideCodeSpinner.setSelection(value.getAgreementCode());
-		// mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
-		// if (mDescriptionCursor.moveToFirst()) {
-		// Description description = new Description(mDescriptionCursor);
-		// mDesctiptionEditText.setText(description.getText());
-		// }
-		// TODO: or simple show empty fragment with "select point to see details"
 	}
 
 	public void onActionDelete() {
 
-		String action = getArguments().getString(EXTRA_ACTION);
+		String action = getArguments().getString(ExtraKey.ACTION);
 		if (!Intent.ACTION_EDIT.equals(action)) {
 			throw new IllegalArgumentException("[onActionDelete] was called with incorrect action: " + action);
 		}
-		if (pointId == INVALID_POINT_ID) {
+		if (mPointId == INVALID_POINT_ID) {
 			throw new IllegalArgumentException("[onActionDelete] was called with incorrect point id: "
-					+ pointId);
+					+ mPointId);
 		}
-		((BaseActivity) getActivity()).getServiceHelper().deletePoint(pointId);
+		((BaseActivity) getActivity()).getServiceHelper().deletePoint(mPointId);
 	}
 
 	public void onActionSave() {
 
 		// description is first because notify server by point change
-		if (descriptionId != Integer.MIN_VALUE) {
+		if (mDescriptionId != Integer.MIN_VALUE) {
 			// update description
-			Description description = new Description(descriptionId, mDesctiptionEditText.getText()
-					.toString(), null, pointId);
+			Description description = new Description(mDescriptionId, mDesctiptionEditText.getText()
+					.toString(), null, mPointId);
 			((BaseActivity) getActivity()).getServiceHelper().updateDescription(description.toBundle());
 		}
 		// save point
@@ -153,7 +132,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		boolean expectedExpanded = false;
 		int expectedGroupId = 1;
 		String expectedNumberedPoint = "";
-		int expectedPersonId = personId;
+		int expectedPersonId = mPersonId;
 		String expectedPointName = mNameEditText.getText().toString();
 		boolean expectedSharedToPublic = mSharedToPublicCheckBox.isChecked();
 		int expectedSideCode;
@@ -171,13 +150,13 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 				throw new IllegalArgumentException("Unknown side code: "
 						+ (int) mSideCodeSpinner.getSelectedItemId());
 		}
-		int expectedTopicId = topicId;
-		if (pointId != INVALID_POINT_ID) {
+		int expectedTopicId = mTopicId;
+		if (mPointId != INVALID_POINT_ID) {
 			// update point
 			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
-					expectedGroupId, pointId, expectedPointName, expectedNumberedPoint, expectedPersonId,
+					expectedGroupId, mPointId, expectedPointName, expectedNumberedPoint, expectedPersonId,
 					expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle(), discussionId);
+			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle(), mDiscussionId);
 		} else {
 			// new point
 			Bundle values;
@@ -187,25 +166,26 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			// ((BaseActivity) getActivity()).getServiceHelper().insertPoint(point.toBundle());
 			values = point.toBundle();
 			// with new description
-			if (descriptionId != Integer.MIN_VALUE) {
+			if (mDescriptionId != Integer.MIN_VALUE) {
 				throw new IllegalStateException("Cant be new point without new description");
 			}
 			// new description
-			Description description = new Description(descriptionId, mDesctiptionEditText.getText()
-					.toString(), null, pointId);
+			Description description = new Description(mDescriptionId, mDesctiptionEditText.getText()
+					.toString(), null, mPointId);
 			// ((BaseActivity) getActivity()).getServiceHelper().insertDescription(description.toBundle());
 			values.putAll(description.toBundle());
-			((BaseActivity) getActivity()).getServiceHelper().insertPointAndDescription(values, discussionId);
+			((BaseActivity) getActivity()).getServiceHelper()
+					.insertPointAndDescription(values, mDiscussionId);
 		}
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
 
-		if (!arguments.containsKey(EXTRA_POINT_ID)) {
+		if (!arguments.containsKey(ExtraKey.POINT_ID)) {
 			throw new IllegalArgumentException("Loader was called without point id");
 		}
-		int myPointId = arguments.getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
+		int myPointId = arguments.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
 		if (DEBUG) {
 			Log.d(TAG, "[onCreateLoader] point id: " + myPointId);
 		}
@@ -287,7 +267,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 			Log.d(TAG, "[onCreateView] arguments: " + getArguments().toString());
 		}
 		// fill in data
-		String action = getArguments().getString(EXTRA_ACTION);
+		String action = getArguments().getString(ExtraKey.ACTION);
 		if (Intent.ACTION_EDIT.equals(action)) {
 			onActionEdit(savedInstanceState);
 		} else if (Intent.ACTION_VIEW.equals(action)) {
@@ -329,14 +309,14 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 				if (data.getCount() == 1) {
 					mPointCursor = data;
 					Point value = new Point(mPointCursor);
-					pointId = value.getId();
-					personId = value.getPersonId();
-					topicId = value.getTopicId();
+					mPointId = value.getId();
+					mPersonId = value.getPersonId();
+					mTopicId = value.getTopicId();
 					mNameEditText.setText(value.getName());
 					mSideCodeSpinner.setSelection(value.getSideCode(), true);
 					mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
 					Bundle args = new Bundle();
-					args.putInt(EXTRA_POINT_ID, pointId);
+					args.putInt(ExtraKey.POINT_ID, mPointId);
 					getLoaderManager().initLoader(LOADER_DESCRIPTION_ID, args, this);
 					getLoaderManager().initLoader(LOADER_COMMENTS_ID, args, this);
 				} else {
@@ -349,7 +329,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 					mDescriptionCursor = data;
 					Description description = new Description(mDescriptionCursor);
 					mDesctiptionEditText.setText(description.getText());
-					descriptionId = description.getId();
+					mDescriptionId = description.getId();
 				} else {
 					Log.w(TAG, "[onLoadFinished] LOADER_DESCRIPTION_ID count was: " + data.getCount());
 				}
@@ -367,20 +347,20 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 		super.onSaveInstanceState(outState);
 		if (!isEmpty()) {
-			outState.putBoolean(EXTRA_SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
-			outState.putString(EXTRA_POINT_NAME, mNameEditText.getText().toString());
-			outState.putInt(EXTRA_AGREEMENT_CODE, getSelectedSideCodeId());
-			outState.putInt(EXTRA_PERSON_ID, personId);
-			outState.putInt(EXTRA_TOPIC_ID, topicId);
-			outState.putInt(EXTRA_POINT_ID, pointId);
-			outState.putInt(EXTRA_DESCRIPTION_ID, descriptionId);
-			outState.putString(EXTRA_DESCRIPTION_TEXT, mDesctiptionEditText.getText().toString());
+			outState.putBoolean(ExtraKey.SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
+			outState.putString(ExtraKey.POINT_NAME, mNameEditText.getText().toString());
+			outState.putInt(ExtraKey.AGREEMENT_CODE, getSelectedSideCodeId());
+			outState.putInt(ExtraKey.PERSON_ID, mPersonId);
+			outState.putInt(ExtraKey.TOPIC_ID, mTopicId);
+			outState.putInt(ExtraKey.POINT_ID, mPointId);
+			outState.putInt(ExtraKey.DESCRIPTION_ID, mDescriptionId);
+			outState.putString(ExtraKey.DESCRIPTION_TEXT, mDesctiptionEditText.getText().toString());
 		}
 	}
 
 	public void setEmpty(final boolean empty) {
 
-		this.empty = empty;
+		mIsEmpty = empty;
 	}
 
 	private int getSelectedSideCodeId() {
@@ -405,17 +385,17 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 	private void onActionEdit(final Bundle savedInstanceState) {
 
-		if (!getArguments().containsKey(EXTRA_DISCUSSION_ID)) {
+		if (!getArguments().containsKey(ExtraKey.DISCUSSION_ID)) {
 			throw new IllegalStateException("intent was without discussion id");
 		}
-		if (!getArguments().containsKey(EXTRA_POINT_ID)) {
+		if (!getArguments().containsKey(ExtraKey.POINT_ID)) {
 			throw new IllegalStateException("Fragment was called without point id in arguments");
 		}
-		discussionId = getArguments().getInt(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		mDiscussionId = getArguments().getInt(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
 		if (savedInstanceState == null) {
-			int initialPointId = getArguments().getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
+			int initialPointId = getArguments().getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
 			Bundle args = new Bundle();
-			args.putInt(EXTRA_POINT_ID, initialPointId);
+			args.putInt(ExtraKey.POINT_ID, initialPointId);
 			getLoaderManager().initLoader(LOADER_POINT_ID, args, this);
 		} else {
 			populateFromSavedInstanceState(savedInstanceState);
@@ -425,21 +405,21 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 	private void onActionNew(final Bundle savedInstanceState) {
 
-		if (!getArguments().containsKey(EXTRA_PERSON_ID)) {
+		if (!getArguments().containsKey(ExtraKey.PERSON_ID)) {
 			throw new IllegalStateException("intent was without person id");
 		}
-		if (!getArguments().containsKey(EXTRA_TOPIC_ID)) {
+		if (!getArguments().containsKey(ExtraKey.TOPIC_ID)) {
 			throw new IllegalStateException("intent was without topic id");
 		}
-		if (!getArguments().containsKey(EXTRA_DISCUSSION_ID)) {
+		if (!getArguments().containsKey(ExtraKey.DISCUSSION_ID)) {
 			throw new IllegalStateException("intent was without discussion id");
 		}
 		if (savedInstanceState == null) {
 			// leave empty fields to create new point
-			personId = getArguments().getInt(EXTRA_PERSON_ID, Integer.MIN_VALUE);
-			topicId = getArguments().getInt(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
-			discussionId = getArguments().getInt(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-			pointId = INVALID_POINT_ID;
+			mPersonId = getArguments().getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
+			mTopicId = getArguments().getInt(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
+			mDiscussionId = getArguments().getInt(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
+			mPointId = INVALID_POINT_ID;
 		} else {
 			populateFromSavedInstanceState(savedInstanceState);
 		}
@@ -448,13 +428,13 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 	private void onActionView(final Bundle savedInstanceState) {
 
-		if (!getArguments().containsKey(EXTRA_POINT_ID)) {
+		if (!getArguments().containsKey(ExtraKey.POINT_ID)) {
 			throw new IllegalStateException("Fragment was called without point id in arguments");
 		}
 		if (savedInstanceState == null) {
-			int initialPointId = getArguments().getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
+			int initialPointId = getArguments().getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
 			Bundle args = new Bundle();
-			args.putInt(EXTRA_POINT_ID, initialPointId);
+			args.putInt(ExtraKey.POINT_ID, initialPointId);
 			getLoaderManager().initLoader(LOADER_POINT_ID, args, this);
 		} else {
 			populateFromSavedInstanceState(savedInstanceState);
@@ -464,36 +444,36 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 
 	private void populateFromSavedInstanceState(final Bundle savedInstanceState) {
 
-		if (!savedInstanceState.containsKey(EXTRA_POINT_ID)) {
+		if (!savedInstanceState.containsKey(ExtraKey.POINT_ID)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain point id");
 		}
-		if (!savedInstanceState.containsKey(EXTRA_PERSON_ID)) {
+		if (!savedInstanceState.containsKey(ExtraKey.PERSON_ID)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain person id");
 		}
-		if (!savedInstanceState.containsKey(EXTRA_TOPIC_ID)) {
+		if (!savedInstanceState.containsKey(ExtraKey.TOPIC_ID)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain topic id");
 		}
-		if (!savedInstanceState.containsKey(EXTRA_POINT_NAME)) {
+		if (!savedInstanceState.containsKey(ExtraKey.POINT_NAME)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain point name");
 		}
-		if (!savedInstanceState.containsKey(EXTRA_DESCRIPTION_TEXT)) {
+		if (!savedInstanceState.containsKey(ExtraKey.DESCRIPTION_TEXT)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain description text");
 		}
-		if (!savedInstanceState.containsKey(EXTRA_AGREEMENT_CODE)) {
+		if (!savedInstanceState.containsKey(ExtraKey.AGREEMENT_CODE)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain agreement code");
 		}
-		if (!savedInstanceState.containsKey(EXTRA_SHARED_TO_PUBLIC)) {
+		if (!savedInstanceState.containsKey(ExtraKey.SHARED_TO_PUBLIC)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain shared to public");
 		}
-		pointId = savedInstanceState.getInt(EXTRA_POINT_ID, Integer.MIN_VALUE);
-		personId = savedInstanceState.getInt(EXTRA_PERSON_ID, Integer.MIN_VALUE);
-		topicId = savedInstanceState.getInt(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
-		mNameEditText.setText(savedInstanceState.getString(EXTRA_POINT_NAME));
-		mDesctiptionEditText.setText(savedInstanceState.getString(EXTRA_DESCRIPTION_TEXT));
-		mSideCodeSpinner.setSelection(savedInstanceState.getInt(EXTRA_AGREEMENT_CODE, Integer.MIN_VALUE));
-		mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(EXTRA_SHARED_TO_PUBLIC));
+		mPointId = savedInstanceState.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
+		mPersonId = savedInstanceState.getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
+		mTopicId = savedInstanceState.getInt(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
+		mNameEditText.setText(savedInstanceState.getString(ExtraKey.POINT_NAME));
+		mDesctiptionEditText.setText(savedInstanceState.getString(ExtraKey.DESCRIPTION_TEXT));
+		mSideCodeSpinner.setSelection(savedInstanceState.getInt(ExtraKey.AGREEMENT_CODE, Integer.MIN_VALUE));
+		mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(ExtraKey.SHARED_TO_PUBLIC));
 		Bundle args = new Bundle();
-		args.putInt(EXTRA_POINT_ID, pointId);
+		args.putInt(ExtraKey.POINT_ID, mPointId);
 		getLoaderManager().initLoader(LOADER_COMMENTS_ID, args, this);
 	}
 

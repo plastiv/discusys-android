@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
 import com.slobodastudio.discussions.photon.constants.StatsType;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
+import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
@@ -22,13 +23,11 @@ import org.odata4j.core.OEntity;
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class UploadService extends IntentService {
 
-	public static final String ACTION_UPLOAD = "com.slobodastudio.action.upload";
 	public static final String EXTRA_DISCUSSION_ID = "intent.extra.key.EXTRA_DISCUSSION_ID";
 	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE = "intent.extra.key.EXTRA_VALUE";
 	public static final int TYPE_INSERT_DESCRIPTION = 0x3;
-	public static final int TYPE_INSERT_POINT = 0x0;
 	public static final int TYPE_INSERT_POINT_AND_DESCRIPTION = 0x4;
 	public static final int TYPE_UPDATE_DESCRIPTION = 0x2;
 	public static final int TYPE_UPDATE_POINT = 0x1;
@@ -72,20 +71,10 @@ public class UploadService extends IntentService {
 		}
 	}
 
-	private static void notifyPhotonStructureChanged(final ResultReceiver photonReceiver, final int topicId) {
-
-		logd("[notifyPhoton] changed topic id: " + topicId + ", photonReceiver: " + photonReceiver);
-		if (photonReceiver != null) {
-			final Bundle bundle = new Bundle();
-			bundle.putInt(SyncResultReceiver.EXTRA_TOPIC_ID, topicId);
-			photonReceiver.send(SyncResultReceiver.STATUS_STRUCTURE_CHANGED, bundle);
-		}
-	}
-
 	@Override
 	protected void onHandleIntent(final Intent intent) {
 
-		if (!intent.getAction().equals(ACTION_UPLOAD)) {
+		if (!IntentAction.UPLOAD.equals(intent.getAction())) {
 			throw new IllegalArgumentException("Service was started with unknown intent: "
 					+ intent.getAction());
 		}
@@ -112,9 +101,6 @@ public class UploadService extends IntentService {
 		logd("[onHandleIntent] intent: " + intent.toString());
 		try {
 			switch (intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE)) {
-				case TYPE_INSERT_POINT:
-					insertPoint(intent);
-					break;
 				case TYPE_INSERT_POINT_AND_DESCRIPTION:
 					insertPointAndDescription(intent);
 					break;
@@ -160,22 +146,6 @@ public class UploadService extends IntentService {
 		logd("[insertDescription] new description id: " + newId);
 		description.setId(newId);
 		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
-	}
-
-	@Deprecated
-	private void insertPoint(final Intent intent) {
-
-		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
-		Point point = new Point(pointBundle);
-		logd("[insertPoint] " + point.toMyString());
-		OdataWriteClient odataWrite = new OdataWriteClient(this);
-		OEntity entity = odataWrite.insertPoint(point);
-		int newPointId = (Integer) entity.getProperty(Points.Columns.ID).getValue();
-		logd("[insertPoint] new point id: " + newPointId);
-		point.setId(newPointId);
-		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), point
-				.getId());
-		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
 	}
 
 	private void insertPointAndDescription(final Intent intent) {
@@ -227,7 +197,6 @@ public class UploadService extends IntentService {
 		logd("[updatePoint] " + point.toMyString());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
 		odataWrite.updatePoint(point);
-		// TODO: send another event to photon
 		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), point
 				.getId());
 		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {

@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
+import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
@@ -16,7 +17,6 @@ import android.util.Log;
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class DeleteService extends IntentService {
 
-	public static final String ACTION_DELETE = "com.slobodastudio.action.delete";
 	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE_ID = "intent.extra.key.EXTRA_VALUE_ID";
@@ -49,7 +49,7 @@ public class DeleteService extends IntentService {
 	@Override
 	protected void onHandleIntent(final Intent intent) {
 
-		if (!intent.getAction().equals(ACTION_DELETE)) {
+		if (!IntentAction.DELETE.equals(intent.getAction())) {
 			throw new IllegalArgumentException("Service was started with unknown intent: "
 					+ intent.getAction());
 		}

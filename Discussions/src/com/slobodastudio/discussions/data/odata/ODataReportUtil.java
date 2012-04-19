@@ -20,6 +20,12 @@ import org.odata4j.edm.EdmSimpleType;
 
 public class ODataReportUtil {
 
+	/** A private Constructor prevents class from instantiating. */
+	private ODataReportUtil() {
+
+		throw new UnsupportedOperationException("Class is prevented from instantiation");
+	}
+
 	public static void reportEntity(final String caption, final OEntity entity) {
 
 		report(caption);

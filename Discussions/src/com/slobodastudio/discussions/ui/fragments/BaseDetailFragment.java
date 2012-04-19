@@ -1,6 +1,6 @@
 package com.slobodastudio.discussions.ui.fragments;
 
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.ExtraKey;
 
 import android.content.ContentUris;
 import android.net.Uri;
@@ -15,18 +15,18 @@ import com.actionbarsherlock.app.SherlockFragment;
 public abstract class BaseDetailFragment extends SherlockFragment {
 
 	protected static final int NO_SELECTION_ID = -1;
-	private final Uri baseUri;
+	private final Uri mBaseUri;
 
 	public BaseDetailFragment(final Uri baseUri) {
 
 		super();
-		this.baseUri = baseUri;
+		this.mBaseUri = baseUri;
 	}
 
 	public Uri getDetailsUri() {
 
-		if (getArguments().containsKey(IntentExtrasKey.ID)) {
-			return ContentUris.withAppendedId(baseUri, getArguments().getInt(IntentExtrasKey.ID,
+		if (getArguments().containsKey(ExtraKey.ID)) {
+			return ContentUris.withAppendedId(mBaseUri, getArguments().getInt(ExtraKey.ID,
 					NO_SELECTION_ID));
 		}
 		return getActivity().getIntent().getData();
@@ -34,7 +34,7 @@ public abstract class BaseDetailFragment extends SherlockFragment {
 
 	public int getShownId() {
 
-		return getArguments().getInt(IntentExtrasKey.ID);
+		return getArguments().getInt(ExtraKey.ID);
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public abstract class BaseDetailFragment extends SherlockFragment {
 	public void setArgumentId(final int id) {
 
 		Bundle args = new Bundle();
-		args.putInt(IntentExtrasKey.ID, id);
+		args.putInt(ExtraKey.ID, id);
 		setArguments(args);
 	}
 }

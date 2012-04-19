@@ -3,7 +3,7 @@ package com.slobodastudio.discussions.ui.fragments;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.ExtraKey;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -67,7 +67,7 @@ public class SessionsListFragment extends SherlockListFragment implements
 
 		super.onListItemClick(l, v, position, id);
 		Intent intent = new Intent(Intent.ACTION_VIEW, Seats.CONTENT_URI);
-		intent.putExtra(IntentExtrasKey.SESSION_ID, getItemId(position));
+		intent.putExtra(ExtraKey.SESSION_ID, getItemId(position));
 		startActivity(intent);
 	}
 

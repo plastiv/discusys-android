@@ -1,9 +1,12 @@
 package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.odata.OdataReadClient;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
+import com.slobodastudio.discussions.ui.IntentAction;
+import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
@@ -17,16 +20,13 @@ import com.sun.jersey.api.client.ClientHandlerException;
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class DownloadService extends IntentService {
 
-	public static final String ACTION_DOWNLOAD = "com.slobodastudio.action.download";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE_ID = "intent.extra.key.EXTRA_VALUE_ID";
 	public static final int TYPE_ALL = 0x0;
 	public static final int TYPE_DESCRIPTION_ITEM = 0x6;
 	public static final int TYPE_DESCRIPTIONS = 0x5;
-	public static final int TYPE_DISCUSSIONS = 0x3;
 	public static final int TYPE_POINT = 0x1;
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
-	public static final int TYPE_TOPICS = 0x4;
 	public static final int TYPE_UPDATE_POINT = 0x7;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = DownloadService.class.getSimpleName();
@@ -47,10 +47,6 @@ public class DownloadService extends IntentService {
 				return "updated point";
 			case TYPE_POINT_FROM_TOPIC:
 				return "points for topic";
-			case TYPE_DISCUSSIONS:
-				return "discussions";
-			case TYPE_TOPICS:
-				return "topics";
 			case TYPE_DESCRIPTIONS:
 				return "descriptions";
 			case TYPE_DESCRIPTION_ITEM:
@@ -77,7 +73,7 @@ public class DownloadService extends IntentService {
 	@Override
 	protected void onHandleIntent(final Intent intent) {
 
-		if (!intent.getAction().equals(ACTION_DOWNLOAD)) {
+		if (!IntentAction.DOWNLOAD.equals(intent.getAction())) {
 			throw new IllegalArgumentException("Service was started with unknown intent: "
 					+ intent.getAction());
 		}
@@ -92,8 +88,19 @@ public class DownloadService extends IntentService {
 		}
 		final ResultReceiver receiver = intent
 				.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
-		if (receiver != null) {
-			receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);
+		boolean connected = ConnectivityUtil.isNetworkConnected(this);
+		if (connected) {
+			if (receiver != null) {
+				receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);
+			}
+		} else {
+			if (receiver != null) {
+				final Bundle bundle = new Bundle();
+				bundle.putString(Intent.EXTRA_TEXT, getString(R.string.text_error_network_off));
+				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
+			}
+			stopSelf();
+			return;
 		}
 		logd("[onHandleIntent] intent: " + intent.toString() + ", receiver: " + receiver);
 		try {
@@ -110,12 +117,6 @@ public class DownloadService extends IntentService {
 				case TYPE_POINT_FROM_TOPIC:
 					downloadPointsFromTopic(intent);
 					break;
-				case TYPE_DISCUSSIONS:
-					downloadDiscussions();
-					break;
-				case TYPE_TOPICS:
-					downloadTopics();
-					break;
 				case TYPE_DESCRIPTIONS:
 					downloadDescriptions();
 					break;
@@ -130,8 +131,7 @@ public class DownloadService extends IntentService {
 			MyLog.e(TAG, "[onHandleIntent] ClientHandlerException. Intent action: " + intent.getAction(), e);
 			if (receiver != null) {
 				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT,
-						"Network error. Check if wifi is on and server is working.");
+				bundle.putString(Intent.EXTRA_TEXT, getString(R.string.text_error_client_handler));
 				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
 			}
 			stopSelf();
@@ -140,8 +140,9 @@ public class DownloadService extends IntentService {
 			MyLog.e(TAG, "[onHandleIntent] DataIoException. Intent action: " + intent.getAction(), e);
 			if (receiver != null) {
 				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT, "Data structure error while downloading "
-						+ getTypeAsString(intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE)));
+				int downloadType = intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE);
+				String errorMsg = getString(R.string.text_error_database_io, getTypeAsString(downloadType));
+				bundle.putString(Intent.EXTRA_TEXT, errorMsg);
 				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
 			}
 			stopSelf();
@@ -151,7 +152,7 @@ public class DownloadService extends IntentService {
 			if (receiver != null) {
 				// Pass back error to surface listener
 				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT, e.toString());
+				bundle.putString(Intent.EXTRA_TEXT, e.getMessage());
 				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
 			}
 			stopSelf();
@@ -205,16 +206,6 @@ public class DownloadService extends IntentService {
 		logd("[downloadDescriptions] descriptions completed");
 	}
 
-	@Deprecated
-	private void downloadDiscussions() {
-
-		logd("[downloadDiscussions]");
-		OdataReadClient odataClient = new OdataReadClient(this);
-		// topic will download related discussions
-		odataClient.refreshTopics();
-		logd("[downloadTopics] topics and discussions completed");
-	}
-
 	private void downloadPoint(final Intent intent) {
 
 		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
@@ -235,15 +226,6 @@ public class DownloadService extends IntentService {
 		logd("[downloadPointsFromTopic] topic id: " + topicId);
 		OdataReadClient odata = new OdataReadClient(this);
 		odata.updatePointsFromTopic(topicId);
-	}
-
-	@Deprecated
-	private void downloadTopics() {
-
-		logd("[downloadTopics]");
-		OdataReadClient odataClient = new OdataReadClient(this);
-		odataClient.refreshTopics();
-		logd("[downloadTopics] topics completed");
 	}
 
 	private void updatePoint(final Intent intent) {

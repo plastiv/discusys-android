@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.photon.constants;
 
+/** Device type for a time line and SPSS integration */
 public class DeviceType {
 
 	public static final int ANDROID = 0;

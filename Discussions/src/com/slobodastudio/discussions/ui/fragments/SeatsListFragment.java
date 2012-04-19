@@ -8,7 +8,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTo
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.photon.constants.DeviceType;
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.ExtraKey;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -57,7 +57,7 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 		if (extras == null) {
 			throw new NullPointerException("Extras was null");
 		}
-		if (!extras.containsKey(IntentExtrasKey.SESSION_ID)) {
+		if (!extras.containsKey(ExtraKey.SESSION_ID)) {
 			throw new IllegalArgumentException("Extras doesnt contain session id");
 		}
 	}
@@ -121,8 +121,6 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 		int seatId = getItemId(position);
 		int color = getItemColor(position);
 		createExperientUser(seatId, color);
-		// Intent intent = createDiscussionIntent(seatId);
-		// startActivity(intent);
 	}
 
 	@Override
@@ -176,11 +174,11 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 		validateExtras(extras);
 		Uri uri = Persons.buildDiscussionUri(personId);
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-		int sessionId = extras.getInt(IntentExtrasKey.SESSION_ID, Integer.MIN_VALUE);
-		intent.putExtra(IntentExtrasKey.SESSION_ID, sessionId);
-		intent.putExtra(IntentExtrasKey.PERSON_ID, personId);
-		intent.putExtra(IntentExtrasKey.PERSON_NAME, personName);
-		intent.putExtra(IntentExtrasKey.PERSON_COLOR, personColor);
+		int sessionId = extras.getInt(ExtraKey.SESSION_ID, Integer.MIN_VALUE);
+		intent.putExtra(ExtraKey.SESSION_ID, sessionId);
+		intent.putExtra(ExtraKey.PERSON_ID, personId);
+		intent.putExtra(ExtraKey.PERSON_NAME, personName);
+		intent.putExtra(ExtraKey.PERSON_COLOR, personColor);
 		return intent;
 	}
 
@@ -220,7 +218,7 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 	private Intent createExperientUser2(final int seatId, final String userName, final int color) {
 
 		Bundle extras = getActivity().getIntent().getExtras();
-		int sessionId = extras.getInt(IntentExtrasKey.SESSION_ID, Integer.MIN_VALUE);
+		int sessionId = extras.getInt(ExtraKey.SESSION_ID, Integer.MIN_VALUE);
 		String where = Persons.Columns.SEAT_ID + "=" + seatId + " AND " + Persons.Columns.SESSION_ID + "="
 				+ sessionId;
 		Cursor cur = getActivity().getContentResolver().query(Persons.CONTENT_URI, null, where, null, null);
@@ -306,8 +304,8 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 
 	private class ParamStructure {
 
-		int personColor;
-		String personName;
-		int seatId;
+		private int personColor;
+		private String personName;
+		private int seatId;
 	}
 }

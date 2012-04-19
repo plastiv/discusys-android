@@ -4,7 +4,7 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.photon.DiscussionUser;
 import com.slobodastudio.discussions.photon.PhotonServiceCallback;
 import com.slobodastudio.discussions.photon.constants.PhotonConstants;
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.fragments.PointsFragment;
 
 import android.os.Bundle;
@@ -19,10 +19,10 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 
 	private static final String TAG = PointsActivity.class.getSimpleName();
 	PointsFragment mFragment;
-	private int discussionId;
-	private int personId;
-	private String personName;
-	private int topicId;
+	private int mDiscussionId;
+	private int mPersonId;
+	private String mPersonName;
+	private int mTopicId;
 
 	@Override
 	public void onArgPointChanged(final int pointId) {
@@ -99,9 +99,9 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	public void onRefreshCurrentTopic() {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onRefreshCurrentTopic] topic id: " + topicId);
+			Log.d(TAG, "[onRefreshCurrentTopic] topic id: " + mTopicId);
 		}
-		mServiceHelper.downloadPointsFromTopic(topicId);
+		mServiceHelper.downloadPointsFromTopic(mTopicId);
 	}
 
 	@Override
@@ -131,36 +131,36 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	private void connectPhoton() {
 
 		if (mBound && !mService.getPhotonController().isConnected()) {
-			mService.getPhotonController().connect(discussionId, PhotonConstants.DB_SERVER_ADDRESS,
-					personName, personId);
+			mService.getPhotonController().connect(mDiscussionId, PhotonConstants.DB_SERVER_ADDRESS,
+					mPersonName, mPersonId);
 			mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
 		}
 	}
 
 	private void initFromIntentExtra() {
 
-		if (!getIntent().hasExtra(IntentExtrasKey.PERSON_ID)) {
+		if (!getIntent().hasExtra(ExtraKey.PERSON_ID)) {
 			throw new IllegalStateException("Activity intent was without person id");
 		}
-		if (!getIntent().hasExtra(IntentExtrasKey.TOPIC_ID)) {
+		if (!getIntent().hasExtra(ExtraKey.TOPIC_ID)) {
 			throw new IllegalStateException("Activity intent was without topic id");
 		}
-		if (!getIntent().hasExtra(IntentExtrasKey.DISCUSSION_ID)) {
+		if (!getIntent().hasExtra(ExtraKey.DISCUSSION_ID)) {
 			throw new IllegalStateException("Activity intent was without discussion id");
 		}
-		if (!getIntent().hasExtra(IntentExtrasKey.PERSON_NAME)) {
+		if (!getIntent().hasExtra(ExtraKey.PERSON_NAME)) {
 			throw new IllegalStateException("Activity intent was without person name");
 		}
-		personName = getIntent().getExtras().getString(IntentExtrasKey.PERSON_NAME);
-		personId = getIntent().getExtras().getInt(IntentExtrasKey.PERSON_ID);
-		topicId = getIntent().getExtras().getInt(IntentExtrasKey.TOPIC_ID);
-		if (topicId == -1) {
+		mPersonName = getIntent().getExtras().getString(ExtraKey.PERSON_NAME);
+		mPersonId = getIntent().getExtras().getInt(ExtraKey.PERSON_ID);
+		mTopicId = getIntent().getExtras().getInt(ExtraKey.TOPIC_ID);
+		if (mTopicId == -1) {
 			throw new IllegalStateException("Activity intent has illegal topic id -1");
 		}
-		discussionId = getIntent().getExtras().getInt(IntentExtrasKey.DISCUSSION_ID);
+		mDiscussionId = getIntent().getExtras().getInt(ExtraKey.DISCUSSION_ID);
 		if (DEBUG) {
-			Log.d(TAG, "[initFromIntentExtras] personId: " + personId + ", topicId: " + topicId
-					+ ", discussionId: " + discussionId + ", personName: " + personName);
+			Log.d(TAG, "[initFromIntentExtras] personId: " + mPersonId + ", topicId: " + mTopicId
+					+ ", discussionId: " + mDiscussionId + ", personName: " + mPersonName);
 		}
 	}
 }

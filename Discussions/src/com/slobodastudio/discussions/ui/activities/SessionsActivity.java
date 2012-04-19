@@ -14,8 +14,15 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class SessionsActivity extends BaseActivity {
 
+	// TODO: separate same with PersonsActivity code to one BaseMainActivity
 	private static final String TAG = SessionsActivity.class.getSimpleName();
-	private boolean firstTimeSync = false;
+	private boolean mIsActivityCreated;
+
+	public SessionsActivity() {
+
+		// default values
+		mIsActivityCreated = false;
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
@@ -40,12 +47,13 @@ public class SessionsActivity extends BaseActivity {
 	protected void onControlServiceConnected() {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onControlServiceConnected] action main: " + firstTimeSync + ", isBound: " + mBound);
+			Log.d(TAG, "[onControlServiceConnected] action main: " + mIsActivityCreated + ", isBound: "
+					+ mBound);
 		}
-		if (firstTimeSync && mBound) {
+		if (mIsActivityCreated && mBound) {
 			// when app first run
 			mServiceHelper.downloadAll();
-			firstTimeSync = false;
+			mIsActivityCreated = false;
 		}
 	}
 
@@ -61,7 +69,7 @@ public class SessionsActivity extends BaseActivity {
 			if (savedInstanceState == null) {
 				// first time activity created
 				showCurrentVersionInToast();
-				firstTimeSync = true;
+				mIsActivityCreated = true;
 			}
 		}
 		super.onCreate(savedInstanceState);

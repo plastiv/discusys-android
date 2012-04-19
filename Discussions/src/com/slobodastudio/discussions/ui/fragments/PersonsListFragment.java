@@ -2,7 +2,7 @@ package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
+import com.slobodastudio.discussions.ui.ExtraKey;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -19,7 +19,7 @@ public class PersonsListFragment extends BaseListFragment {
 
 	public PersonsListFragment() {
 
-		super(R.string.text_empty_persons_list, Persons.Columns.NAME, Persons.Columns.ID, Persons.CONTENT_URI);
+		super(R.string.text_empty_persons_list, Persons.Columns.ID, Persons.CONTENT_URI);
 	}
 
 	@Override
@@ -58,9 +58,9 @@ public class PersonsListFragment extends BaseListFragment {
 		super.onListItemClick(l, v, position, id);
 		Uri uri = Persons.buildDiscussionUri(getItemId(position));
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-		intent.putExtra(IntentExtrasKey.PERSON_ID, getItemId(position));
-		intent.putExtra(IntentExtrasKey.PERSON_NAME, getItemName(position));
-		intent.putExtra(IntentExtrasKey.PERSON_COLOR, getItemColor(position));
+		intent.putExtra(ExtraKey.PERSON_ID, getItemId(position));
+		intent.putExtra(ExtraKey.PERSON_NAME, getItemName(position));
+		intent.putExtra(ExtraKey.PERSON_COLOR, getItemColor(position));
 		startActivity(intent);
 	}
 

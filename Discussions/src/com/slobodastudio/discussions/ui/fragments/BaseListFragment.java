@@ -29,30 +29,22 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 	// This is the Adapter being used to display the list's data.
 	protected SimpleCursorAdapter mAdapter;
 	protected final String mColumnId;
-	private final Uri baseUri;
-	private final String mColumnName;
+	private final Uri mBaseUri;
 	private int mCurCheckPosition = 0;
 	private boolean mDualPane;
 	private final int mEmptyListStringId;
 
-	public BaseListFragment(final int mEmptyListStringId, final String mColumnName, final String mColumnId,
-			final Uri baseUri) {
+	public BaseListFragment(final int mEmptyListStringId, final String mColumnId, final Uri baseUri) {
 
 		super();
 		this.mEmptyListStringId = mEmptyListStringId;
-		this.mColumnName = mColumnName;
 		this.mColumnId = mColumnId;
-		this.baseUri = baseUri;
-	}
-
-	public void actionAdd() {
-
-		Log.d(TAG, "[actionAdd]");
+		mBaseUri = baseUri;
 	}
 
 	public void actionEdit(final int valueId) {
 
-		Uri uri = ContentUris.withAppendedId(baseUri, valueId);
+		Uri uri = ContentUris.withAppendedId(mBaseUri, valueId);
 		Intent intent = new Intent(Intent.ACTION_EDIT, uri);
 		Log.d(TAG, "[actionEdit] id: " + valueId + ", intent: " + intent);
 		startActivity(intent);
@@ -221,7 +213,7 @@ public abstract class BaseListFragment extends SherlockListFragment implements
 		} else {
 			// Otherwise we need to launch a new activity to display
 			// the dialog fragment with selected text.
-			Uri detailsUri = ContentUris.withAppendedId(baseUri, valueId);
+			Uri detailsUri = ContentUris.withAppendedId(mBaseUri, valueId);
 			Intent intent = new Intent(Intent.ACTION_VIEW, detailsUri);
 			startActivity(intent);
 		}

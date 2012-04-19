@@ -46,13 +46,23 @@ public class PhotonController implements IPhotonPeerListener {
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int INVALID_POINT_ID = -1;
 	private static final int INVALID_TOPIC_ID = -1;
-	LitePeer peer;
-	Timer timer;
-	private final PhotonServiceCallbackHandler callbackHandler = new PhotonServiceCallbackHandler();
-	private String gameLobbyName;
-	private DiscussionUser localUser;
-	private final SyncResultReceiver mSyncResultReceiver = new SyncResultReceiver(new Handler());
-	private final Hashtable<Integer, DiscussionUser> onlineUsers = new Hashtable<Integer, DiscussionUser>();
+	LitePeer mPeer;
+	Timer mTimer;
+	private final PhotonServiceCallbackHandler mCallbackHandler;
+	private String mGameLobbyName;
+	private DiscussionUser mLocalUser;
+	private final Hashtable<Integer, DiscussionUser> mOnlineUsers;
+	private final SyncResultReceiver mSyncResultReceiver;
+
+	public PhotonController() {
+
+		super();
+		// default values
+		mSyncResultReceiver = new SyncResultReceiver(new Handler());
+		mCallbackHandler = new PhotonServiceCallbackHandler();
+		// TODO: make as a set this list
+		mOnlineUsers = new Hashtable<Integer, DiscussionUser>();
+	}
 
 	private static Integer[] toIntArray(final List<Integer> integerList) {
 
@@ -66,13 +76,13 @@ public class PhotonController implements IPhotonPeerListener {
 	public void connect(final int discussionId, final String dbSrvAddr, final String UsrName,
 			final int usrDbId) {
 
-		gameLobbyName = dbSrvAddr + "discussion#" + discussionId;
-		localUser = new DiscussionUser();
-		localUser.setUserName(UsrName);
-		localUser.setUserId(usrDbId);
-		peer = new LitePeer(this, PhotonConstants.USE_TCP);
-		peer.setSentCountAllowance(5);
-		if (!peer.connect(PhotonConstants.SERVER_URL, PhotonConstants.APPLICATION_NAME)) {
+		mGameLobbyName = dbSrvAddr + "discussion#" + discussionId;
+		mLocalUser = new DiscussionUser();
+		mLocalUser.setUserName(UsrName);
+		mLocalUser.setUserId(usrDbId);
+		mPeer = new LitePeer(this, PhotonConstants.USE_TCP);
+		mPeer.setSentCountAllowance(5);
+		if (!mPeer.connect(PhotonConstants.SERVER_URL, PhotonConstants.APPLICATION_NAME)) {
 			throw new IllegalArgumentException("Can't connect to the server. Server address: "
 					+ PhotonConstants.SERVER_URL + " ; Application name: " + PhotonConstants.APPLICATION_NAME);
 		}
@@ -84,7 +94,7 @@ public class PhotonController implements IPhotonPeerListener {
 
 		if (DebugLevel.ERROR.equals(level)) {
 			Log.e(TAG, message);
-			callbackHandler.onErrorOccured(message);
+			mCallbackHandler.onErrorOccured(message);
 		} else if (DebugLevel.WARNING.equals(level)) {
 			Log.w(TAG, message);
 		} else {
@@ -97,21 +107,21 @@ public class PhotonController implements IPhotonPeerListener {
 	public void disconnect() {
 
 		if (isConnected()) {
-			if (timer == null) {
+			if (mTimer == null) {
 				throw new IllegalStateException("Timer was null at the disconnect point");
 			}
-			if (peer == null) {
+			if (mPeer == null) {
 				throw new IllegalStateException("Peer was null at the disconnect point");
 			}
-			peer.opCustom(DiscussionOperationCode.NOTIFY_LEAVE_USER, null, true);
+			mPeer.opCustom(DiscussionOperationCode.NOTIFY_LEAVE_USER, null, true);
 			// run this method off the ui thread
-			peer.opLeave();
+			mPeer.opLeave();
 		}
 	}
 
 	public PhotonServiceCallbackHandler getCallbackHandler() {
 
-		return callbackHandler;
+		return mCallbackHandler;
 	}
 
 	public ResultReceiver getResultReceiver() {
@@ -121,7 +131,7 @@ public class PhotonController implements IPhotonPeerListener {
 
 	public boolean isConnected() {
 
-		return (peer != null) && (peer.getPeerState() == PeerStateValue.Connected);
+		return (mPeer != null) && (mPeer.getPeerState() == PeerStateValue.Connected);
 	}
 
 	@Override
@@ -142,8 +152,8 @@ public class PhotonController implements IPhotonPeerListener {
 				Integer[] actorsInGame = (Integer[]) event.Parameters.get(LiteEventKey.ActorList.value());
 				ArrayList<Integer> unknownActors = new ArrayList<Integer>();
 				for (Integer i : actorsInGame) {
-					if (i.intValue() != localUser.getActorNumber()) {
-						if (!onlineUsers.containsKey(i)) {
+					if (i.intValue() != mLocalUser.getActorNumber()) {
+						if (!mOnlineUsers.containsKey(i)) {
 							unknownActors.add(i);
 						}
 					}
@@ -155,21 +165,21 @@ public class PhotonController implements IPhotonPeerListener {
 			case DiscussionEventCode.LEAVE:
 				// Event is defined by Lite. Someone left the room.
 				Integer leftActorNumber = (Integer) event.Parameters.get(LiteEventKey.ActorNr.value());
-				callbackHandler.onEventLeave(onlineUsers.get(leftActorNumber));
-				onlineUsers.remove(leftActorNumber);
+				mCallbackHandler.onEventLeave(mOnlineUsers.get(leftActorNumber));
+				mOnlineUsers.remove(leftActorNumber);
 				logUsersOnline();
 				break;
 			case DiscussionEventCode.STRUCTURE_CHANGED: {
 				int personId = (Integer) event.Parameters.get(DiscussionParameterKey.USER_ID);
-				if (personId != localUser.getUserId()) {
+				if (personId != mLocalUser.getUserId()) {
 					int changedTopicId = (Integer) event.Parameters
 							.get(DiscussionParameterKey.CHANGED_TOPIC_ID);
 					if (changedTopicId == INVALID_TOPIC_ID) {
 						// special code. new point was added or deleted
-						callbackHandler.onRefreshCurrentTopic();
+						mCallbackHandler.onRefreshCurrentTopic();
 						break;
 					}
-					callbackHandler.onStructureChanged(changedTopicId);
+					mCallbackHandler.onStructureChanged(changedTopicId);
 				}
 				break;
 			}
@@ -178,7 +188,7 @@ public class PhotonController implements IPhotonPeerListener {
 				if (event.Parameters.containsKey(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR)) {
 					int actorId = (Integer) event.Parameters
 							.get(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR);
-					if (actorId == localUser.getActorNumber()) {
+					if (actorId == mLocalUser.getActorNumber()) {
 						break;
 					}
 				}
@@ -186,10 +196,10 @@ public class PhotonController implements IPhotonPeerListener {
 				int pointId = (Integer) event.Parameters.get(DiscussionParameterKey.ARG_POINT_ID);
 				if (pointId == INVALID_POINT_ID) {
 					// special code. new point was added or deleted
-					callbackHandler.onRefreshCurrentTopic();
+					mCallbackHandler.onRefreshCurrentTopic();
 					break;
 				}
-				callbackHandler.onArgPointChanged(pointId);
+				mCallbackHandler.onArgPointChanged(pointId);
 				break;
 			}
 			case DiscussionEventCode.INSTANT_USER_PLUS_MINUS:
@@ -228,7 +238,7 @@ public class PhotonController implements IPhotonPeerListener {
 				break;
 			case DiscussionOperationCode.JOIN:
 				if (operationResponse.Parameters.containsKey(LiteOpKey.ActorNr.value())) {
-					localUser.setActorNumber(((Integer) operationResponse.Parameters.get(LiteOpKey.ActorNr
+					mLocalUser.setActorNumber(((Integer) operationResponse.Parameters.get(LiteOpKey.ActorNr
 							.value())).intValue());
 				} else {
 					throw new IllegalStateException(
@@ -244,12 +254,12 @@ public class PhotonController implements IPhotonPeerListener {
 					// "Expected an actors list with properties here to update online users");
 				}
 				logUsersOnline();
-				callbackHandler.onConnect();
+				mCallbackHandler.onConnect();
 				break;
 			case DiscussionOperationCode.LEAVE:
-				peer.disconnect();
-				onlineUsers.clear();
-				localUser = null;
+				mPeer.disconnect();
+				mOnlineUsers.clear();
+				mLocalUser = null;
 				break;
 			case DiscussionOperationCode.GET_PROPERTIES:
 				HashMap<Integer, Object> resp = (HashMap<Integer, Object>) operationResponse.Parameters
@@ -282,14 +292,14 @@ public class PhotonController implements IPhotonPeerListener {
 		switch (statusCode) {
 			case Connect:
 				debugReturn(DebugLevel.INFO, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
-						+ peer.getPeerState());
+						+ mPeer.getPeerState());
 				opJoinFromLobby();
 				break;
 			case Disconnect:
 				debugReturn(DebugLevel.INFO, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
-						+ peer.getPeerState());
-				localUser = null;
-				timer.cancel();
+						+ mPeer.getPeerState());
+				mLocalUser = null;
+				mTimer.cancel();
 				break;
 			case DisconnectByServer:
 			case DisconnectByServerLogic:
@@ -308,7 +318,7 @@ public class PhotonController implements IPhotonPeerListener {
 			case SendError:
 			case TimeoutDisconnect:
 				debugReturn(DebugLevel.ERROR, "peerStatusCallback(): " + statusCode.name() + ", peer.state: "
-						+ peer.getPeerState());
+						+ mPeer.getPeerState());
 				break;
 			default:
 				throw new IllegalArgumentException("Unknown status code: " + statusCode.name());
@@ -330,19 +340,19 @@ public class PhotonController implements IPhotonPeerListener {
 		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
 				Object.class);
 		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, changedPointId);
-		structureChangedParameters.put(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR, localUser
+		structureChangedParameters.put(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR, mLocalUser
 				.getActorNumber());
-		return peer.opCustom(DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED, structureChangedParameters,
+		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED, structureChangedParameters,
 				true);
 	}
 
 	public void opJoinFromLobby() {
 
 		HashMap<Byte, Object> actorProperties = new HashMap<Byte, Object>();
-		actorProperties.put(ActorPropertiesKey.NAME, localUser.getUserName());
-		actorProperties.put(ActorPropertiesKey.DB_ID, localUser.getUserId());
+		actorProperties.put(ActorPropertiesKey.NAME, mLocalUser.getUserName());
+		actorProperties.put(ActorPropertiesKey.DB_ID, mLocalUser.getUserId());
 		actorProperties.put(ActorPropertiesKey.DEVICE_TYPE, DeviceType.ANDROID);
-		opJoinFromLobby(gameLobbyName, PhotonConstants.LOBBY, actorProperties, true);
+		opJoinFromLobby(mGameLobbyName, PhotonConstants.LOBBY, actorProperties, true);
 	}
 
 	public boolean opSendNotifyStructureChanged(final int activeTopicId) {
@@ -361,9 +371,9 @@ public class PhotonController implements IPhotonPeerListener {
 				Object.class);
 		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, activeTopicId);
 		structureChangedParameters.put(DiscussionParameterKey.FORCE_SELF_NOTIFICATION, (byte) 1);
-		structureChangedParameters.put(DiscussionParameterKey.USER_ID, localUser.getUserId());
+		structureChangedParameters.put(DiscussionParameterKey.USER_ID, mLocalUser.getUserId());
 		structureChangedParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
-		return peer.opCustom(DiscussionOperationCode.NOTIFY_STRUCTURE_CHANGED, structureChangedParameters,
+		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_STRUCTURE_CHANGED, structureChangedParameters,
 				true);
 	}
 
@@ -385,16 +395,16 @@ public class PhotonController implements IPhotonPeerListener {
 		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, changedTopicId);
 		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEventId);
 		eventStatsParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
-		return peer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
+		return mPeer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
 	}
 
 	private void logUsersOnline() {
 
 		if (DEBUG) {
-			Log.d(TAG, "Users online: " + (onlineUsers.size() + 1));
-			Log.d(TAG, "Local user name: " + localUser.getUserName() + " user id: " + localUser.getUserId()
-					+ " actor num: " + localUser.getActorNumber());
-			for (DiscussionUser user : onlineUsers.values()) {
+			Log.d(TAG, "Users online: " + (mOnlineUsers.size() + 1));
+			Log.d(TAG, "Local user name: " + mLocalUser.getUserName() + " user id: " + mLocalUser.getUserId()
+					+ " actor num: " + mLocalUser.getActorNumber());
+			for (DiscussionUser user : mOnlineUsers.values()) {
 				Log.d(TAG, "Online user name: " + user.getUserName() + " user id: " + user.getUserId()
 						+ " actor num: " + user.getActorNumber());
 			}
@@ -416,7 +426,7 @@ public class PhotonController implements IPhotonPeerListener {
 		joinParameters.put(LiteLobbyOpKey.LobbyName, lobbyName);
 		joinParameters.put(LiteOpKey.ActorProperties.value(), actorProperties);
 		joinParameters.put(LiteOpKey.Broadcast.value(), broadcastActorProperties);
-		return peer.opCustom(LiteOpCode.Join, joinParameters, true);
+		return mPeer.opCustom(LiteOpCode.Join, joinParameters, true);
 	}
 
 	private boolean opRequestActorsInfo(final List<Integer> unknownActorsNumbers) {
@@ -431,13 +441,13 @@ public class PhotonController implements IPhotonPeerListener {
 				Object.class);
 		opRequestParameters.put(LiteOpParameterKey.ACTORS, toIntArray(unknownActorsNumbers));
 		opRequestParameters.put(LiteOpParameterKey.PROPERTIES, Byte.valueOf(LiteOpPropertyType.ACTOR));
-		return peer.opCustom(LiteOpCode.GetProperties, opRequestParameters, true);
+		return mPeer.opCustom(LiteOpCode.GetProperties, opRequestParameters, true);
 	}
 
 	private void startPeerUpdateTimer() {
 
 		// FIXME: stop this timer
-		timer = new Timer("main loop");
+		mTimer = new Timer("main loop");
 		TimerTask timerTask = new TimerTask() {
 
 			long lastDispatchTime = 0xFFFFFFFF;
@@ -446,7 +456,7 @@ public class PhotonController implements IPhotonPeerListener {
 			@Override
 			public void run() {
 
-				if (peer == null) {
+				if (mPeer == null) {
 					throw new IllegalStateException("Run timer on null peer");
 				}
 				// test if it's time to dispatch all incoming commands to the application. Dispatching
@@ -455,7 +465,7 @@ public class PhotonController implements IPhotonPeerListener {
 					lastDispatchTime = System.currentTimeMillis();
 					// dispatch all incoming commands
 					try {
-						while (peer.dispatchIncomingCommands()) {
+						while (mPeer.dispatchIncomingCommands()) {
 							// wait until false in dispatchIncomingCommands
 						}
 					} catch (ConcurrentModificationException e) {
@@ -468,13 +478,13 @@ public class PhotonController implements IPhotonPeerListener {
 				// in the settings menu.
 				if ((System.currentTimeMillis() - lastSendTime) > PhotonConstants.SEND_INTERVAL) {
 					lastSendTime = System.currentTimeMillis();
-					if (peer != null) {
-						peer.sendOutgoingCommands();
+					if (mPeer != null) {
+						mPeer.sendOutgoingCommands();
 					}
 				}
 			}
 		};
-		timer.schedule(timerTask, 0, 5);
+		mTimer.schedule(timerTask, 0, 5);
 	}
 
 	private void updateOnlineUsers(final HashMap<Integer, Object> actorsProperties) {
@@ -487,9 +497,9 @@ public class PhotonController implements IPhotonPeerListener {
 			HashMap<Byte, Object> actorProperties = (HashMap<Byte, Object>) pairs.getValue();
 			newUser.setUserId((Integer) actorProperties.get(Byte.valueOf((byte) 2)));
 			newUser.setUserName((String) actorProperties.get(Byte.valueOf((byte) 1)));
-			onlineUsers.put(newUser.getActorNumber(), newUser);
+			mOnlineUsers.put(newUser.getActorNumber(), newUser);
 			it.remove(); // avoids a ConcurrentModificationException
-			callbackHandler.onEventJoin(newUser);
+			mCallbackHandler.onEventJoin(newUser);
 		}
 	}
 

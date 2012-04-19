@@ -2,37 +2,45 @@ package com.slobodastudio.discussions.photon;
 
 public class DiscussionUser {
 
-	private int actorNumber = -10;
-	private int userId = -10;
-	private String userName = null;
+	private int mActorNumber;
+	private int mUserId;
+	private String mUserName;
+
+	public DiscussionUser() {
+
+		// default values
+		mActorNumber = Integer.MIN_VALUE;
+		mUserId = Integer.MIN_VALUE;
+		mUserName = "Unknown user";
+	}
 
 	public int getActorNumber() {
 
-		return actorNumber;
+		return mActorNumber;
 	}
 
 	public int getUserId() {
 
-		return userId;
+		return mUserId;
 	}
 
 	public String getUserName() {
 
-		return userName;
+		return mUserName;
 	}
 
 	public void setActorNumber(final int actorNumber) {
 
-		this.actorNumber = actorNumber;
+		this.mActorNumber = actorNumber;
 	}
 
 	public void setUserId(final int userId) {
 
-		this.userId = userId;
+		this.mUserId = userId;
 	}
 
 	public void setUserName(final String userName) {
 
-		this.userName = userName;
+		this.mUserName = userName;
 	}
 }

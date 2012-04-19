@@ -4,8 +4,8 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
-import com.slobodastudio.discussions.ui.IntentExtrasKey;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -48,25 +48,30 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 	private static final int SELECTED_USERS = 1;
 	private static final String TAG = PointsFragment.class.getSimpleName();
 	private static final Uri URI = Points.CONTENT_URI;
-	private int discussionId;
 	private ActionMode mActionMode;
-	private final String mColumnId = Points.Columns.ID;
-	private final String mColumnName = Points.Columns.NAME;
 	private int mCurPosition;
+	private int mDiscussionId;
 	private boolean mDualPane;
+	private boolean mEmptyFragmentShownOnActionBarClose;
 	private SimpleCursorAdapter mOtherPointsAdapter;
 	private ListView mOtherPointsList;
-	private int mSelectedList = SELECTED_NONE;
+	private int mPersonId;
+	private int mSelectedList;
+	private int mTopicId;
 	private SimpleCursorAdapter mUserPointsAdapter;
 	private ListView mUserPointsList;
-	private int personId;
-	private boolean showEmptyOnClose = true;
-	private int topicId;
+
+	public PointsFragment() {
+
+		// initialize default values
+		mEmptyFragmentShownOnActionBarClose = true;
+		mSelectedList = SELECTED_NONE;
+	}
 
 	private static Intent createViewPointIntent(final int pointId) {
 
 		Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(pointId));
-		intent.putExtra(IntentExtrasKey.POINT_ID, pointId);
+		intent.putExtra(ExtraKey.POINT_ID, pointId);
 		return intent;
 	}
 
@@ -119,8 +124,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				switch (viewId) {
 					case R.id.image_person_color:
 						ImageView colorView = (ImageView) view;
-						int color = getActivity().getIntent().getExtras()
-								.getInt(IntentExtrasKey.PERSON_COLOR);
+						int color = getActivity().getIntent().getExtras().getInt(ExtraKey.PERSON_COLOR);
 						colorView.setBackgroundColor(color);
 						return true;
 					case R.id.list_item_text:
@@ -169,10 +173,10 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				mUserPointsList.setItemChecked(position, true);
 				mOtherPointsList.clearChoices();
 				if (mActionMode != null) {
-					showEmptyOnClose = false;
+					mEmptyFragmentShownOnActionBarClose = false;
 					mActionMode.finish();
 				}
-				onActionEdit(id, position);
+				onActionEdit(position);
 			}
 		});
 		// set up click listener
@@ -186,10 +190,10 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				mOtherPointsList.setItemChecked(position, true);
 				mUserPointsList.clearChoices();
 				if (mActionMode != null) {
-					showEmptyOnClose = false;
+					mEmptyFragmentShownOnActionBarClose = false;
 					mActionMode.finish();
 				}
-				onActionView(id, position);
+				onActionView(position);
 			}
 		});
 		// Prepare the loader. Either re-connect with an existing one, or start a new one.
@@ -209,14 +213,18 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			mUserPointsList.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 			mOtherPointsList.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 			// TODO: Make sure our UI is in the correct state.
-			if (mSelectedList != SELECTED_NONE) {
-				if (mSelectedList == SELECTED_USERS) {
+			switch (mSelectedList) {
+				case SELECTED_NONE:
+					// nothing to do
+					break;
+				case SELECTED_USERS:
 					mUserPointsList.setItemChecked(mCurPosition, true);
-				} else if (mSelectedList == SELECTED_OTHERS) {
+					break;
+				case SELECTED_OTHERS:
 					mOtherPointsList.setItemChecked(mCurPosition, true);
-				} else {
+					break;
+				default:
 					throw new IllegalStateException("Unknown selected list id: " + mSelectedList);
-				}
 			}
 			// show empty details "select point to see"
 			showEmtyDetails();
@@ -233,13 +241,13 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		switch (id) {
 			case LOADER_USER_POINTS_ID: {
 				String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "=? ";
-				String[] args = { String.valueOf(topicId), String.valueOf(personId) };
+				String[] args = { String.valueOf(mTopicId), String.valueOf(mPersonId) };
 				String sortOrder = BaseColumns._ID + " DESC";
 				return new CursorLoader(getActivity(), URI, null, where, args, sortOrder);
 			}
 			case LOADER_OTHER_POINTS_ID: {
 				// String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "!=? ";
-				String[] args = { String.valueOf(topicId), String.valueOf(personId) };
+				String[] args = { String.valueOf(mTopicId), String.valueOf(mPersonId) };
 				String sortOrder = Points.TABLE_NAME + "." + BaseColumns._ID + " DESC";
 				return new CursorLoader(getActivity(), Points.CONTENT_AND_PERSON_URI, null, null, args,
 						sortOrder);
@@ -319,12 +327,12 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		}
 	}
 
-	void onActionEdit(final long id, final int position) {
+	void onActionEdit(final int position) {
 
 		int pointId;
 		if ((mUserPointsAdapter.getCursor() != null)
 				&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
-			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
+			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
 			pointId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
 		} else {
 			pointId = PointDetailFragment.INVALID_POINT_ID;
@@ -355,12 +363,12 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		}
 	}
 
-	void onActionView(final long id, final int position) {
+	void onActionView(final int position) {
 
 		int valueId;
 		if ((mOtherPointsAdapter.getCursor() != null)
 				&& mOtherPointsAdapter.getCursor().moveToPosition(position)) {
-			int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(mColumnId);
+			int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
 			valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
 		} else {
 			valueId = PointDetailFragment.INVALID_POINT_ID;
@@ -405,43 +413,43 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			// For some reason the requested item isn't available, do nothing
 			throw new NullPointerException("Cursor was null, cant get a value id");
 		}
-		int columnIndex = cursor.getColumnIndexOrThrow(mColumnId);
+		int columnIndex = cursor.getColumnIndexOrThrow(Points.Columns.ID);
 		return cursor.getInt(columnIndex);
 	}
 
 	private Intent createEditPointIntent(final int pointId) {
 
 		Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(pointId));
-		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
-		intent.putExtra(IntentExtrasKey.POINT_ID, pointId);
+		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
+		intent.putExtra(ExtraKey.POINT_ID, pointId);
 		return intent;
 	}
 
 	private Intent createNewPointIntent() {
 
 		Intent intent = new Intent(IntentAction.NEW, Points.CONTENT_URI);
-		intent.putExtra(IntentExtrasKey.PERSON_ID, personId);
-		intent.putExtra(IntentExtrasKey.TOPIC_ID, topicId);
-		intent.putExtra(IntentExtrasKey.DISCUSSION_ID, discussionId);
+		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
+		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
+		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
 		return intent;
 	}
 
 	private void initFromIntentExtra() {
 
-		if (!getActivity().getIntent().hasExtra(IntentExtrasKey.PERSON_ID)) {
+		if (!getActivity().getIntent().hasExtra(ExtraKey.PERSON_ID)) {
 			throw new IllegalStateException("Activity intent was without person id");
 		}
-		if (!getActivity().getIntent().hasExtra(IntentExtrasKey.TOPIC_ID)) {
+		if (!getActivity().getIntent().hasExtra(ExtraKey.TOPIC_ID)) {
 			throw new IllegalStateException("Activity intent was without topic id");
 		}
-		if (!getActivity().getIntent().hasExtra(IntentExtrasKey.DISCUSSION_ID)) {
+		if (!getActivity().getIntent().hasExtra(ExtraKey.DISCUSSION_ID)) {
 			throw new IllegalStateException("Activity intent was without discussion id");
 		}
-		discussionId = getActivity().getIntent().getExtras().getInt(IntentExtrasKey.DISCUSSION_ID);
-		personId = getActivity().getIntent().getExtras().getInt(IntentExtrasKey.PERSON_ID);
-		topicId = getActivity().getIntent().getExtras().getInt(IntentExtrasKey.TOPIC_ID);
+		mDiscussionId = getActivity().getIntent().getExtras().getInt(ExtraKey.DISCUSSION_ID);
+		mPersonId = getActivity().getIntent().getExtras().getInt(ExtraKey.PERSON_ID);
+		mTopicId = getActivity().getIntent().getExtras().getInt(ExtraKey.TOPIC_ID);
 		if (DEBUG) {
-			Log.d(TAG, "[initFromIntentExtras] personId: " + personId + ", topicId: " + topicId);
+			Log.d(TAG, "[initFromIntentExtras] personId: " + mPersonId + ", topicId: " + mTopicId);
 		}
 	}
 
@@ -488,15 +496,15 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			} else {
 				inflater.inflate(R.menu.actionbar_point_new, menu);
 			}
-			showEmptyOnClose = true;
+			mEmptyFragmentShownOnActionBarClose = true;
 			return true;
 		}
 
 		@Override
 		public void onDestroyActionMode(final ActionMode mode) {
 
-			Log.d(TAG, "[onDestroyActionMode] showEmptyOnClose: " + showEmptyOnClose);
-			if (showEmptyOnClose) {
+			Log.d(TAG, "[onDestroyActionMode] showEmptyOnClose: " + mEmptyFragmentShownOnActionBarClose);
+			if (mEmptyFragmentShownOnActionBarClose) {
 				showEmtyDetails();
 			}
 			mActionMode = null;

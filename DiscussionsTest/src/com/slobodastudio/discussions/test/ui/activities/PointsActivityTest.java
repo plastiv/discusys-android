@@ -9,9 +9,11 @@ import com.slobodastudio.discussions.ui.activities.PointsActivity;
 import com.slobodastudio.discussions.ui.activities.TopicsActivity;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.test.ActivityInstrumentationTestCase2;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ListView;
 
@@ -87,13 +89,13 @@ public class PointsActivityTest extends ActivityInstrumentationTestCase2<Persons
 
 		setLandscapeOrientation();
 		solo.clickOnView(solo.getView(R.id.menu_new));
-		assertEditDetailsAreShown();
+		assertNewDetailsAreShown();
 		assertEditTextsAreEmpty();
 		solo.goBack();
 		solo.waitForActivity(testedActivityName);
 		setPortraitOrientation();
 		solo.clickOnView(solo.getView(R.id.menu_new));
-		assertEditDetailsAreShown();
+		assertNewDetailsAreShown();
 		assertEditTextsAreEmpty();
 	}
 
@@ -126,11 +128,11 @@ public class PointsActivityTest extends ActivityInstrumentationTestCase2<Persons
 		// discussions
 		solo.clickInList(2);
 		solo.waitForActivity(DiscussionsActivity.class.getSimpleName());
-		// solo.assertCurrentActivity("Failure to start activity", DiscussionsActivity.class.getSimpleName());
+		solo.assertCurrentActivity("Failure to start activity", DiscussionsActivity.class.getSimpleName());
 		// topics
 		solo.clickInList(1);
 		solo.waitForActivity(TopicsActivity.class.getSimpleName());
-		// solo.assertCurrentActivity("Failure to start activity", TopicsActivity.class.getSimpleName());
+		solo.assertCurrentActivity("Failure to start activity", TopicsActivity.class.getSimpleName());
 		// points
 		solo.clickInList(1);
 		solo.waitForActivity(testedActivityClass.getSimpleName());
@@ -148,7 +150,20 @@ public class PointsActivityTest extends ActivityInstrumentationTestCase2<Persons
 		assertTrue("Details checked box", solo.getCurrentCheckBoxes().get(0).isEnabled());
 		assertTrue("Details spinner", solo.getCurrentSpinners().size() == 1);
 		assertTrue("Details spinner", solo.getCurrentSpinners().get(0).isEnabled());
-		assertTrue("Details buttons", solo.getCurrentButtons().size() == 3);
+		if (getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+			// should be 2 action bar buttons on screen + check box
+			if ((getActivity().getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) > Configuration.SCREENLAYOUT_SIZE_NORMAL) {
+				// should be 3 action bar buttons on screen + check box
+				Log.d("test", "screenLayout: " + getActivity().getResources().getConfiguration().screenLayout);
+				assertTrue("Details buttons, actual: " + solo.getCurrentButtons().size(), solo
+						.getCurrentButtons().size() == 4);
+			} else {
+				assertTrue("Details buttons", solo.getCurrentButtons().size() == 3);
+			}
+		} else {
+			// should be 3 action bar buttons on screen + check box
+			assertTrue("Details buttons", solo.getCurrentButtons().size() == 4);
+		}
 	}
 
 	private void assertEditTextsAreEmpty() {
@@ -165,6 +180,21 @@ public class PointsActivityTest extends ActivityInstrumentationTestCase2<Persons
 		assertFalse("Edit text was not empty", TextUtils.isEmpty(pointName.getText()));
 		EditText pointDescr = solo.getCurrentEditTexts().get(1);
 		assertFalse("Edit text was not empty", TextUtils.isEmpty(pointDescr.getText()));
+	}
+
+	private void assertNewDetailsAreShown() {
+
+		solo.waitForActivity(PointDetailsActivity.class.getSimpleName());
+		assertTrue("Details list", solo.getCurrentListViews().size() == 1);
+		assertTrue("Details edit text", solo.getCurrentEditTexts().size() == 2);
+		assertTrue("Details edit text", solo.getCurrentEditTexts().get(0).isEnabled());
+		assertTrue("Details edit text", solo.getCurrentEditTexts().get(1).isEnabled());
+		assertTrue("Details checked box", solo.getCurrentCheckBoxes().size() == 1);
+		assertTrue("Details checked box", solo.getCurrentCheckBoxes().get(0).isEnabled());
+		assertTrue("Details spinner", solo.getCurrentSpinners().size() == 1);
+		assertTrue("Details spinner", solo.getCurrentSpinners().get(0).isEnabled());
+		// should be 2 action bar buttons on screen + check box
+		assertTrue("Details buttons", solo.getCurrentButtons().size() == 3);
 	}
 
 	private void assertProgressBarIsRollingAndFinished() {
