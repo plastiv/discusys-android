@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.photon.constants;
 
 public class StatsType {
 
+	public static final byte ARG_POINT_TOPIC_CHANGED = 11;
 	public static final byte BADGE_CREATED = 2;
 	public static final byte BADGE_EDITED = 3;
 	public static final byte CLUSTER_CREATED = 4;
@@ -45,6 +46,8 @@ public class StatsType {
 				return "FREE_DRAWING_CREATED";
 			case FREE_DRAWING_REMOVED:
 				return "FREE_DRAWING_REMOVED";
+			case ARG_POINT_TOPIC_CHANGED:
+				return "ARG_POINT_TOPIC_CHANGED";
 			default:
 				throw new IllegalArgumentException("Inknown stats type :" + statsType);
 		}
