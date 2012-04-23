@@ -25,7 +25,7 @@ public class ConnectivityUtil {
 		NetworkInfo wifi = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 		NetworkInfo mobile = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 		if (DEBUG) {
-			Log.d(TAG, "Connected wifi: " + wifi.isConnected() + " mobile: " + mobile.isConnected());
+			Log.d(TAG, "Connected wifi: " + wifi.isConnected() + ", mobile: " + mobile.isConnected());
 		}
 		return wifi.isConnected() || mobile.isConnected();
 	}

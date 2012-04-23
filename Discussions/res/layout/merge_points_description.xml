@@ -22,7 +22,7 @@
         android:id="@+id/tv_shoose_a_side_code"
         style="@style/DescriptionItemHeader"
         android:layout_below="@id/et_point_name"
-        android:text="@string/text_shoose_a_side_code" />
+        android:text="@string/text_point_shoose_a_side_code" />
 
     <Spinner
         android:id="@+id/spinner_point_agreement_code"
@@ -38,7 +38,7 @@
         android:id="@+id/tv_shared_to_public"
         style="@style/DescriptionItemHeader"
         android:layout_below="@id/spinner_point_agreement_code"
-        android:text="@string/text_shared_to_public" />
+        android:text="@string/text_point_shared_to_public" />
 
     <CheckBox
         android:id="@+id/chb_share_to_public"

@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
@@ -10,6 +11,7 @@ import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
 import com.slobodastudio.discussions.photon.constants.StatsType;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.ui.IntentAction;
+import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
@@ -95,8 +97,24 @@ public class UploadService extends IntentService {
 		}
 		final ResultReceiver receiver = intent
 				.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
-		if (receiver != null) {
-			receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);
+		boolean connected;
+		if (ApplicationConstants.DEV_MODE) {
+			connected = true;
+		} else {
+			connected = ConnectivityUtil.isNetworkConnected(this);
+		}
+		if (connected) {
+			if (receiver != null) {
+				receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);
+			}
+		} else {
+			if (receiver != null) {
+				final Bundle bundle = new Bundle();
+				bundle.putString(Intent.EXTRA_TEXT, getString(R.string.text_error_network_off));
+				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
+			}
+			stopSelf();
+			return;
 		}
 		logd("[onHandleIntent] intent: " + intent.toString());
 		try {

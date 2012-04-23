@@ -33,11 +33,11 @@
     <string name="text_select_point">Выберите аргумент слева</string>
     <string name="text_other_users_points">Другие аргументы</string>
     <string name="text_current_user_points">Аргументы пользователя</string>
-    <string name="text_shoose_a_side_code">Сторона: </string>
+    <string name="text_point_shoose_a_side_code">Сторона: </string>
     <string name="text_point_name">Название: </string>
     <string name="text_point_description">Описание: </string>
     <string name="text_point_comment">Комментарии: </string>
-    <string name="text_shared_to_public">Опубликовать: </string>
+    <string name="text_point_shared_to_public">Опубликовать: </string>
     <!-- text errors -->
     <string name="text_error_network_off">Отсутствует инернет соединение. Повторите попытку позже.</string>
     <string name="text_error_client_handler">Невозможно установить соединение с сервером. Повторите попытку позже.</string>

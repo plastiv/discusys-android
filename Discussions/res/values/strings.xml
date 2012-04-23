@@ -33,11 +33,11 @@
     <string name="text_select_point">Select point to see details</string>
     <string name="text_other_users_points">Other points</string>
     <string name="text_current_user_points">User\'s points</string>
-    <string name="text_shoose_a_side_code">Agreement side: </string>
+    <string name="text_point_shoose_a_side_code">Agreement side: </string>
     <string name="text_point_name">Name: </string>
     <string name="text_point_description">Description: </string>
     <string name="text_point_comment">Comments: </string>
-    <string name="text_shared_to_public">Shared to public: </string>
+    <string name="text_point_shared_to_public">Shared to public: </string>
     <!-- text errors -->
     <string name="text_error_network_off">Network is not connected. Turn it on and retry later.</string>
     <string name="text_error_client_handler">Cant connect to server. Check if it works and retry later.</string>

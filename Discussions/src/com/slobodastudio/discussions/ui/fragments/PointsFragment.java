@@ -137,6 +137,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			}
 		});
 		mUserPointsList.setAdapter(mUserPointsAdapter);
+		// mUserPointsList.setActivated(true);
 		// Create an empty adapter we will use to display the loaded data.
 		mOtherPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null,
 				new String[] { Points.Columns.NAME, Persons.Columns.COLOR }, new int[] { R.id.list_item_text,
@@ -162,6 +163,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			}
 		});
 		mOtherPointsList.setAdapter(mOtherPointsAdapter);
+		// mOtherPointsList.setActivated(true);
 		// set up click listener
 		mUserPointsList.setOnItemClickListener(new OnItemClickListener() {
 
@@ -207,6 +209,15 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			// Restore last state for checked position in correct list
 			mCurPosition = savedInstanceState.getInt(EXTRA_POSITION, 0);
 			mSelectedList = savedInstanceState.getInt(EXTRA_SELECTED, SELECTED_NONE);
+			// if (mDualPane) {
+			// Fragment detaildFragment = getFragmentManager().findFragmentById(R.id.frame_layout_details);
+			// if (detaildFragment != null) {
+			// FragmentTransaction ft = getFragmentManager().beginTransaction();
+			// ft.replace(R.id.frame_layout_details, detaildFragment);
+			// ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+			// ft.commit();
+			// }
+			// }
 		}
 		if (mDualPane) {
 			// In dual-pane mode, the list view highlights the selected item.

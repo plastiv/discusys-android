@@ -88,7 +88,12 @@ public class DownloadService extends IntentService {
 		}
 		final ResultReceiver receiver = intent
 				.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
-		boolean connected = ConnectivityUtil.isNetworkConnected(this);
+		boolean connected;
+		if (ApplicationConstants.DEV_MODE) {
+			connected = true;
+		} else {
+			connected = ConnectivityUtil.isNetworkConnected(this);
+		}
 		if (connected) {
 			if (receiver != null) {
 				receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);

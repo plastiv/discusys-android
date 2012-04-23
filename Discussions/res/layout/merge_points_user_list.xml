@@ -10,11 +10,10 @@
 
     <ListView
         android:id="@+id/user_points_listview"
-        style="@style/listViewActivatedStyle"
         android:layout_width="match_parent"
         android:layout_height="0dip"
         android:layout_weight="0.6"
-        android:drawSelectorOnTop="false" />
+        android:drawSelectorOnTop="true" />
 
     <TextView
         android:id="@+id/user_points_listview_empty"
