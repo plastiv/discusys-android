@@ -13,14 +13,17 @@
     <string name="activity_title_sessions">Сессии</string>
     <string name="activity_title_seats">Места</string>
     <string name="action_mode_title_points">Редактирование аргумента</string>
+    <string name="action_mode_title_view_points">Просмотр аргумента</string>
     <string name="dialog_title_user_name">Введите имя пользователя</string>
     <string name="dialog_title_creating_user">Создание пользователя...</string>
+    <string name="dialog_title_comment">Введите комментарий</string>
     <!-- menus -->
     <string name="menu_action_refresh">Обновить</string>
     <string name="menu_action_delete">Удалить</string>
     <string name="menu_action_new">Добавить</string>
     <string name="menu_action_save">Сохранить</string>
     <string name="menu_action_cancel">Отменить</string>
+    <string name="menu_action_comment">Комментировать</string>
     <!-- texts -->
     <string name="text_empty_list">Список пуст</string>
     <string name="text_empty_persons_list">Список пользователей пуст</string>

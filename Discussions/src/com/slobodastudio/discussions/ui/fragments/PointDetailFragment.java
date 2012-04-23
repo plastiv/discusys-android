@@ -12,7 +12,11 @@ import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
@@ -93,15 +97,65 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		return mIsEmpty;
 	}
 
+	public void onActionAttachLink() {
+
+		SharedPreferences sp = getActivity().getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editorSp = sp.edit();
+		// editorSp.putString(ExtraKey., value)
+		// return editorSp.commit();
+	}
+
 	public void onActionCancel() {
 
+		// TODO: what can i do on Cancel?
 		// discard changes
-		String action = getArguments().getString(ExtraKey.ACTION);
-		if (!Intent.ACTION_EDIT.equals(action) && !IntentAction.NEW.equals(action)) {
-			throw new UnsupportedOperationException("Operation [onActionCancel] doesnt support this intent: "
-					+ action);
-		}
+		// if (getArguments() != null) {
+		// String action = getArguments().getString(ExtraKey.ACTION);
+		// if (!Intent.ACTION_EDIT.equals(action) && !IntentAction.NEW.equals(action)) {
+		// throw new UnsupportedOperationException(
+		// "Operation [onActionCancel] doesnt support this intent: " + action);
+		// }
+		// }
 		return;
+	}
+
+	public void onActionComment() {
+
+		final EditText commentEditText = new EditText(getActivity());
+		final String dialorTitle = getActivity().getString(R.string.dialog_title_comment);
+		final String saveButtonTitle = getActivity().getString(R.string.menu_action_save);
+		final String cancelButtonTitle = getActivity().getString(R.string.menu_action_cancel);
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setMessage(dialorTitle).setCancelable(false).setPositiveButton(saveButtonTitle,
+				new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(final DialogInterface dialog, final int id) {
+
+						String comment = commentEditText.getText().toString();
+						Bundle commentValues = new Bundle();
+						int personId;
+						if (getArguments().containsKey(ExtraKey.ORIGIN_PERSON_ID)) {
+							personId = getArguments().getInt(ExtraKey.ORIGIN_PERSON_ID, Integer.MIN_VALUE);
+						} else {
+							personId = mPersonId;
+						}
+						commentValues.putString(Comments.Columns.TEXT, comment);
+						commentValues.putInt(Comments.Columns.POINT_ID, mPointId);
+						commentValues.putInt(Comments.Columns.PERSON_ID, personId);
+						((BaseActivity) getActivity()).getServiceHelper().insertComment(commentValues);
+					}
+				}).setNegativeButton(cancelButtonTitle, new DialogInterface.OnClickListener() {
+
+			@Override
+			public void onClick(final DialogInterface dialog, final int id) {
+
+				dialog.cancel();
+			}
+		});
+		AlertDialog alert = builder.create();
+		alert.setView(commentEditText);
+		alert.show();
 	}
 
 	public void onActionDelete() {
@@ -230,6 +284,23 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
 		mSharedToPublicCheckBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
 		mCommentsList = (ListView) layout.findViewById(R.id.comments_listview);
+		// Button btn = new Button(getActivity());
+		// btn.setText("Add comment");
+		// LayoutParams lp = new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+		// android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+		//
+		// btn.setLayoutParams(lp);
+		// btn.setl
+		// btn.setGravity(Gravity.CENTER_HORIZONTAL);
+		// btn.setOnClickListener(new OnClickListener() {
+		//
+		// @Override
+		// public void onClick(final View v) {
+		//
+		// onActionComment();
+		// }
+		// });
+		// mCommentsList.addFooterView(btn);
 		mCommentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_comments, null,
 				new String[] { Persons.Columns.NAME, Comments.Columns.TEXT, Persons.Columns.COLOR },
 				new int[] { R.id.text_comment_person_name, R.id.text_comment, R.id.image_person_color }, 0);

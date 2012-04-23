@@ -13,14 +13,17 @@
     <string name="activity_title_sessions">Sessions</string>
     <string name="activity_title_seats">Seats</string>
     <string name="action_mode_title_points">Edit point</string>
+    <string name="action_mode_title_view_points">View point</string>
     <string name="dialog_title_user_name">Input user name</string>
     <string name="dialog_title_creating_user">Creating user...</string>
+    <string name="dialog_title_comment">Type your comment</string>
     <!-- menus -->
     <string name="menu_action_refresh">Refresh</string>
     <string name="menu_action_delete">Delete</string>
     <string name="menu_action_new">New</string>
     <string name="menu_action_save">Save</string>
     <string name="menu_action_cancel">Cancel</string>
+    <string name="menu_action_comment">Comment</string>
     <!-- texts -->
     <string name="text_empty_list">Empty list</string>
     <string name="text_empty_persons_list">No persons</string>

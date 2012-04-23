@@ -55,8 +55,7 @@ public class DiscussionsListFragment extends BaseListFragment {
 				switch (viewId) {
 					case R.id.image_person_color:
 						ImageView colorView = (ImageView) view;
-						int color = getActivity().getIntent().getExtras()
-								.getInt(ExtraKey.PERSON_COLOR);
+						int color = getActivity().getIntent().getExtras().getInt(ExtraKey.PERSON_COLOR);
 						colorView.setBackgroundColor(color);
 						return true;
 					case R.id.list_item_text:
@@ -94,7 +93,7 @@ public class DiscussionsListFragment extends BaseListFragment {
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		int personId = extras.getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 		int personColor = extras.getInt(ExtraKey.PERSON_COLOR, Integer.MIN_VALUE);
-		int personName = extras.getInt(ExtraKey.PERSON_NAME, Integer.MIN_VALUE);
+		String personName = extras.getString(ExtraKey.PERSON_NAME, "error name");
 		intent.putExtra(ExtraKey.PERSON_ID, personId);
 		intent.putExtra(ExtraKey.PERSON_COLOR, personColor);
 		intent.putExtra(ExtraKey.PERSON_NAME, personName);

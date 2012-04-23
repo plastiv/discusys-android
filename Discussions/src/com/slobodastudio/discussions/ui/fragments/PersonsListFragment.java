@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -60,6 +61,7 @@ public class PersonsListFragment extends BaseListFragment {
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		intent.putExtra(ExtraKey.PERSON_ID, getItemId(position));
 		intent.putExtra(ExtraKey.PERSON_NAME, getItemName(position));
+		Log.d("PersonsActivity", "person name: " + getItemName(position));
 		intent.putExtra(ExtraKey.PERSON_COLOR, getItemColor(position));
 		startActivity(intent);
 	}

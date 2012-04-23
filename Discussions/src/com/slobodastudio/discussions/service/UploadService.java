@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
@@ -15,6 +16,7 @@ import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
@@ -29,6 +31,7 @@ public class UploadService extends IntentService {
 	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE = "intent.extra.key.EXTRA_VALUE";
+	public static final int TYPE_INSERT_COMMENT = 0x5;
 	public static final int TYPE_INSERT_DESCRIPTION = 0x3;
 	public static final int TYPE_INSERT_POINT_AND_DESCRIPTION = 0x4;
 	public static final int TYPE_UPDATE_DESCRIPTION = 0x2;
@@ -131,6 +134,9 @@ public class UploadService extends IntentService {
 				case TYPE_UPDATE_DESCRIPTION:
 					updateDescription(intent);
 					break;
+				case TYPE_INSERT_COMMENT:
+					insertComment(intent);
+					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: "
 							+ intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE));
@@ -151,6 +157,27 @@ public class UploadService extends IntentService {
 		if (receiver != null) {
 			receiver.send(OdataSyncResultReceiver.STATUS_FINISHED, Bundle.EMPTY);
 		}
+	}
+
+	private void insertComment(final Intent intent) {
+
+		Bundle commentBundle = intent.getBundleExtra(EXTRA_VALUE);
+		logd("[insertComment] " + commentBundle.getString(Comments.Columns.TEXT, "error comment"));
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		String text = commentBundle.getString(Comments.Columns.TEXT, "error comment");
+		int personId = commentBundle.getInt(Comments.Columns.PERSON_ID, Integer.MIN_VALUE);
+		int pointId = commentBundle.getInt(Comments.Columns.POINT_ID, Integer.MIN_VALUE);
+		OEntity entity = odataWrite.insertComment(text, personId, pointId);
+		int commentId = (Integer) entity.getProperty(Comments.Columns.ID).getValue();
+		logd("[insertComment] new comment id: " + commentId);
+		ContentValues cv = new ContentValues();
+		cv.put(Comments.Columns.ID, commentId);
+		cv.put(Comments.Columns.TEXT, text);
+		cv.put(Comments.Columns.PERSON_ID, personId);
+		cv.put(Comments.Columns.POINT_ID, pointId);
+		getContentResolver().insert(Comments.CONTENT_URI, cv);
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				pointId);
 	}
 
 	private void insertDescription(final Intent intent) {

@@ -40,6 +40,16 @@ public class OdataWriteClient extends BaseOdataClient {
 		mConsumer.deleteEntity(Points.TABLE_NAME, pointId).execute();
 	}
 
+	public OEntity insertComment(final String text, final int personId, final int pointId) {
+
+		// @formatter:off
+		return mConsumer.createEntity(Comments.TABLE_NAME)
+				.link(Comments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
+				.properties(OProperties.string(Comments.Columns.TEXT, text))
+				.link("ArgPoint", OEntityKey.parse(String.valueOf(pointId))).execute();
+		// @formatter:on
+	}
+
 	public OEntity insertDescription(final Description description) {
 
 		// @formatter:off

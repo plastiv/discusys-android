@@ -68,13 +68,6 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		mSelectedList = SELECTED_NONE;
 	}
 
-	private static Intent createViewPointIntent(final int pointId) {
-
-		Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(pointId));
-		intent.putExtra(ExtraKey.POINT_ID, pointId);
-		return intent;
-	}
-
 	public void onActionNew() {
 
 		if (mDualPane) {
@@ -402,6 +395,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 				ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
 				ft.commit();
 			}
+			mActionMode = getSherlockActivity().startActionMode(new ViewDetailsActionMode());
 		} else {
 			// Otherwise we need to launch a new activity to display details
 			Intent intent = createViewPointIntent(valueId);
@@ -442,6 +436,14 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
 		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
 		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
+		return intent;
+	}
+
+	private Intent createViewPointIntent(final int pointId) {
+
+		Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(pointId));
+		intent.putExtra(ExtraKey.POINT_ID, pointId);
+		intent.putExtra(ExtraKey.ORIGIN_PERSON_ID, mPersonId);
 		return intent;
 	}
 
@@ -492,6 +494,10 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 							.onActionDelete();
 					mode.finish();
 					return true;
+				case R.id.menu_comment:
+					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
+							.onActionComment();
+					return true;
 				default:
 					throw new IllegalArgumentException("Unknown menuitem id: " + item.getItemId());
 			}
@@ -507,6 +513,53 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			} else {
 				inflater.inflate(R.menu.actionbar_point_new, menu);
 			}
+			mEmptyFragmentShownOnActionBarClose = true;
+			return true;
+		}
+
+		@Override
+		public void onDestroyActionMode(final ActionMode mode) {
+
+			Log.d(TAG, "[onDestroyActionMode] showEmptyOnClose: " + mEmptyFragmentShownOnActionBarClose);
+			if (mEmptyFragmentShownOnActionBarClose) {
+				showEmtyDetails();
+			}
+			mActionMode = null;
+		}
+
+		@Override
+		public boolean onPrepareActionMode(final ActionMode mode, final Menu menu) {
+
+			return false;
+		}
+	}
+
+	private final class ViewDetailsActionMode implements ActionMode.Callback {
+
+		@Override
+		public boolean onActionItemClicked(final ActionMode mode, final MenuItem item) {
+
+			switch (item.getItemId()) {
+				case R.id.menu_cancel:
+					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
+							.onActionCancel();
+					mode.finish();
+					return true;
+				case R.id.menu_comment:
+					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
+							.onActionComment();
+					return true;
+				default:
+					throw new IllegalArgumentException("Unknown menuitem id: " + item.getItemId());
+			}
+		}
+
+		@Override
+		public boolean onCreateActionMode(final ActionMode mode, final Menu menu) {
+
+			mode.setTitle(R.string.action_mode_title_view_points);
+			MenuInflater inflater = mode.getMenuInflater();
+			inflater.inflate(R.menu.actionbar_point_view, menu);
 			mEmptyFragmentShownOnActionBarClose = true;
 			return true;
 		}

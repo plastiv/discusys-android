@@ -52,6 +52,9 @@ public class PointDetailsActivity extends BaseActivity {
 				mFragment.onActionDelete();
 				finish();
 				return true;
+			case R.id.menu_comment:
+				mFragment.onActionComment();
+				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}

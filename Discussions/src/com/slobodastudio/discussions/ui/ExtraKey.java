@@ -8,6 +8,7 @@ public class ExtraKey {
 	public static final String DESCRIPTION_TEXT = "extra_description_text";
 	public static final String DISCUSSION_ID = "extra_discussion_id";
 	public static final String ID = "extra_id";
+	public static final String ORIGIN_PERSON_ID = "extra_origin_person_id";
 	public static final String PERSON_COLOR = "extra_person_color";
 	public static final String PERSON_ID = "extra_person_id";
 	public static final String PERSON_NAME = "extra_person_name";
