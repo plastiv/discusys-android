@@ -418,7 +418,8 @@ public class DiscussionsProvider extends ContentProvider {
 					builder.where(selection, (String[]) null);
 				}
 				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Comments.Columns.ID,
-						Comments.Columns.TEXT, Persons.Columns.NAME, Persons.Columns.COLOR },
+						Comments.Columns.TEXT, Persons.Columns.NAME, Persons.Columns.COLOR,
+						Comments.Columns.PERSON_ID, Comments.Columns.POINT_ID },
 						Comments.Qualified.COMMENT_ID, null, sortOrder, null);
 				notificationUri = Comments.CONTENT_URI;
 				c.setNotificationUri(getContext().getContentResolver(), notificationUri);

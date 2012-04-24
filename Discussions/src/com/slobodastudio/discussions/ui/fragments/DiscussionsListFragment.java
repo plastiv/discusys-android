@@ -93,7 +93,7 @@ public class DiscussionsListFragment extends BaseListFragment {
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		int personId = extras.getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 		int personColor = extras.getInt(ExtraKey.PERSON_COLOR, Integer.MIN_VALUE);
-		String personName = extras.getString(ExtraKey.PERSON_NAME, "error name");
+		String personName = extras.getString(ExtraKey.PERSON_NAME);
 		intent.putExtra(ExtraKey.PERSON_ID, personId);
 		intent.putExtra(ExtraKey.PERSON_COLOR, personColor);
 		intent.putExtra(ExtraKey.PERSON_NAME, personName);

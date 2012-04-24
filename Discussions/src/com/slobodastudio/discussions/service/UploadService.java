@@ -29,6 +29,7 @@ public class UploadService extends IntentService {
 
 	public static final String EXTRA_DISCUSSION_ID = "intent.extra.key.EXTRA_DISCUSSION_ID";
 	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
+	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE = "intent.extra.key.EXTRA_VALUE";
 	public static final int TYPE_INSERT_COMMENT = 0x5;
@@ -162,9 +163,9 @@ public class UploadService extends IntentService {
 	private void insertComment(final Intent intent) {
 
 		Bundle commentBundle = intent.getBundleExtra(EXTRA_VALUE);
-		logd("[insertComment] " + commentBundle.getString(Comments.Columns.TEXT, "error comment"));
+		logd("[insertComment] " + commentBundle.getString(Comments.Columns.TEXT));
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
-		String text = commentBundle.getString(Comments.Columns.TEXT, "error comment");
+		String text = commentBundle.getString(Comments.Columns.TEXT);
 		int personId = commentBundle.getInt(Comments.Columns.PERSON_ID, Integer.MIN_VALUE);
 		int pointId = commentBundle.getInt(Comments.Columns.POINT_ID, Integer.MIN_VALUE);
 		OEntity entity = odataWrite.insertComment(text, personId, pointId);
@@ -178,6 +179,16 @@ public class UploadService extends IntentService {
 		getContentResolver().insert(Comments.CONTENT_URI, cv);
 		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
 				pointId);
+		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
+			throw new IllegalArgumentException("[insertComment] called without required discussion id");
+		}
+		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		if (!intent.hasExtra(EXTRA_TOPIC_ID)) {
+			throw new IllegalArgumentException("[insertComment] called without required topic id");
+		}
+		int topicId = intent.getIntExtra(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
+		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				discussionId, personId, topicId, StatsType.BADGE_EDITED);
 	}
 
 	private void insertDescription(final Intent intent) {

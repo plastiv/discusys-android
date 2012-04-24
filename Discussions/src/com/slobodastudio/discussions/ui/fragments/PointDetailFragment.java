@@ -25,9 +25,13 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -143,7 +147,8 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 						commentValues.putString(Comments.Columns.TEXT, comment);
 						commentValues.putInt(Comments.Columns.POINT_ID, mPointId);
 						commentValues.putInt(Comments.Columns.PERSON_ID, personId);
-						((BaseActivity) getActivity()).getServiceHelper().insertComment(commentValues);
+						((BaseActivity) getActivity()).getServiceHelper().insertComment(commentValues,
+								mDiscussionId, mTopicId);
 					}
 				}).setNegativeButton(cancelButtonTitle, new DialogInterface.OnClickListener() {
 
@@ -234,6 +239,51 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 	}
 
 	@Override
+	public boolean onContextItemSelected(final MenuItem item) {
+
+		switch (item.getItemId()) {
+			case R.id.menu_delete:
+				onActionDeleteComment(item);
+				return true;
+			default:
+				return super.onContextItemSelected(item);
+		}
+	}
+
+	@Override
+	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+
+		super.onCreateContextMenu(menu, v, menuInfo);
+		AdapterView.AdapterContextMenuInfo info;
+		try {
+			// Casts the incoming data object into the type for AdapterView objects.
+			info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		} catch (ClassCastException e) {
+			// If the menu object can't be cast, logs an error.
+			throw new RuntimeException("bad menuInfo: " + menuInfo, e);
+		}
+		Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position);
+		if (cursor == null) {
+			// For some reason the requested item isn't available, do nothing
+			return;
+		}
+		int textIndex = cursor.getColumnIndexOrThrow(Comments.Columns.TEXT);
+		int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
+		int personId = cursor.getInt(personIdIndex);
+		int authorPersonId;
+		if (getArguments().containsKey(ExtraKey.ORIGIN_PERSON_ID)) {
+			authorPersonId = getArguments().getInt(ExtraKey.ORIGIN_PERSON_ID, Integer.MIN_VALUE);
+		} else {
+			authorPersonId = mPersonId;
+		}
+		if (personId == authorPersonId) {
+			menu.setHeaderTitle(cursor.getString(textIndex));// if your table name is name
+			android.view.MenuInflater inflater = getActivity().getMenuInflater();
+			inflater.inflate(R.menu.context_comments, menu);
+		}
+	}
+
+	@Override
 	public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
 
 		if (!arguments.containsKey(ExtraKey.POINT_ID)) {
@@ -284,6 +334,7 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 		mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
 		mSharedToPublicCheckBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
 		mCommentsList = (ListView) layout.findViewById(R.id.comments_listview);
+		registerForContextMenu(mCommentsList);
 		// Button btn = new Button(getActivity());
 		// btn.setText("Add comment");
 		// LayoutParams lp = new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT,
@@ -452,6 +503,31 @@ public class PointDetailFragment extends SherlockFragment implements LoaderManag
 						+ (int) mSideCodeSpinner.getSelectedItemId());
 		}
 		return sideCode;
+	}
+
+	private void onActionDeleteComment(final MenuItem item) {
+
+		AdapterView.AdapterContextMenuInfo info;
+		try {
+			// Casts the incoming data object into the type for AdapterView objects.
+			info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+		} catch (ClassCastException e) {
+			// If the menu object can't be cast, logs an error.
+			throw new RuntimeException("bad menuInfo: " + item.getMenuInfo(), e);
+		}
+		Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position);
+		if (cursor == null) {
+			// For some reason the requested item isn't available, do nothing
+			return;
+		}
+		int columnIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
+		int pointIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.POINT_ID);
+		int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
+		int commentId = cursor.getInt(columnIndex);
+		int pointId = cursor.getInt(pointIdIndex);
+		int personId = cursor.getInt(personIdIndex);
+		((BaseActivity) getActivity()).getServiceHelper().deleteComment(commentId, pointId, mDiscussionId,
+				mTopicId, personId);
 	}
 
 	private void onActionEdit(final Bundle savedInstanceState) {

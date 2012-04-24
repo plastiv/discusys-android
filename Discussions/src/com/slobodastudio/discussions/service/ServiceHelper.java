@@ -32,6 +32,21 @@ public class ServiceHelper {
 		mOdataResultReceiver = new OdataSyncResultReceiver(new Handler());
 	}
 
+	public void deleteComment(final int commentId, final int pointId, final int discussionId,
+			final int topicId, final int personId) {
+
+		Intent intent = new Intent(IntentAction.DELETE);
+		intent.putExtra(DeleteService.EXTRA_TYPE_ID, DeleteService.TYPE_DELETE_COMMENT);
+		intent.putExtra(DeleteService.EXTRA_VALUE_ID, commentId);
+		intent.putExtra(DeleteService.EXTRA_POINT_ID, pointId);
+		intent.putExtra(DeleteService.EXTRA_DISCUSSION_ID, discussionId);
+		intent.putExtra(DeleteService.EXTRA_TOPIC_ID, topicId);
+		intent.putExtra(DeleteService.EXTRA_PERSON_ID, personId);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		mContext.startService(intent);
+	}
+
 	public void deletePoint(final int pointId) {
 
 		Intent intent = new Intent(IntentAction.DELETE);
@@ -90,13 +105,15 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
-	public void insertComment(final Bundle commentValues) {
+	public void insertComment(final Bundle commentValues, final int discussionId, final int topicId) {
 
 		Intent intent = new Intent(IntentAction.UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_COMMENT);
 		intent.putExtra(UploadService.EXTRA_VALUE, commentValues);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		intent.putExtra(UploadService.EXTRA_DISCUSSION_ID, discussionId);
+		intent.putExtra(UploadService.EXTRA_TOPIC_ID, topicId);
 		mContext.startService(intent);
 	}
 

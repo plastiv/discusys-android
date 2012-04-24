@@ -33,6 +33,11 @@ public class OdataWriteClient extends BaseOdataClient {
 		HttpUtil.insertPersonTopic(personId, topicId);
 	}
 
+	public void deleteComment(final int commentId) {
+
+		mConsumer.deleteEntity(Comments.TABLE_NAME, commentId).execute();
+	}
+
 	public void deletePoint(final int pointId) {
 
 		deleteCommentsByPointId(pointId);
