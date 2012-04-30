@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
-    android:versionCode="9"
-    android:versionName="0.1.22" >
+    android:versionCode="10"
+    android:versionName="0.1.23" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -17,6 +17,16 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
 
+        <!-- <activity -->
+        <!-- android:name=".ui.activities.AttachSelectActivity" -->
+        <!-- android:label="@string/app_regular_mode" > -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+        <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+        <!-- </intent-filter> -->
+        <!-- </activity> -->
         <!-- persons -->
         <activity
             android:name=".ui.activities.PersonsActivity"
@@ -107,7 +117,8 @@
         </activity>
         <activity
             android:name=".ui.activities.PointDetailsActivity"
-            android:label="@string/activity_title_point" >
+            android:label="@string/activity_title_point"
+            android:windowSoftInputMode="adjustPan" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -128,6 +139,19 @@
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:mimeType="vnd.android.cursor.dir/vnd.discussions.point" />
+            </intent-filter>
+        </activity>
+
+        <!-- WebView -->
+        <activity
+            android:name=".ui.activities.WebViewActivity"
+            android:label="@string/activity_title_webview" >
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/url" />
             </intent-filter>
         </activity>
 

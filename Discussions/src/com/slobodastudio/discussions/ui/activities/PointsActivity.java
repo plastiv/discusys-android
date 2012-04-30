@@ -7,6 +7,7 @@ import com.slobodastudio.discussions.photon.constants.PhotonConstants;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.fragments.PointsFragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
@@ -110,6 +111,14 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		if (DEBUG) {
 			Log.d(TAG, "[onStructureChanged] Empty. topic id: " + changedTopicId);
 		}
+	}
+
+	@Override
+	protected void onActivityResult(final int arg0, final int arg1, final Intent arg2) {
+
+		Log.d(TAG, "[onActivityResult] ");
+		// TODO need to call super for a fragment handled
+		super.onActivityResult(arg0, arg1, arg2);
 	}
 
 	@Override

@@ -12,18 +12,19 @@
     <string name="activity_title_point">Edit point</string>
     <string name="activity_title_sessions">Sessions</string>
     <string name="activity_title_seats">Seats</string>
+    <string name="activity_title_webview">Select url</string>
     <string name="action_mode_title_points">Edit point</string>
     <string name="action_mode_title_view_points">View point</string>
     <string name="dialog_title_user_name">Input user name</string>
     <string name="dialog_title_creating_user">Creating user...</string>
     <string name="dialog_title_comment">Type your comment</string>
+    <string name="button_title_comment">Comment</string>
     <!-- menus -->
     <string name="menu_action_refresh">Refresh</string>
     <string name="menu_action_delete">Delete</string>
     <string name="menu_action_new">New</string>
     <string name="menu_action_save">Save</string>
     <string name="menu_action_cancel">Cancel</string>
-    <string name="menu_action_comment">Comment</string>
     <!-- texts -->
     <string name="text_empty_list">Empty list</string>
     <string name="text_empty_persons_list">No persons</string>
@@ -37,9 +38,9 @@
     <string name="text_other_users_points">Other points</string>
     <string name="text_current_user_points">User\'s points</string>
     <string name="text_point_shoose_a_side_code">Agreement side: </string>
-    <string name="text_point_name">Name: </string>
-    <string name="text_point_description">Description: </string>
-    <string name="text_point_comment">Comments: </string>
+    <string name="text_point_name">Name &amp; Description</string>
+    <string name="text_point_description">Description</string>
+    <string name="text_point_comment">Comments</string>
     <string name="text_point_shared_to_public">Shared to public: </string>
     <!-- text errors -->
     <string name="text_error_network_off">Network is not connected. Turn it on and retry later.</string>
@@ -49,5 +50,9 @@
     <string name="toast_saved">Saved</string>
     <string name="toast_version">Version: <xliff:g id="version">%1$s</xliff:g></string>
     <string name="toast_sync_error"> Sync error: <xliff:g id="error">%1$s</xliff:g></string>
+    <!-- hints -->
+    <string name="hint_your_comment">Your comment here</string>
+    <string name="hint_your_point_name">Your point name here</string>
+    <string name="hint_your_point_description">Your point description here</string>
 
 </resources>

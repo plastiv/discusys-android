@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -32,6 +33,7 @@ public class UploadService extends IntentService {
 	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE = "intent.extra.key.EXTRA_VALUE";
+	public static final int TYPE_INSERT_ATTACHMENT = 0x6;
 	public static final int TYPE_INSERT_COMMENT = 0x5;
 	public static final int TYPE_INSERT_DESCRIPTION = 0x3;
 	public static final int TYPE_INSERT_POINT_AND_DESCRIPTION = 0x4;
@@ -138,6 +140,9 @@ public class UploadService extends IntentService {
 				case TYPE_INSERT_COMMENT:
 					insertComment(intent);
 					break;
+				case TYPE_INSERT_ATTACHMENT:
+					insertAttachment(intent);
+					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: "
 							+ intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE));
@@ -158,6 +163,41 @@ public class UploadService extends IntentService {
 		if (receiver != null) {
 			receiver.send(OdataSyncResultReceiver.STATUS_FINISHED, Bundle.EMPTY);
 		}
+	}
+
+	private void insertAttachment(final Intent intent) {
+
+		Bundle attachmentBundle = intent.getBundleExtra(EXTRA_VALUE);
+		logd("[insertAttachment] " + attachmentBundle.getString(Attachments.Columns.NAME));
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		String name = attachmentBundle.getString(Attachments.Columns.NAME);
+		int personId = attachmentBundle.getInt(Attachments.Columns.PERSON_ID, Integer.MIN_VALUE);
+		int pointId = attachmentBundle.getInt(Attachments.Columns.POINT_ID, Integer.MIN_VALUE);
+		byte[] sourceData = attachmentBundle.getByteArray(Attachments.Columns.DATA);
+		int formatType = attachmentBundle.getInt(Attachments.Columns.FORMAT, Integer.MIN_VALUE);
+		OEntity entity = odataWrite.insertAttachment(name, personId, pointId, sourceData, formatType);
+		int attachmentId = (Integer) entity.getProperty(Attachments.Columns.ID).getValue();
+		logd("[insertAttachment] new attachment id: " + attachmentId);
+		ContentValues cv = new ContentValues();
+		cv.put(Attachments.Columns.ID, attachmentId);
+		cv.put(Attachments.Columns.NAME, name);
+		cv.put(Attachments.Columns.PERSON_ID, personId);
+		cv.put(Attachments.Columns.POINT_ID, pointId);
+		cv.put(Attachments.Columns.DATA, sourceData);
+		cv.put(Attachments.Columns.FORMAT, formatType);
+		getContentResolver().insert(Attachments.CONTENT_URI, cv);
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				pointId);
+		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
+			throw new IllegalArgumentException("[insertAttachment] called without required discussion id");
+		}
+		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		if (!intent.hasExtra(EXTRA_TOPIC_ID)) {
+			throw new IllegalArgumentException("[insertAttachment] called without required topic id");
+		}
+		int topicId = intent.getIntExtra(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
+		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				discussionId, personId, topicId, StatsType.BADGE_EDITED);
 	}
 
 	private void insertComment(final Intent intent) {
@@ -208,7 +248,7 @@ public class UploadService extends IntentService {
 
 		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Point point = new Point(pointBundle);
-		logd("[insertPoint] " + point.toMyString());// insert new description
+		logd("[insertPoint] " + point.toMyString()); // insert new description
 		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Description description = new Description(descriptionBundle);
 		logd("[insertDescription] " + description.toMyString());

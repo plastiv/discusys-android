@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.data.provider;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.DataIoException;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
@@ -34,6 +35,8 @@ import java.util.Arrays;
  * queried by various {@link Activity} instances. */
 public class DiscussionsProvider extends ContentProvider {
 
+	private static final int ATTACHMENT_DIR = 1101;
+	private static final int ATTACHMENT_ITEM = 1102;
 	private static final int COMMENTS_DIR = 500;
 	private static final int COMMENTS_ITEM = 501;
 	private static final int DESCRIPTION_DIR = 600;
@@ -117,6 +120,12 @@ public class DiscussionsProvider extends ContentProvider {
 				final String valueId = Descriptions.getValueId(uri);
 				return builder.table(Descriptions.TABLE_NAME).where(Descriptions.Columns.ID + "=?", valueId);
 			}
+			case ATTACHMENT_DIR:
+				return builder.table(Attachments.TABLE_NAME);
+			case ATTACHMENT_ITEM: {
+				final String valueId = Attachments.getValueId(uri);
+				return builder.table(Attachments.TABLE_NAME).where(Attachments.Columns.ID + "=?", valueId);
+			}
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -163,6 +172,9 @@ public class DiscussionsProvider extends ContentProvider {
 		// seat
 		matcher.addURI(authority, Sessions.A_TABLE_PREFIX, SESSIONS_DIR);
 		matcher.addURI(authority, Sessions.A_TABLE_PREFIX + "/*", SESSIONS_ITEM);
+		// attachment
+		matcher.addURI(authority, Attachments.A_TABLE_PREFIX, ATTACHMENT_DIR);
+		matcher.addURI(authority, Attachments.A_TABLE_PREFIX + "/*", ATTACHMENT_ITEM);
 		return matcher;
 	}
 
@@ -249,6 +261,10 @@ public class DiscussionsProvider extends ContentProvider {
 				return Sessions.CONTENT_DIR_TYPE;
 			case SESSIONS_ITEM:
 				return Sessions.CONTENT_ITEM_TYPE;
+			case ATTACHMENT_DIR:
+				return Attachments.CONTENT_DIR_TYPE;
+			case ATTACHMENT_ITEM:
+				return Attachments.CONTENT_ITEM_TYPE;
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -308,6 +324,10 @@ public class DiscussionsProvider extends ContentProvider {
 				case SESSIONS_DIR:
 					insertedId = db.insertOrThrow(Sessions.TABLE_NAME, null, values);
 					insertedUri = Sessions.buildTableUri(insertedId);
+					break;
+				case ATTACHMENT_DIR:
+					insertedId = db.insertOrThrow(Attachments.TABLE_NAME, null, values);
+					insertedUri = Attachments.buildTableUri(insertedId);
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown uri: " + uri);

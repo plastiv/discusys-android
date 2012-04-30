@@ -4,6 +4,9 @@ public class ExtraKey {
 
 	public static final String ACTION = "extra_key_action";
 	public static final String AGREEMENT_CODE = "extra_side_code";
+	public static final String BINARY_DATA = "extra_binary_data";
+	public static final String BINARY_DATA_DESCRIPTION = "extra_binary_data_description";
+	public static final String COMMENT_TEXT = "extra_comment_text";
 	public static final String DESCRIPTION_ID = "extra_description_id";
 	public static final String DESCRIPTION_TEXT = "extra_description_text";
 	public static final String DISCUSSION_ID = "extra_discussion_id";

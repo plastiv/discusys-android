@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
@@ -43,6 +44,20 @@ public class OdataWriteClient extends BaseOdataClient {
 		deleteCommentsByPointId(pointId);
 		deleteDescriptionByPointId(pointId);
 		mConsumer.deleteEntity(Points.TABLE_NAME, pointId).execute();
+	}
+
+	public OEntity insertAttachment(final String name, final int personId, final int pointId,
+			final byte[] sourceData, final int formatType) {
+
+		// @formatter:off
+		return mConsumer.createEntity(Attachments.TABLE_NAME)
+				.link(Attachments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
+				.properties(OProperties.string(Attachments.Columns.NAME, name))
+				.link(Attachments.Columns.POINT_ID, OEntityKey.parse(String.valueOf(pointId)))
+				.properties(OProperties.int32(Attachments.Columns.FORMAT, formatType))
+				.properties(OProperties.binary(Attachments.Columns.DATA, sourceData))
+				.execute();
+		// @formatter:on
 	}
 
 	public OEntity insertComment(final String text, final int personId, final int pointId) {
@@ -140,14 +155,14 @@ public class OdataWriteClient extends BaseOdataClient {
 				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(sideCode)))		
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(topicId)));
 		
-		if(drawing != null){
+		if(drawing != null) {
 			//request.properties(OProperties.binary(Points.Columns.DRAWING, drawing));
 		}
-		if(groupId != null){
+		if(groupId != null) {
 			
 			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(groupId)));
 		}
-		if(numberedPoint != null){
+		if(numberedPoint != null) {
 			request.properties(OProperties.string(Points.Columns.NUMBERED_POINT, numberedPoint));
 		}
 		return request.execute();
@@ -186,7 +201,7 @@ public class OdataWriteClient extends BaseOdataClient {
 	public boolean updateDescription(final Description description) {
 
 		// @formatter:off
-		OModifyRequest<OEntity> request=  mConsumer.mergeEntity(Descriptions.TABLE_NAME, description.getId())				
+		OModifyRequest<OEntity> request =  mConsumer.mergeEntity(Descriptions.TABLE_NAME, description.getId())				
 				.properties(OProperties.string(Descriptions.Columns.TEXT, description.getText()));
 		// @formatter:on
 		if (description.getPointId() != null) {

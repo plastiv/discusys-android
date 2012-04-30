@@ -18,11 +18,5 @@
         android:orderInCategory="2"
         android:showAsAction="always|withText"
         android:title="@string/menu_action_cancel"/>
-    <item
-        android:id="@+id/menu_comment"
-        android:icon="@drawable/ic_action_reply"
-        android:orderInCategory="3"
-        android:showAsAction="ifRoom|withText"
-        android:title="@string/menu_action_comment"/>
 
 </menu>

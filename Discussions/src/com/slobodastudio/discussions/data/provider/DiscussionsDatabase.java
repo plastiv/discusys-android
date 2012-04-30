@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.data.provider;
 
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
@@ -23,7 +24,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 38;
+	private static final int DATABASE_VERSION = 39;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -109,6 +110,20 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Points.Columns.SIDE_CODE + " INTEGER NOT NULL,"
 				+ SyncColumns.SYNC + " INTEGER DEFAULT 1,"
 				+ " UNIQUE (" + Points.Columns.ID + ") ON CONFLICT REPLACE)");
+		
+		db.execSQL("CREATE TABLE " + Attachments.TABLE_NAME + " (" 
+				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ Attachments.Columns.ID + " INTEGER NOT NULL,"
+				+ Attachments.Columns.NAME + " TEXT NOT NULL,"
+				+ Attachments.Columns.FORMAT + " INTEGER NOT NULL,"
+				+ Attachments.Columns.PERSON_ID + " INTEGER NOT NULL,"
+				+ Attachments.Columns.POINT_ID + " INTEGER NOT NULL,"
+				+ Attachments.Columns.DISCUSSION_ID + " INTEGER,"
+				+ Attachments.Columns.DATA + " BLOB,"
+				+ Attachments.Columns.VIDEO_EMBED_URL + " TEXT,"
+				+ Attachments.Columns.VIDEO_LINK_URL + " TEXT,"
+				+ Attachments.Columns.VIDEO_THUMB_URL + " TEXT,"
+				+ " UNIQUE (" + Attachments.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		// many-to-many table
 		db.execSQL("CREATE TABLE " + PersonsTopics.TABLE_NAME + " ("

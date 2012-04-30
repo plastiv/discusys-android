@@ -4,18 +4,33 @@
     android:layout_height="match_parent" >
 
     <TextView
+        android:id="@+id/tv_comment_header"
         style="@style/DescriptionItemHeader"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:text="@string/text_point_comment" />
+
+    <ImageView
+        android:id="@+id/iv_comment_header_divider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:scaleType="fitXY"
+        android:src="@android:drawable/divider_horizontal_textfield" />
 
     <ListView
         android:id="@+id/comments_listview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:drawSelectorOnTop="false" />
 
-    <TextView
-        android:id="@+id/comments_listview_empty"
-        style="@style/EmptyListText"
-        android:text="@string/text_empty_comments_list" />
+    <!-- <TextView -->
+    <!-- android:id="@+id/comments_listview_empty" -->
+    <!-- style="@style/EmptyListText" -->
+    <!-- android:text="@string/text_empty_comments_list" /> -->
 
 </merge>

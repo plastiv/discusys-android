@@ -485,18 +485,13 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 					mode.finish();
 					return true;
 				case R.id.menu_cancel:
-					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
-							.onActionCancel();
+					// PointDetailFragment.onActionCancel();
 					mode.finish();
 					return true;
 				case R.id.menu_delete:
 					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
 							.onActionDelete();
 					mode.finish();
-					return true;
-				case R.id.menu_comment:
-					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
-							.onActionComment();
 					return true;
 				default:
 					throw new IllegalArgumentException("Unknown menuitem id: " + item.getItemId());
@@ -541,13 +536,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 
 			switch (item.getItemId()) {
 				case R.id.menu_cancel:
-					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
-							.onActionCancel();
+					// PointDetailFragment.onActionCancel();
 					mode.finish();
-					return true;
-				case R.id.menu_comment:
-					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
-							.onActionComment();
 					return true;
 				default:
 					throw new IllegalArgumentException("Unknown menuitem id: " + item.getItemId());

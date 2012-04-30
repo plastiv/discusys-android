@@ -12,8 +12,7 @@
         android:id="@+id/other_user_points_listview"
         android:layout_width="match_parent"
         android:layout_height="0dip"
-        android:layout_weight="0.4"
-        android:drawSelectorOnTop="true" />
+        android:layout_weight="0.4" />
 
     <TextView
         android:id="@+id/other_user_points_listview_empty"

@@ -52,12 +52,18 @@ public class PointDetailsActivity extends BaseActivity {
 				mFragment.onActionDelete();
 				finish();
 				return true;
-			case R.id.menu_comment:
-				mFragment.onActionComment();
-				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
+	}
+
+	@Override
+	protected void onActivityResult(final int arg0, final int arg1, final Intent arg2) {
+
+		Log.d(TAG, "[onActivityResult] ");
+		// TODO need to call super for a fragment handled
+		super.onActivityResult(arg0, arg1, arg2);
+		mFragment.onActivityResult(arg0, arg1, arg2);
 	}
 
 	@Override

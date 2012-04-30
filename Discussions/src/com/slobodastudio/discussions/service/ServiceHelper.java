@@ -105,6 +105,18 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
+	public void insertAttachment(final Bundle attachmentValues, final int discussionId, final int topicId) {
+
+		Intent intent = new Intent(IntentAction.UPLOAD);
+		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_ATTACHMENT);
+		intent.putExtra(UploadService.EXTRA_VALUE, attachmentValues);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		intent.putExtra(UploadService.EXTRA_DISCUSSION_ID, discussionId);
+		intent.putExtra(UploadService.EXTRA_TOPIC_ID, topicId);
+		mContext.startService(intent);
+	}
+
 	public void insertComment(final Bundle commentValues, final int discussionId, final int topicId) {
 
 		Intent intent = new Intent(IntentAction.UPLOAD);
