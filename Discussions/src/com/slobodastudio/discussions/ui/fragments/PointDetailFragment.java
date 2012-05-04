@@ -4,6 +4,7 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
@@ -12,10 +13,16 @@ import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore.MediaColumns;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -42,10 +49,14 @@ import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
+import java.io.ByteArrayOutputStream;
+
 public class PointDetailFragment extends SherlockFragment {
 
 	public static final int INVALID_POINT_ID = Integer.MIN_VALUE;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	private static final int PICK_IMAGE_REQUEST = 0x02;
+	private static final int PICK_URL_REQUEST = 0x01;
 	private static final String TAG = PointDetailFragment.class.getSimpleName();
 	private EditText mCommentEditText;
 	private SimpleCursorAdapter mCommentsAdapter;
@@ -90,6 +101,39 @@ public class PointDetailFragment extends SherlockFragment {
 			arguments.putAll(intent.getExtras());
 		}
 		return arguments;
+	}
+
+	public static void requestImageAttachment(final Activity activity) {
+
+		Intent intent = new Intent();
+		intent.setType("image/*");
+		intent.setAction(Intent.ACTION_GET_CONTENT);
+		activity.startActivityForResult(intent, PICK_IMAGE_REQUEST);
+	}
+
+	public static void requestPdfAttachment(final Activity activity) {
+
+		// Intent intent = new Intent();
+		// intent.setType("application/pdf");
+		// intent.setAction(Intent.ACTION_GET_CONTENT);
+		// startActivityForResult(intent, PICK_IMAGE_REQUEST);
+		// FIXME: load pdf as a file here
+		// http://stackoverflow.com/questions/8646246/uri-from-intent-action-get-content-into-file
+	}
+
+	public static void requestUrlAttachment(final Activity activity) {
+
+		Intent intent = new Intent(Intent.ACTION_PICK);
+		intent.setType("text/url");
+		activity.startActivityForResult(intent, PICK_URL_REQUEST);
+	}
+
+	private static byte[] getBitmapAsByteArray(final Bitmap bitmap) {
+
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		// Middle value is quality, but PNG is lossless, so it's ignored.
+		bitmap.compress(CompressFormat.PNG, 0, outputStream);
+		return outputStream.toByteArray();
 	}
 
 	private static FragmentState getCurrentState(final Bundle fragmentArguments) {
@@ -200,6 +244,39 @@ public class PointDetailFragment extends SherlockFragment {
 	}
 
 	@Override
+	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+
+		Log.d(TAG, "[onActivityresult]");
+		switch (requestCode) {
+			case PICK_URL_REQUEST:
+				if (resultCode == Activity.RESULT_OK) {
+					byte[] bitmapArray = data.getByteArrayExtra(ExtraKey.BINARY_DATA);
+					String description = data.getStringExtra(ExtraKey.BINARY_DATA_DESCRIPTION);
+					onAttachSourceAdded(bitmapArray, description, Attachments.AttachmentType.GENERAL_WEB_LINK);
+				}
+				break;
+			case PICK_IMAGE_REQUEST:
+				if (resultCode == Activity.RESULT_OK) {
+					Uri selectedImageUri = data.getData();
+					String[] projection = { MediaColumns.DATA };
+					// TODO: move cursor out of main thread to cursor loader
+					Cursor cursor = getActivity()
+							.managedQuery(selectedImageUri, projection, null, null, null);
+					int column_index_data = cursor.getColumnIndexOrThrow(MediaColumns.DATA);
+					cursor.moveToFirst();
+					String selectedImagePath = cursor.getString(column_index_data);
+					cursor.close();
+					Bitmap galleryImage = BitmapFactory.decodeFile(selectedImagePath);
+					byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
+					onAttachSourceAdded(bitmapArray, selectedImagePath, Attachments.AttachmentType.PNG);
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	@Override
 	public boolean onContextItemSelected(final MenuItem item) {
 
 		switch (item.getItemId()) {
@@ -274,6 +351,9 @@ public class PointDetailFragment extends SherlockFragment {
 		if (mFragmentState == FragmentState.NEW) {
 			layout.findViewById(R.id.tv_comment_header).setVisibility(View.INVISIBLE);
 			layout.findViewById(R.id.iv_comment_header_divider).setVisibility(View.INVISIBLE);
+			layout.findViewById(R.id.btn_attach_url).setVisibility(View.INVISIBLE);
+			layout.findViewById(R.id.btn_attach_pdf).setVisibility(View.INVISIBLE);
+			layout.findViewById(R.id.btn_attach_image).setVisibility(View.INVISIBLE);
 		}
 		registerForContextMenu(mCommentsList);
 		mCommentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_comments, null,
@@ -304,6 +384,25 @@ public class PointDetailFragment extends SherlockFragment {
 			}
 		});
 		mCommentsList.setAdapter(mCommentsAdapter);
+		Button attachUrlButton = (Button) layout.findViewById(R.id.btn_attach_url);
+		attachUrlButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(final View v) {
+
+				requestUrlAttachment(getActivity());
+			}
+		});
+		Button attachPdfButton = (Button) layout.findViewById(R.id.btn_attach_pdf);
+		Button attachImageButton = (Button) layout.findViewById(R.id.btn_attach_image);
+		attachImageButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(final View v) {
+
+				requestImageAttachment(getActivity());
+			}
+		});
 		// mCommentsList.setEmptyView(layout.findViewById(R.id.comments_listview_empty));
 		if (getArguments() == null) {
 			// at this point we are expected to show point details
@@ -472,6 +571,20 @@ public class PointDetailFragment extends SherlockFragment {
 			populateFromSavedInstanceState(savedInstanceState);
 		}
 		setViewsEnabled(false);
+	}
+
+	private void onAttachSourceAdded(final byte[] attachmentData, final String attachmentDescription,
+			final int attachmentType) {
+
+		Bundle attachment = new Bundle();
+		// attachment.putInt(Attachments.Columns.ID, 1);
+		attachment.putString(Attachments.Columns.NAME, attachmentDescription);
+		attachment.putByteArray(Attachments.Columns.DATA, attachmentData);
+		attachment.putInt(Attachments.Columns.POINT_ID, mPointId);
+		attachment.putInt(Attachments.Columns.PERSON_ID, mPersonId);
+		attachment.putInt(Attachments.Columns.FORMAT, attachmentType);
+		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mDiscussionId,
+				mTopicId);
 	}
 
 	private void populateFromSavedInstanceState(final Bundle savedInstanceState) {

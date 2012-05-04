@@ -18,7 +18,11 @@
     <string name="dialog_title_user_name">Input user name</string>
     <string name="dialog_title_creating_user">Creating user...</string>
     <string name="dialog_title_comment">Type your comment</string>
+    <!-- buttons -->
     <string name="button_title_comment">Comment</string>
+    <string name="button_title_attach_url">Attach url</string>
+    <string name="button_title_attach_image">Attach image</string>
+    <string name="button_title_attach_pdf">Attach pdf</string>
     <!-- menus -->
     <string name="menu_action_refresh">Refresh</string>
     <string name="menu_action_delete">Delete</string>

@@ -22,11 +22,13 @@ import android.util.Log;
 
 import org.core4j.Enumerable;
 import org.joda.time.LocalDateTime;
+import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OProperty;
 import org.odata4j.core.ORelatedEntitiesLinkInline;
 import org.odata4j.core.ORelatedEntityLinkInline;
 import org.odata4j.edm.EdmSimpleType;
+import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -359,8 +361,8 @@ public class OdataReadClient extends BaseOdataClient {
 
 		logd("[refreshTopics] ");
 		Enumerable<OEntity> topics = getTopicsEntities();
-		logd("[refreshTopics] topics entities count: " + topics.count());
-		List<Integer> serversIds = new ArrayList<Integer>(topics.count());
+		// logd("[refreshTopics] topics entities count: " + topics.count());
+		List<Integer> serversIds = new ArrayList<Integer>(/* topics.count() */);
 		for (OEntity topic : topics) {
 			serversIds.add(getAsInt(topic, Topics.Columns.ID));
 			insertTopic(topic);
@@ -498,7 +500,8 @@ public class OdataReadClient extends BaseOdataClient {
 
 	private Enumerable<OEntity> getTopicsEntities() {
 
-		return mConsumer.getEntities(Topics.TABLE_NAME).expand(
+		ODataConsumer mConsumerXml = ODataJerseyConsumer.newBuilder(ODataConstants.SERVICE_URL).build();
+		return mConsumerXml.getEntities(Topics.TABLE_NAME).expand(
 				Discussions.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
 	}
 

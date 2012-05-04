@@ -93,6 +93,7 @@ public final class DiscussionsContract {
 		public static final class AttachmentType {
 
 			public static final int BMP = 3;
+			public static final int GENERAL_WEB_LINK = 6;
 			public static final int JPG = 1;
 			public static final int NONE = 0;
 			public static final int PDF = 4;
