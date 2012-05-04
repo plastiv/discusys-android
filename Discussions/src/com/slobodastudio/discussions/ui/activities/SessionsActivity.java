@@ -73,6 +73,8 @@ public class SessionsActivity extends BaseActivity {
 			}
 		}
 		super.onCreate(savedInstanceState);
+		getSupportActionBar().setHomeButtonEnabled(false);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 		setTitle(R.string.activity_title_sessions);
 		setContentView(R.layout.activity_sessions);
 		// AnalyticsUtils.getInstance(this).trackPageView("/Home");

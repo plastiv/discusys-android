@@ -427,6 +427,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(pointId));
 		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
 		intent.putExtra(ExtraKey.POINT_ID, pointId);
+		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
+		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
 		return intent;
 	}
 
@@ -436,6 +438,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
 		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
 		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
+		intent.putExtra(ExtraKey.POINT_ID, Integer.MIN_VALUE);
 		return intent;
 	}
 
@@ -444,6 +447,9 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(pointId));
 		intent.putExtra(ExtraKey.POINT_ID, pointId);
 		intent.putExtra(ExtraKey.ORIGIN_PERSON_ID, mPersonId);
+		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
+		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
+		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
 		return intent;
 	}
 

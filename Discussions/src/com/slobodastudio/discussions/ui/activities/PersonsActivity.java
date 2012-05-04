@@ -72,6 +72,8 @@ public class PersonsActivity extends BaseActivity {
 			}
 		}
 		super.onCreate(savedInstanceState);
+		getSupportActionBar().setHomeButtonEnabled(false);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 		setTitle(R.string.activity_title_persons);
 		setContentView(R.layout.activity_persons);
 		// AnalyticsUtils.getInstance(this).trackPageView("/Home");

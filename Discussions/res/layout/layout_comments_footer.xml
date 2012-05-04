@@ -3,9 +3,10 @@
     android:id="@+id/layout_add_comment"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
-    android:orientation="horizontal" >
+    android:orientation="horizontal"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:paddingTop="8dp" >
 
     <com.slobodastudio.discussions.ui.CommentEditText
         android:id="@+id/et_point_comment"

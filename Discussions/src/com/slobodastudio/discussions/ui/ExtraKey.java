@@ -17,6 +17,7 @@ public class ExtraKey {
 	public static final String PERSON_NAME = "extra_person_name";
 	public static final String POINT_ID = "extra_point_id";
 	public static final String POINT_NAME = "extra_point_name";
+	public static final String SELECTED_POINT = "extra_selected_point";
 	public static final String SESSION_ID = "extra_session_id";
 	public static final String SHARED_TO_PUBLIC = "extra_shared_to_public";
 	public static final String TOPIC_ID = "extra_topic_id";
