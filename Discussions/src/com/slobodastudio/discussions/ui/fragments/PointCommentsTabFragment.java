@@ -4,7 +4,6 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
@@ -14,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -48,6 +48,7 @@ public class PointCommentsTabFragment extends SherlockFragment {
 	private ListView mCommentsList;
 	private int mLoggedInPersonId;
 	private final PointCursorLoader mPointCursorLoader;
+	private TextView mPointNameTextView;
 	private SelectedPoint mSelectedPoint;
 
 	public PointCommentsTabFragment() {
@@ -139,7 +140,7 @@ public class PointCommentsTabFragment extends SherlockFragment {
 			final Bundle savedInstanceState) {
 
 		mCommentsList = (ListView) inflater.inflate(R.layout.tab_fragment_point_comments, container, false);
-		// TODO: hide comments edit when new point create
+		addCommentsHeader();
 		addCommentsFooter();
 		if (savedInstanceState != null) {
 			populateFromSavedInstanceState(savedInstanceState);
@@ -183,11 +184,21 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		});
 	}
 
+	private void addCommentsHeader() {
+
+		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
+				Context.LAYOUT_INFLATER_SERVICE);
+		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
+		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
+		mCommentsList.addHeaderView(headerView);
+	}
+
 	private void initCommentsLoader() {
 
 		Bundle args = new Bundle();
 		args.putInt(ExtraKey.POINT_ID, mSelectedPoint.getPointId());
 		getLoaderManager().initLoader(PointCursorLoader.COMMENTS_ID, args, mPointCursorLoader);
+		getLoaderManager().initLoader(PointCursorLoader.POINT_NAME_ID, args, mPointCursorLoader);
 	}
 
 	private void initFromArguments() {
@@ -284,9 +295,8 @@ public class PointCommentsTabFragment extends SherlockFragment {
 
 	private class PointCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
-		private static final int COMMENTS_ID = 2;
-		private static final int DESCRIPTION_ID = 1;
-		private static final int POINT_ID = 0;
+		private static final int COMMENTS_ID = 0x00;
+		private static final int POINT_NAME_ID = 0x01;
 
 		@Override
 		public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
@@ -299,20 +309,16 @@ public class PointCommentsTabFragment extends SherlockFragment {
 				Log.d(TAG, "[onCreateLoader] point id: " + myPointId);
 			}
 			switch (loaderId) {
-				case POINT_ID: {
-					String where = Points.Columns.ID + "=?";
-					String[] args = new String[] { String.valueOf(myPointId) };
-					return new CursorLoader(getActivity(), Points.CONTENT_URI, null, where, args, null);
-				}
-				case DESCRIPTION_ID: {
-					String where = Descriptions.Columns.POINT_ID + "=?";
-					String[] args = new String[] { String.valueOf(myPointId) };
-					return new CursorLoader(getActivity(), Descriptions.CONTENT_URI, null, where, args, null);
-				}
 				case COMMENTS_ID: {
 					String where = Comments.Columns.POINT_ID + "=?";
 					String[] args = new String[] { String.valueOf(myPointId) };
 					return new CursorLoader(getActivity(), Comments.CONTENT_URI, null, where, args, null);
+				}
+				case POINT_NAME_ID: {
+					String where = Points.Columns.ID + "=?";
+					String[] args = new String[] { String.valueOf(myPointId) };
+					String[] projection = new String[] { BaseColumns._ID, Points.Columns.NAME };
+					return new CursorLoader(getActivity(), Points.CONTENT_URI, projection, where, args, null);
 				}
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loaderId);
@@ -325,6 +331,9 @@ public class PointCommentsTabFragment extends SherlockFragment {
 			switch (loader.getId()) {
 				case COMMENTS_ID:
 					mCommentsAdapter.swapCursor(null);
+					break;
+				case POINT_NAME_ID:
+					mPointNameTextView.setText("");
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
@@ -340,6 +349,13 @@ public class PointCommentsTabFragment extends SherlockFragment {
 			switch (loader.getId()) {
 				case COMMENTS_ID:
 					mCommentsAdapter.swapCursor(data);
+					break;
+				case POINT_NAME_ID:
+					if (data.moveToFirst()) {
+						int nameColumnIndex = data.getColumnIndexOrThrow(Points.Columns.NAME);
+						String name = data.getString(nameColumnIndex);
+						mPointNameTextView.setText(name);
+					}
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());

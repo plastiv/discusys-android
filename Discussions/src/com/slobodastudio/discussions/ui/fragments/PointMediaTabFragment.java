@@ -4,10 +4,13 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments.AttachmentType;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -15,14 +18,23 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.provider.MediaStore.MediaColumns;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
@@ -31,123 +43,21 @@ import java.io.ByteArrayOutputStream;
 public class PointMediaTabFragment extends SherlockFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
-	// private void insertComment(final String comment) {
-	//
-	// Bundle commentValues = new Bundle();
-	// commentValues.putString(Comments.Columns.TEXT, comment);
-	// commentValues.putInt(Comments.Columns.POINT_ID, mSelectedPoint.getPointId());
-	// commentValues.putInt(Comments.Columns.PERSON_ID, mLoggedInPersonId);
-	// ((BaseActivity) getActivity()).getServiceHelper().insertComment(commentValues,
-	// mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId());
-	// }
-	//
-	// private void onActionDeleteComment(final MenuItem item) {
-	//
-	// AdapterView.AdapterContextMenuInfo info;
-	// try {
-	// // Casts the incoming data object into the type for AdapterView objects.
-	// info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-	// } catch (ClassCastException e) {
-	// // If the menu object can't be cast, logs an error.
-	// throw new RuntimeException("bad menuInfo: " + item.getMenuInfo(), e);
-	// }
-	// Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position);
-	// if (cursor == null) {
-	// // For some reason the requested item isn't available, do nothing
-	// return;
-	// }
-	// int columnIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
-	// int pointIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.POINT_ID);
-	// int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
-	// int commentId = cursor.getInt(columnIndex);
-	// int pointId = cursor.getInt(pointIdIndex);
-	// int personId = cursor.getInt(personIdIndex);
-	// ((BaseActivity) getActivity()).getServiceHelper().deleteComment(commentId, pointId,
-	// mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId(), personId);
-	// }
-	//
-	// private class PointCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
-	//
-	// private static final int COMMENTS_ID = 2;
-	// private static final int DESCRIPTION_ID = 1;
-	// private static final int POINT_ID = 0;
-	//
-	// @Override
-	// public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
-	//
-	// if (!arguments.containsKey(ExtraKey.POINT_ID)) {
-	// throw new IllegalArgumentException("Loader was called without point id");
-	// }
-	// int myPointId = arguments.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
-	// if (DEBUG) {
-	// Log.d(TAG, "[onCreateLoader] point id: " + myPointId);
-	// }
-	// switch (loaderId) {
-	// case POINT_ID: {
-	// String where = Points.Columns.ID + "=?";
-	// String[] args = new String[] { String.valueOf(myPointId) };
-	// return new CursorLoader(getActivity(), Points.CONTENT_URI, null, where, args, null);
-	// }
-	// case DESCRIPTION_ID: {
-	// String where = Descriptions.Columns.POINT_ID + "=?";
-	// String[] args = new String[] { String.valueOf(myPointId) };
-	// return new CursorLoader(getActivity(), Descriptions.CONTENT_URI, null, where, args, null);
-	// }
-	// case COMMENTS_ID: {
-	// String where = Comments.Columns.POINT_ID + "=?";
-	// String[] args = new String[] { String.valueOf(myPointId) };
-	// return new CursorLoader(getActivity(), Comments.CONTENT_URI, null, where, args, null);
-	// }
-	// default:
-	// throw new IllegalArgumentException("Unknown loader id: " + loaderId);
-	// }
-	// }
-	//
-	// @Override
-	// public void onLoaderReset(final Loader<Cursor> loader) {
-	//
-	// switch (loader.getId()) {
-	// case COMMENTS_ID:
-	// mCommentsAdapter.swapCursor(null);
-	// break;
-	// default:
-	// throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
-	// }
-	// }
-	//
-	// @Override
-	// public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
-	//
-	// if (DEBUG) {
-	// Log.d(TAG, "[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
-	// }
-	// switch (loader.getId()) {
-	// case COMMENTS_ID:
-	// mCommentsAdapter.swapCursor(data);
-	// break;
-	// default:
-	// throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
-	// }
-	// }
-	// }
 	private static final int PICK_IMAGE_REQUEST = 0x02;
-	// private void initCommentsLoader() {
-	//
-	// Bundle args = new Bundle();
-	// args.putInt(ExtraKey.POINT_ID, mSelectedPoint.getPointId());
-	// getLoaderManager().initLoader(PointCursorLoader.COMMENTS_ID, args, mPointCursorLoader);
-	// }
 	private static final int PICK_URL_REQUEST = 0x01;
 	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
+	private boolean footerButtonsEnabled;
+	private SimpleCursorAdapter mAttachmentsAdapter;
+	private final AttachmentsCursorLoader mAttachmentsCursorLoader;
+	private ListView mAttachmentsList;
+	private TextView mPointNameTextView;
 	private SelectedPoint mSelectedPoint;
 
-	//
-	// public PointDetailMediaFragment() {
-	//
-	// // initialize default values
-	// mPointCursorLoader = new PointCursorLoader();
-	// }
-	//
+	public PointMediaTabFragment() {
+
+		mAttachmentsCursorLoader = new AttachmentsCursorLoader();
+	}
+
 	/** Converts an intent into a {@link Bundle} suitable for use as fragment arguments. */
 	public static Bundle intentToFragmentArguments(final Intent intent) {
 
@@ -167,6 +77,9 @@ public class PointMediaTabFragment extends SherlockFragment {
 		if (!intent.hasExtra(ExtraKey.TOPIC_ID)) {
 			throw new IllegalStateException("intent was without topic id");
 		}
+		if (intent.getAction() == null) {
+			throw new IllegalStateException("intent was without action string");
+		}
 		int discussionId = intent.getIntExtra(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
 		int personId = intent.getIntExtra(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 		int topicId = intent.getIntExtra(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
@@ -177,14 +90,11 @@ public class PointMediaTabFragment extends SherlockFragment {
 		point.setTopicId(topicId);
 		point.setPointId(pointId);
 		arguments.putParcelable(ExtraKey.SELECTED_POINT, point);
+		boolean viewEnabled = Intent.ACTION_EDIT.equals(intent.getAction());
+		arguments.putBoolean(ExtraKey.VIEW_ENABLED, viewEnabled);
 		return arguments;
 	}
 
-	// private EditText mCommentEditText;
-	// private SimpleCursorAdapter mCommentsAdapter;
-	// private ListView mCommentsList;
-	// private int mLoggedInPersonId;
-	// private final PointCursorLoader mPointCursorLoader;
 	public static void requestImageAttachment(final Activity activity) {
 
 		Intent intent = new Intent();
@@ -251,55 +161,47 @@ public class PointMediaTabFragment extends SherlockFragment {
 		}
 	}
 
-	// @Override
-	// public boolean onContextItemSelected(final MenuItem item) {
-	//
-	// switch (item.getItemId()) {
-	// case R.id.menu_delete:
-	// onActionDeleteComment(item);
-	// return true;
-	// default:
-	// return super.onContextItemSelected(item);
-	// }
-	// }
-	//
-	// @Override
-	// public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
-	//
-	// super.onCreateContextMenu(menu, v, menuInfo);
-	// AdapterView.AdapterContextMenuInfo info;
-	// try {
-	// // Casts the incoming data object into the type for AdapterView objects.
-	// info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-	// } catch (ClassCastException e) {
-	// // If the menu object can't be cast, logs an error.
-	// throw new RuntimeException("bad menuInfo: " + menuInfo, e);
-	// }
-	// Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position);
-	// if (cursor == null) {
-	// // For some reason the requested item isn't available, do nothing
-	// return;
-	// }
-	// int textIndex = cursor.getColumnIndexOrThrow(Comments.Columns.TEXT);
-	// int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
-	// int personId = cursor.getInt(personIdIndex);
-	// if (personId == mLoggedInPersonId) {
-	// menu.setHeaderTitle(cursor.getString(textIndex)); // if your table name is name
-	// android.view.MenuInflater inflater = getActivity().getMenuInflater();
-	// inflater.inflate(R.menu.context_comments, menu);
-	// }
-	// }
-	//
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
-		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.tab_fragment_point_attachments,
-				container, false);
-		setAttachUrlListener(layout);
-		setAttachImageListener(layout);
 		initFromArguments();
-		return layout;
+		View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_attachments, container, false);
+		mAttachmentsList = (ListView) attachmentsView.findViewById(R.id.listview_attachments);
+		addAttachmentsHeader();
+		if (footerButtonsEnabled) {
+			addAttachmentsFooter();
+		}
+		setAttachmentsAdapter();
+		initAttachmentsLoader();
+		return attachmentsView;
+	}
+
+	private void addAttachmentsFooter() {
+
+		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
+				Context.LAYOUT_INFLATER_SERVICE);
+		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
+		setAttachUrlListener(footerView);
+		setAttachImageListener(footerView);
+		mAttachmentsList.addFooterView(footerView);
+	}
+
+	private void addAttachmentsHeader() {
+
+		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
+				Context.LAYOUT_INFLATER_SERVICE);
+		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
+		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
+		mAttachmentsList.addHeaderView(headerView);
+	}
+
+	private void initAttachmentsLoader() {
+
+		Bundle args = new Bundle();
+		args.putInt(ExtraKey.POINT_ID, mSelectedPoint.getPointId());
+		getLoaderManager().initLoader(AttachmentsCursorLoader.ATTACHMENTS_ID, args, mAttachmentsCursorLoader);
+		getLoaderManager().initLoader(AttachmentsCursorLoader.POINT_NAME_ID, args, mAttachmentsCursorLoader);
 	}
 
 	private void initFromArguments() {
@@ -311,7 +213,11 @@ public class PointMediaTabFragment extends SherlockFragment {
 		if (!arguments.containsKey(ExtraKey.SELECTED_POINT)) {
 			throw new IllegalStateException("fragment was called without selected point extra");
 		}
+		if (!arguments.containsKey(ExtraKey.VIEW_ENABLED)) {
+			throw new IllegalStateException("fragment was called without view enabled extra");
+		}
 		mSelectedPoint = arguments.getParcelable(ExtraKey.SELECTED_POINT);
+		footerButtonsEnabled = arguments.getBoolean(ExtraKey.VIEW_ENABLED);
 	}
 
 	private void onAttachSourceAdded(final byte[] attachmentData, final String attachmentDescription,
@@ -340,6 +246,15 @@ public class PointMediaTabFragment extends SherlockFragment {
 		});
 	}
 
+	private void setAttachmentsAdapter() {
+
+		mAttachmentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_media, null,
+				new String[] { Attachments.Columns.NAME, Attachments.Columns.DATA }, new int[] {
+						R.id.text_attachment_name, R.id.image_attachment_preview }, 0);
+		mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
+		mAttachmentsList.setAdapter(mAttachmentsAdapter);
+	}
+
 	private void setAttachUrlListener(final View container) {
 
 		Button attachUrlButton = (Button) container.findViewById(R.id.btn_attach_url);
@@ -351,5 +266,139 @@ public class PointMediaTabFragment extends SherlockFragment {
 				requestUrlAttachment(getActivity());
 			}
 		});
+	}
+
+	private class AttachmentsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
+
+		private static final int ATTACHMENTS_ID = 0x00;
+		private static final int POINT_NAME_ID = 0x01;
+
+		@Override
+		public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
+
+			if (!arguments.containsKey(ExtraKey.POINT_ID)) {
+				throw new IllegalArgumentException("Loader was called without point id");
+			}
+			int myPointId = arguments.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
+			if (DEBUG) {
+				Log.d(TAG, "[onCreateLoader] point id: " + myPointId);
+			}
+			switch (loaderId) {
+				case ATTACHMENTS_ID: {
+					String where = Attachments.Columns.POINT_ID + "=?";
+					String[] args = new String[] { String.valueOf(myPointId) };
+					return new CursorLoader(getActivity(), Attachments.CONTENT_URI, null, where, args, null);
+				}
+				case POINT_NAME_ID: {
+					String where = Points.Columns.ID + "=?";
+					String[] args = new String[] { String.valueOf(myPointId) };
+					String[] projection = new String[] { BaseColumns._ID, Points.Columns.NAME };
+					return new CursorLoader(getActivity(), Points.CONTENT_URI, projection, where, args, null);
+				}
+				default:
+					throw new IllegalArgumentException("Unknown loader id: " + loaderId);
+			}
+		}
+
+		@Override
+		public void onLoaderReset(final Loader<Cursor> loader) {
+
+			switch (loader.getId()) {
+				case ATTACHMENTS_ID:
+					mAttachmentsAdapter.swapCursor(null);
+					break;
+				case POINT_NAME_ID:
+					mPointNameTextView.setText("");
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
+			}
+		}
+
+		@Override
+		public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
+
+			if (DEBUG) {
+				Log.d(TAG, "[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
+			}
+			switch (loader.getId()) {
+				case ATTACHMENTS_ID:
+					mAttachmentsAdapter.swapCursor(data);
+					break;
+				case POINT_NAME_ID:
+					if (data.moveToFirst()) {
+						int nameColumnIndex = data.getColumnIndexOrThrow(Points.Columns.NAME);
+						String name = data.getString(nameColumnIndex);
+						mPointNameTextView.setText(name);
+					}
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
+			}
+		}
+	}
+
+	private class AttachmentsViewBinder implements ViewBinder {
+
+		@Override
+		public boolean setViewValue(final View view, final Cursor cursor, final int columnIndex) {
+
+			switch (view.getId()) {
+				case R.id.image_attachment_preview:
+					setPreviewImage((ImageView) view, cursor);
+					return true;
+				case R.id.text_attachment_name:
+					((TextView) view).setText(cursor.getString(columnIndex));
+					return true;
+				default:
+					// TODO: throw exception
+					return false;
+			}
+		}
+
+		private float convertPixelsFromDensityPixel(final int valueInDp) {
+
+			return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, getResources()
+					.getDisplayMetrics());
+		}
+
+		private Bitmap scaleDown(final Bitmap realImage) {
+
+			return scaleDown(realImage, convertPixelsFromDensityPixel(100), true);
+		}
+
+		private Bitmap scaleDown(final Bitmap realImage, final float maxImageSize, final boolean filter) {
+
+			float ratio = Math.min(maxImageSize / realImage.getWidth(), maxImageSize / realImage.getHeight());
+			int width = Math.round(ratio * realImage.getWidth());
+			int height = Math.round(ratio * realImage.getHeight());
+			Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width, height, filter);
+			return newBitmap;
+		}
+
+		private void setPreviewImage(final ImageView imageView, final Cursor cursor) {
+
+			int formatColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.FORMAT);
+			int attachmentFormat = cursor.getInt(formatColumnIndex);
+			switch (attachmentFormat) {
+				case AttachmentType.JPG:
+				case AttachmentType.PNG:
+				case AttachmentType.BMP:
+				case AttachmentType.GENERAL_WEB_LINK:
+					int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
+					byte[] pictureData = cursor.getBlob(dataColumnIndex);
+					Bitmap bitmap = BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length);
+					imageView.setImageBitmap(scaleDown(bitmap));
+					break;
+				case AttachmentType.NONE:
+				case AttachmentType.PDF:
+				case AttachmentType.YOUTUBE:
+					imageView.setImageResource(R.drawable.image_not_found);
+					break;
+				default:
+					// TODO: throw ex
+					break;
+			}
+		}
 	}
 }

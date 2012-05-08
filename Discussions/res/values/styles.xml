@@ -7,7 +7,7 @@
 
     <style name="EmptyListText">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
         <item name="android:paddingLeft">8dip</item>
         <item name="android:paddingRight">8dip</item>

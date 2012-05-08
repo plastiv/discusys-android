@@ -92,13 +92,11 @@ public class PointDetailsActivity extends BaseActivity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_point_details);
-		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		addDescriptionTab();
-		addCommentsTab();
-		addMediaTab();
-		if (savedInstanceState != null) {
-			getSupportActionBar()
-					.setSelectedNavigationItem(savedInstanceState.getInt(EXTRA_KEY_TAB_INDEX, 0));
+		String action = getIntent().getAction();
+		if (IntentAction.NEW.equals(action)) {
+			addDescripitionFragmentOnly();
+		} else {
+			setupActionBarTabs(savedInstanceState);
 		}
 	}
 
@@ -119,6 +117,22 @@ public class PointDetailsActivity extends BaseActivity {
 		commentsTab.setTabListener(commentsTabListener);
 		commentsTab.setIcon(R.drawable.ic_tab_comments);
 		getSupportActionBar().addTab(commentsTab);
+	}
+
+	private void addDescripitionFragmentOnly() {
+
+		Fragment descriptionTabFragment = getSupportFragmentManager().findFragmentByTag(
+				FragmentTag.POINT_DESCRIPTION);
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		if (descriptionTabFragment == null) {
+			Bundle fragmentArguments = PointDescriptionTabFragment.intentToFragmentArguments(getIntent());
+			descriptionTabFragment = Fragment.instantiate(this, PointDescriptionTabFragment.class.getName(),
+					fragmentArguments);
+			ft.add(android.R.id.content, descriptionTabFragment, FragmentTag.POINT_DESCRIPTION);
+		} else {
+			ft.attach(descriptionTabFragment);
+		}
+		ft.commit();
 	}
 
 	private void addDescriptionTab() {
@@ -143,6 +157,18 @@ public class PointDetailsActivity extends BaseActivity {
 		mediaTab.setTabListener(mediaTabListener);
 		mediaTab.setIcon(R.drawable.ic_tab_attachments);
 		getSupportActionBar().addTab(mediaTab);
+	}
+
+	private void setupActionBarTabs(final Bundle savedInstanceState) {
+
+		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		addDescriptionTab();
+		addCommentsTab();
+		addMediaTab();
+		if (savedInstanceState != null) {
+			getSupportActionBar()
+					.setSelectedNavigationItem(savedInstanceState.getInt(EXTRA_KEY_TAB_INDEX, 0));
+		}
 	}
 
 	private final class FragmentTag {

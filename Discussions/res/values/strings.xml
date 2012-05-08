@@ -42,6 +42,7 @@
     <string name="text_empty_topics_list">No topics</string>
     <string name="text_empty_sessions_list">No sessions</string>
     <string name="text_empty_seats_list">No seats</string>
+    <string name="text_empty_attachments_list">Attachments list is empty</string>
     <string name="text_select_point">Select point to see details</string>
     <string name="text_other_users_points">Other points</string>
     <string name="text_current_user_points">User\'s points</string>

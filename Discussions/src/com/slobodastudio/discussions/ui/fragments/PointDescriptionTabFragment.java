@@ -95,6 +95,11 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		}
 	}
 
+	public String getCurrentPointName() {
+
+		return mNameEditText.getText().toString();
+	}
+
 	public int getPointId() {
 
 		return mPointId;

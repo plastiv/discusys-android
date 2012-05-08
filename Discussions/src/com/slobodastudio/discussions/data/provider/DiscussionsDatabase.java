@@ -24,7 +24,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 39;
+	private static final int DATABASE_VERSION = 40;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -116,7 +116,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Attachments.Columns.ID + " INTEGER NOT NULL,"
 				+ Attachments.Columns.NAME + " TEXT NOT NULL,"
 				+ Attachments.Columns.FORMAT + " INTEGER NOT NULL,"
-				+ Attachments.Columns.PERSON_ID + " INTEGER NOT NULL,"
+				+ Attachments.Columns.PERSON_ID + " INTEGER, "
 				+ Attachments.Columns.POINT_ID + " INTEGER NOT NULL,"
 				+ Attachments.Columns.DISCUSSION_ID + " INTEGER,"
 				+ Attachments.Columns.DATA + " BLOB,"
@@ -166,6 +166,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 			db.execSQL("DROP TABLE IF EXISTS " + Descriptions.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Seats.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Sessions.TABLE_NAME);
+			db.execSQL("DROP TABLE IF EXISTS " + Attachments.TABLE_NAME);
 			db.execSQL("DROP TRIGGER IF EXISTS " + Triggers.PERSONS_DELETE_TOPICS);
 			onCreate(db);
 		}

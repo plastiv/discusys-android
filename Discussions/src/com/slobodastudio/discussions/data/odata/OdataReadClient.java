@@ -502,8 +502,7 @@ public class OdataReadClient extends BaseOdataClient {
 
 	private Enumerable<OEntity> getAttachmentsEntities() {
 
-		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(
-				Points.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
+		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(Points.TABLE_NAME).execute();
 	}
 
 	private Enumerable<OEntity> getCommentsEntities() {
@@ -549,9 +548,7 @@ public class OdataReadClient extends BaseOdataClient {
 		ContentValues cv = OEntityToContentValue(attachment);
 		OEntity point = attachment.getLink(Points.TABLE_NAME, ORelatedEntityLinkInline.class)
 				.getRelatedEntity();
-		OEntity person = attachment.getLink(Persons.TABLE_NAME, ORelatedEntityLinkInline.class)
-				.getRelatedEntity();
-		if ((point == null) || (person == null)) {
+		if ((point == null)) {
 			// TODO: thwo ex here
 			// Log.e(TAG, "Related topic link was null for comment: " + getAsInt(comment,
 			// Comments.Columns.ID));
@@ -561,9 +558,7 @@ public class OdataReadClient extends BaseOdataClient {
 			// }
 			return null;
 		}
-		cv.put(Attachments.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
 		cv.put(Attachments.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
-		logd("attachment values=" + cv.toString());
 		return mContentResolver.insert(Attachments.CONTENT_URI, cv);
 	}
 
