@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.DataIoException;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
@@ -88,6 +89,38 @@ public class OdataReadClient extends BaseOdataClient {
 					+ classType.getCanonicalName());
 		}
 		return cv;
+	}
+
+	public void refreshAttachments() {
+
+		logd("[refreshAttachments]");
+		Enumerable<OEntity> attachments = getAttachmentsEntities();
+		logd("[refreshAttachments] entities count: " + attachments.count());
+		List<Integer> serversIds = new ArrayList<Integer>(attachments.count());
+		for (OEntity attachment : attachments) {
+			serversIds.add(getAsInt(attachment, Attachments.Columns.ID));
+			// ContentValues cv = OEntityToContentValue(attachment);
+			// mContentResolver.insert(Attachments.CONTENT_URI, cv);
+			insertAttachment(attachment);
+		}
+		logd("[refreshAttachments] all attachments was inserted");
+		// check if server has a deleted points
+		Cursor cur = mContentResolver.query(Attachments.CONTENT_URI, new String[] { Attachments.Columns.ID },
+				null, null, null);
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Attachments.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int attachmentId = cur.getInt(idIndex);
+				if (!serversIds.contains(attachmentId)) {
+					// delete this row
+					logd("[refreshAttachments] delete attachment: " + attachmentId);
+					Uri uri = Attachments.buildTableUri(attachmentId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
 	}
 
 	public void refreshComments() {
@@ -467,6 +500,12 @@ public class OdataReadClient extends BaseOdataClient {
 		cur.close();
 	}
 
+	private Enumerable<OEntity> getAttachmentsEntities() {
+
+		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(
+				Points.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
+	}
+
 	private Enumerable<OEntity> getCommentsEntities() {
 
 		return mConsumer.getEntities(Comments.TABLE_NAME)
@@ -503,6 +542,29 @@ public class OdataReadClient extends BaseOdataClient {
 		ODataConsumer mConsumerXml = ODataJerseyConsumer.newBuilder(ODataConstants.SERVICE_URL).build();
 		return mConsumerXml.getEntities(Topics.TABLE_NAME).expand(
 				Discussions.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
+	}
+
+	private Uri insertAttachment(final OEntity attachment) {
+
+		ContentValues cv = OEntityToContentValue(attachment);
+		OEntity point = attachment.getLink(Points.TABLE_NAME, ORelatedEntityLinkInline.class)
+				.getRelatedEntity();
+		OEntity person = attachment.getLink(Persons.TABLE_NAME, ORelatedEntityLinkInline.class)
+				.getRelatedEntity();
+		if ((point == null) || (person == null)) {
+			// TODO: thwo ex here
+			// Log.e(TAG, "Related topic link was null for comment: " + getAsInt(comment,
+			// Comments.Columns.ID));
+			// if (ApplicationConstants.ODATA_SANITIZE) {
+			// Log.w(TAG, "Try to delete comment: " + getAsInt(comment, Comments.Columns.ID));
+			// mConsumer.deleteEntity(Comments.TABLE_NAME, getAsInt(comment, Comments.Columns.ID)).execute();
+			// }
+			return null;
+		}
+		cv.put(Attachments.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
+		cv.put(Attachments.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
+		logd("attachment values=" + cv.toString());
+		return mContentResolver.insert(Attachments.CONTENT_URI, cv);
 	}
 
 	private Uri insertComment(final OEntity comment) {

@@ -38,10 +38,11 @@ import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
-public class PointDetailCommentsFragment extends SherlockFragment {
+public class PointCommentsTabFragment extends SherlockFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
-	private static final String TAG = PointDetailCommentsFragment.class.getSimpleName();
+	private static final String EXTRA_KEY_COMMENT_TEXT = "extra_key_comment_text";
+	private static final String TAG = PointCommentsTabFragment.class.getSimpleName();
 	private EditText mCommentEditText;
 	private SimpleCursorAdapter mCommentsAdapter;
 	private ListView mCommentsList;
@@ -49,7 +50,7 @@ public class PointDetailCommentsFragment extends SherlockFragment {
 	private final PointCursorLoader mPointCursorLoader;
 	private SelectedPoint mSelectedPoint;
 
-	public PointDetailCommentsFragment() {
+	public PointCommentsTabFragment() {
 
 		// initialize default values
 		mPointCursorLoader = new PointCursorLoader();
@@ -137,43 +138,24 @@ public class PointDetailCommentsFragment extends SherlockFragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
-		mCommentsList = (ListView) inflater.inflate(R.layout.fragment_point_description_comments, container,
-				false);
-		// mCommentsList = (ListView) layout.findViewById(R.id.comments_listview);
+		mCommentsList = (ListView) inflater.inflate(R.layout.tab_fragment_point_comments, container, false);
 		// TODO: hide comments edit when new point create
 		addCommentsFooter();
-		registerForContextMenu(mCommentsList);
-		mCommentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_comments, null,
-				new String[] { Persons.Columns.NAME, Comments.Columns.TEXT, Persons.Columns.COLOR },
-				new int[] { R.id.text_comment_person_name, R.id.text_comment, R.id.image_person_color }, 0);
-		mCommentsAdapter.setViewBinder(new ViewBinder() {
-
-			@Override
-			public boolean setViewValue(final View view, final Cursor cursor, final int columnIndex) {
-
-				switch (view.getId()) {
-					case R.id.image_person_color:
-						ImageView colorView = (ImageView) view;
-						colorView.setBackgroundColor(cursor.getInt(columnIndex));
-						return true;
-					case R.id.text_comment:
-						TextView itemText = (TextView) view;
-						itemText.setText(cursor.getString(columnIndex));
-						return true;
-					case R.id.text_comment_person_name:
-						TextView itemName = (TextView) view;
-						itemName.setText(cursor.getString(columnIndex));
-						return true;
-					default:
-						// TODO: throw exception
-						return false;
-				}
-			}
-		});
-		mCommentsList.setAdapter(mCommentsAdapter);
+		if (savedInstanceState != null) {
+			populateFromSavedInstanceState(savedInstanceState);
+		}
+		setUpCommentsAdapter();
 		initFromArguments();
 		initCommentsLoader();
 		return mCommentsList;
+	}
+
+	@Override
+	public void onSaveInstanceState(final Bundle outState) {
+
+		super.onSaveInstanceState(outState);
+		Log.d(TAG, "[onSaveInstanceState] " + mCommentEditText.getText().toString());
+		outState.putString(EXTRA_KEY_COMMENT_TEXT, mCommentEditText.getText().toString());
 	}
 
 	private void addCommentsFooter() {
@@ -257,6 +239,47 @@ public class PointDetailCommentsFragment extends SherlockFragment {
 		int personId = cursor.getInt(personIdIndex);
 		((BaseActivity) getActivity()).getServiceHelper().deleteComment(commentId, pointId,
 				mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId(), personId);
+	}
+
+	private void populateFromSavedInstanceState(final Bundle savedInstanceState) {
+
+		if (!savedInstanceState.containsKey(EXTRA_KEY_COMMENT_TEXT)) {
+			throw new IllegalStateException("SavedInstanceState doesnt contain comment text");
+		}
+		Log.d(TAG, "[populateFromSavedInstanceState] " + savedInstanceState.getString(EXTRA_KEY_COMMENT_TEXT));
+		mCommentEditText.setText(savedInstanceState.getString(EXTRA_KEY_COMMENT_TEXT));
+	}
+
+	private void setUpCommentsAdapter() {
+
+		mCommentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_comments, null,
+				new String[] { Persons.Columns.NAME, Comments.Columns.TEXT, Persons.Columns.COLOR },
+				new int[] { R.id.text_comment_person_name, R.id.text_comment, R.id.image_person_color }, 0);
+		mCommentsAdapter.setViewBinder(new ViewBinder() {
+
+			@Override
+			public boolean setViewValue(final View view, final Cursor cursor, final int columnIndex) {
+
+				switch (view.getId()) {
+					case R.id.image_person_color:
+						ImageView colorView = (ImageView) view;
+						colorView.setBackgroundColor(cursor.getInt(columnIndex));
+						return true;
+					case R.id.text_comment:
+						TextView itemText = (TextView) view;
+						itemText.setText(cursor.getString(columnIndex));
+						return true;
+					case R.id.text_comment_person_name:
+						TextView itemName = (TextView) view;
+						itemName.setText(cursor.getString(columnIndex));
+						return true;
+					default:
+						// TODO: throw exception
+						return false;
+				}
+			}
+		});
+		mCommentsList.setAdapter(mCommentsAdapter);
 	}
 
 	private class PointCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {

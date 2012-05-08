@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -59,11 +60,14 @@ public class WebViewActivity extends BaseActivity {
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.loadUrl("http://www.google.com");
 		mWebView.getSettings().setBuiltInZoomControls(true);
+		final EditText urlEditText = (EditText) findViewById(R.id.edittext_url);
+		urlEditText.setEnabled(false);
 		mWebView.setWebViewClient(new WebViewClient() {
 
 			@Override
 			public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
 
+				urlEditText.setText(url);
 				mWebView.loadUrl(url);
 				return true;
 			}
@@ -75,6 +79,7 @@ public class WebViewActivity extends BaseActivity {
 			// }
 			// }
 		});
+		mWebView.requestFocus();
 	}
 
 	@Override
@@ -103,7 +108,7 @@ public class WebViewActivity extends BaseActivity {
 				setMyResult(RESULT_CANCELED, null);
 				finish();
 				break;
-			case R.id.menu_save:
+			case R.id.menu_new_attachment:
 				onActionSave();
 				break;
 		}
@@ -118,6 +123,7 @@ public class WebViewActivity extends BaseActivity {
 
 	private void onActionSave() {
 
+		// FIXME add try catch out of memory block
 		Bitmap nonCroppedBitmap = pictureDrawable2Bitmap(mWebView.capturePicture());
 		int croppedWidht = getSmallestSide(nonCroppedBitmap);
 		int croppedHeight = getSmallestSide(nonCroppedBitmap);

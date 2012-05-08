@@ -18,6 +18,9 @@
     <string name="dialog_title_user_name">Input user name</string>
     <string name="dialog_title_creating_user">Creating user...</string>
     <string name="dialog_title_comment">Type your comment</string>
+    <string name="tab_title_comments">Comments</string>
+    <string name="tab_title_description">Description</string>
+    <string name="tab_title_media">Media</string>
     <!-- buttons -->
     <string name="button_title_comment">Comment</string>
     <string name="button_title_attach_url">Attach url</string>
@@ -29,6 +32,7 @@
     <string name="menu_action_new">New</string>
     <string name="menu_action_save">Save</string>
     <string name="menu_action_cancel">Cancel</string>
+    <string name="menu_action_new_attachment">Save link</string>
     <!-- texts -->
     <string name="text_empty_list">Empty list</string>
     <string name="text_empty_persons_list">No persons</string>
@@ -42,7 +46,7 @@
     <string name="text_other_users_points">Other points</string>
     <string name="text_current_user_points">User\'s points</string>
     <string name="text_point_shoose_a_side_code">Agreement side: </string>
-    <string name="text_point_name">Name &amp; Description</string>
+    <string name="text_point_name">Description</string>
     <string name="text_point_description">Description</string>
     <string name="text_point_comment">Comments</string>
     <string name="text_point_shared_to_public">Shared to public: </string>
@@ -55,8 +59,8 @@
     <string name="toast_version">Version: <xliff:g id="version">%1$s</xliff:g></string>
     <string name="toast_sync_error"> Sync error: <xliff:g id="error">%1$s</xliff:g></string>
     <!-- hints -->
-    <string name="hint_your_comment">Your comment here</string>
-    <string name="hint_your_point_name">Your point name here</string>
-    <string name="hint_your_point_description">Your point description here</string>
+    <string name="hint_your_comment">Text comment</string>
+    <string name="hint_your_point_name">Name</string>
+    <string name="hint_your_point_description">Full description</string>
 
 </resources>

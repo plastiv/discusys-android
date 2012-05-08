@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
+    android:layout_height="match_parent" >
+
+    <EditText
+        android:id="@+id/et_point_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:hint="@string/hint_your_point_name"
+        android:inputType="textMultiLine"
+        android:maxLines="2"
+        android:scrollbars="vertical" />
 
     <TextView
         android:id="@+id/tv_point_name"
         style="@style/DescriptionItemHeader"
+        android:layout_below="@id/et_point_name"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:text="@string/text_point_name" />
@@ -22,7 +37,7 @@
         android:src="@android:drawable/divider_horizontal_textfield" />
 
     <EditText
-        android:id="@+id/et_point_name"
+        android:id="@+id/et_point_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/iv_separator"
@@ -31,24 +46,9 @@
         android:layout_marginRight="16dp"
         android:layout_marginTop="4dp"
         android:ellipsize="end"
-        android:hint="@string/hint_your_point_name"
-        android:inputType="textMultiLine"
-        android:maxLines="2"
-        android:scrollbars="vertical" />
-
-    <EditText
-        android:id="@+id/et_point_description"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/et_point_name"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginTop="4dp"
-        android:ellipsize="end"
         android:hint="@string/hint_your_point_description"
         android:inputType="textMultiLine"
-        android:maxLines="5"
+        android:maxLines="9"
         android:scrollbars="vertical" />
 
     <Spinner
@@ -90,34 +90,5 @@
         android:layout_marginLeft="16dp"
         android:gravity="center_vertical"
         android:text="@string/text_point_shared_to_public" />
-
-    <Button
-        android:id="@+id/btn_attach_url"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/tv_shared_to_public"
-        android:layout_marginLeft="16dp"
-        android:text="@string/button_title_attach_url" />
-
-    <Button
-        android:id="@+id/btn_attach_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@id/btn_attach_url"
-        android:layout_below="@id/tv_shared_to_public"
-        android:layout_marginLeft="8dp"
-        android:layout_toRightOf="@id/btn_attach_url"
-        android:enabled="false"
-        android:text="@string/button_title_attach_image" />
-
-    <Button
-        android:id="@+id/btn_attach_pdf"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@id/btn_attach_url"
-        android:layout_marginLeft="8dp"
-        android:layout_toRightOf="@id/btn_attach_image"
-        android:enabled="false"
-        android:text="@string/button_title_attach_pdf" />
 
 </RelativeLayout>

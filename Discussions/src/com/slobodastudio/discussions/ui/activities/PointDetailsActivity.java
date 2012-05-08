@@ -2,9 +2,11 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.ui.IntentAction;
-import com.slobodastudio.discussions.ui.fragments.PointDetailCommentsFragment;
-import com.slobodastudio.discussions.ui.fragments.PointDetailFragment;
+import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
+import com.slobodastudio.discussions.ui.fragments.PointDescriptionTabFragment;
+import com.slobodastudio.discussions.ui.fragments.PointMediaTabFragment;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -20,8 +22,8 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class PointDetailsActivity extends BaseActivity {
 
+	private static final String EXTRA_KEY_TAB_INDEX = "extra_key_tab_index";
 	private static final String TAG = PointDetailsActivity.class.getSimpleName();
-	private PointDetailFragment mFragment;
 
 	@Override
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
@@ -46,16 +48,18 @@ public class PointDetailsActivity extends BaseActivity {
 	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
+		PointDescriptionTabFragment descriptionTabFragment = (PointDescriptionTabFragment) getSupportFragmentManager()
+				.findFragmentByTag(FragmentTag.POINT_DESCRIPTION);
 		switch (item.getItemId()) {
 			case R.id.menu_save:
-				mFragment.onActionSave();
+				descriptionTabFragment.onActionSave();
 				finish();
 				return true;
 			case R.id.menu_cancel:
 				finish();
 				return true;
 			case R.id.menu_delete:
-				mFragment.onActionDelete();
+				descriptionTabFragment.onActionDelete();
 				finish();
 				return true;
 			default:
@@ -64,12 +68,17 @@ public class PointDetailsActivity extends BaseActivity {
 	}
 
 	@Override
-	protected void onActivityResult(final int arg0, final int arg1, final Intent arg2) {
+	protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
-		Log.d(TAG, "[onActivityResult] ");
-		// TODO need to call super for a fragment handled
-		super.onActivityResult(arg0, arg1, arg2);
-		mFragment.onActivityResult(arg0, arg1, arg2);
+		Log.d(TAG, "[onActivityResult]");
+		super.onActivityResult(requestCode, resultCode, data);
+		if (resultCode == Activity.RESULT_OK) {
+			Fragment mediaTabFragment = getSupportFragmentManager()
+					.findFragmentByTag(FragmentTag.POINT_MEDIA);
+			if ((mediaTabFragment != null)) {
+				mediaTabFragment.onActivityResult(requestCode, resultCode, data);
+			}
+		}
 	}
 
 	@Override
@@ -83,43 +92,13 @@ public class PointDetailsActivity extends BaseActivity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_point_details);
-		// FragmentManager fm = getSupportFragmentManager();
-		// boolean fragmentNotFound = fm.findFragmentById(R.id.frame_point_details) == null;
-		// if (DEBUG) {
-		// Log.d(TAG, "[onCreate] savedInstanceState: " + savedInstanceState + ", findFragmentById: "
-		// + fragmentNotFound);
-		// }
-		// if (savedInstanceState == null) {
-		// // Create the list fragment and add it as our sole content.
-		// if (fragmentNotFound) {
-		// mFragment = new PointDetailFragment();
-		// mFragment.setArguments(PointDetailFragment.intentToFragmentArguments(getIntent()));
-		// fm.beginTransaction().add(R.id.frame_point_details, mFragment).commit();
-		// }
-		// } else {
-		// if (!fragmentNotFound) {
-		// mFragment = (PointDetailFragment) fm.findFragmentById(R.id.frame_point_details);
-		// } else {
-		// throw new IllegalStateException("fragment should be created here");
-		// }
-		// }
-		final ActionBar bar = getSupportActionBar();
-		bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		// bar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_TITLE);
-		bar.addTab(bar.newTab().setText("Description").setTabListener(
-				new TabListener<PointDetailFragment>(this, "description", PointDetailFragment.class,
-						PointDetailFragment.intentToFragmentArguments(getIntent()))));
-		addCommentsTab(bar);
-		// bar.addTab(bar.newTab()
-		// .setText("Apps")
-		// .setTabListener(new TabListener<LoaderCustom.AppListFragment>(
-		// this, "apps", LoaderCustom.AppListFragment.class)));
-		// bar.addTab(bar.newTab()
-		// .setText("Throttle")
-		// .setTabListener(new TabListener<LoaderThrottle.ThrottledLoaderListFragment>(
-		// this, "throttle", LoaderThrottle.ThrottledLoaderListFragment.class)));
+		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		addDescriptionTab();
+		addCommentsTab();
+		addMediaTab();
 		if (savedInstanceState != null) {
-			bar.setSelectedNavigationItem(savedInstanceState.getInt("tab", 0));
+			getSupportActionBar()
+					.setSelectedNavigationItem(savedInstanceState.getInt(EXTRA_KEY_TAB_INDEX, 0));
 		}
 	}
 
@@ -127,21 +106,53 @@ public class PointDetailsActivity extends BaseActivity {
 	protected void onSaveInstanceState(final Bundle outState) {
 
 		super.onSaveInstanceState(outState);
-		outState.putInt("tab", getActionBar().getSelectedNavigationIndex());
+		outState.putInt(EXTRA_KEY_TAB_INDEX, getSupportActionBar().getSelectedNavigationIndex());
 	}
 
-	private void addCommentsTab(final ActionBar actionBar) {
+	private void addCommentsTab() {
 
-		Tab commentsTab = actionBar.newTab();
-		commentsTab.setText("Comments");
-		Bundle fragmentArguments = PointDetailCommentsFragment.intentToFragmentArguments(getIntent());
-		TabListener<PointDetailCommentsFragment> commentsTabListener = new TabListener<PointDetailCommentsFragment>(
-				this, "comments", PointDetailCommentsFragment.class, fragmentArguments);
+		Tab commentsTab = getSupportActionBar().newTab();
+		commentsTab.setText(R.string.tab_title_comments);
+		Bundle fragmentArguments = PointCommentsTabFragment.intentToFragmentArguments(getIntent());
+		TabListener<PointCommentsTabFragment> commentsTabListener = new TabListener<PointCommentsTabFragment>(
+				this, FragmentTag.POINT_COMMENTS, PointCommentsTabFragment.class, fragmentArguments);
 		commentsTab.setTabListener(commentsTabListener);
-		actionBar.addTab(commentsTab);
+		commentsTab.setIcon(R.drawable.ic_tab_comments);
+		getSupportActionBar().addTab(commentsTab);
 	}
 
-	public static class TabListener<T extends Fragment> implements ActionBar.TabListener {
+	private void addDescriptionTab() {
+
+		Tab desctiptionTab = getSupportActionBar().newTab();
+		desctiptionTab.setText(R.string.tab_title_description);
+		Bundle fragmentArguments = PointDescriptionTabFragment.intentToFragmentArguments(getIntent());
+		TabListener<PointDescriptionTabFragment> commentsTabListener = new TabListener<PointDescriptionTabFragment>(
+				this, FragmentTag.POINT_DESCRIPTION, PointDescriptionTabFragment.class, fragmentArguments);
+		desctiptionTab.setTabListener(commentsTabListener);
+		desctiptionTab.setIcon(R.drawable.ic_tab_description);
+		getSupportActionBar().addTab(desctiptionTab);
+	}
+
+	private void addMediaTab() {
+
+		Tab mediaTab = getSupportActionBar().newTab();
+		mediaTab.setText(R.string.tab_title_media);
+		Bundle fragmentArguments = PointMediaTabFragment.intentToFragmentArguments(getIntent());
+		TabListener<PointMediaTabFragment> mediaTabListener = new TabListener<PointMediaTabFragment>(this,
+				FragmentTag.POINT_MEDIA, PointMediaTabFragment.class, fragmentArguments);
+		mediaTab.setTabListener(mediaTabListener);
+		mediaTab.setIcon(R.drawable.ic_tab_attachments);
+		getSupportActionBar().addTab(mediaTab);
+	}
+
+	private final class FragmentTag {
+
+		private static final String POINT_COMMENTS = "point_comments_tag";
+		private static final String POINT_DESCRIPTION = "point_description_tag";
+		private static final String POINT_MEDIA = "point_media_tag";
+	}
+
+	private class TabListener<T extends Fragment> implements ActionBar.TabListener {
 
 		private final SherlockFragmentActivity mActivity;
 		private final Bundle mArgs;
@@ -166,6 +177,7 @@ public class PointDetailsActivity extends BaseActivity {
 			// initial state is that a tab isn't shown.
 			mFragment = mActivity.getSupportFragmentManager().findFragmentByTag(mTag);
 			if ((mFragment != null) && !mFragment.isDetached()) {
+				Log.d(TAG, "[TabListener] detach fragment " + mTag);
 				FragmentTransaction ft = mActivity.getSupportFragmentManager().beginTransaction();
 				ft.detach(mFragment);
 				ft.commit();
@@ -182,9 +194,11 @@ public class PointDetailsActivity extends BaseActivity {
 		public void onTabSelected(final Tab tab, final FragmentTransaction ft) {
 
 			if (mFragment == null) {
+				Log.d(TAG, "[TabListener] create fragment " + mTag);
 				mFragment = Fragment.instantiate(mActivity, mClass.getName(), mArgs);
 				ft.add(android.R.id.content, mFragment, mTag);
 			} else {
+				Log.d(TAG, "[TabListener] attach fragment " + mTag);
 				ft.attach(mFragment);
 			}
 		}
@@ -193,6 +207,7 @@ public class PointDetailsActivity extends BaseActivity {
 		public void onTabUnselected(final Tab tab, final FragmentTransaction ft) {
 
 			if (mFragment != null) {
+				Log.d(TAG, "[onTabUnselected] detach fragment " + mTag);
 				ft.detach(mFragment);
 			}
 		}

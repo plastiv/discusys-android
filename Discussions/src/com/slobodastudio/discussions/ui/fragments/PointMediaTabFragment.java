@@ -1,0 +1,355 @@
+package com.slobodastudio.discussions.ui.fragments;
+
+import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.model.SelectedPoint;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
+import com.slobodastudio.discussions.ui.ExtraKey;
+import com.slobodastudio.discussions.ui.activities.BaseActivity;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore.MediaColumns;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+
+import com.actionbarsherlock.app.SherlockFragment;
+
+import java.io.ByteArrayOutputStream;
+
+public class PointMediaTabFragment extends SherlockFragment {
+
+	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	// private void insertComment(final String comment) {
+	//
+	// Bundle commentValues = new Bundle();
+	// commentValues.putString(Comments.Columns.TEXT, comment);
+	// commentValues.putInt(Comments.Columns.POINT_ID, mSelectedPoint.getPointId());
+	// commentValues.putInt(Comments.Columns.PERSON_ID, mLoggedInPersonId);
+	// ((BaseActivity) getActivity()).getServiceHelper().insertComment(commentValues,
+	// mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId());
+	// }
+	//
+	// private void onActionDeleteComment(final MenuItem item) {
+	//
+	// AdapterView.AdapterContextMenuInfo info;
+	// try {
+	// // Casts the incoming data object into the type for AdapterView objects.
+	// info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+	// } catch (ClassCastException e) {
+	// // If the menu object can't be cast, logs an error.
+	// throw new RuntimeException("bad menuInfo: " + item.getMenuInfo(), e);
+	// }
+	// Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position);
+	// if (cursor == null) {
+	// // For some reason the requested item isn't available, do nothing
+	// return;
+	// }
+	// int columnIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
+	// int pointIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.POINT_ID);
+	// int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
+	// int commentId = cursor.getInt(columnIndex);
+	// int pointId = cursor.getInt(pointIdIndex);
+	// int personId = cursor.getInt(personIdIndex);
+	// ((BaseActivity) getActivity()).getServiceHelper().deleteComment(commentId, pointId,
+	// mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId(), personId);
+	// }
+	//
+	// private class PointCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
+	//
+	// private static final int COMMENTS_ID = 2;
+	// private static final int DESCRIPTION_ID = 1;
+	// private static final int POINT_ID = 0;
+	//
+	// @Override
+	// public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
+	//
+	// if (!arguments.containsKey(ExtraKey.POINT_ID)) {
+	// throw new IllegalArgumentException("Loader was called without point id");
+	// }
+	// int myPointId = arguments.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
+	// if (DEBUG) {
+	// Log.d(TAG, "[onCreateLoader] point id: " + myPointId);
+	// }
+	// switch (loaderId) {
+	// case POINT_ID: {
+	// String where = Points.Columns.ID + "=?";
+	// String[] args = new String[] { String.valueOf(myPointId) };
+	// return new CursorLoader(getActivity(), Points.CONTENT_URI, null, where, args, null);
+	// }
+	// case DESCRIPTION_ID: {
+	// String where = Descriptions.Columns.POINT_ID + "=?";
+	// String[] args = new String[] { String.valueOf(myPointId) };
+	// return new CursorLoader(getActivity(), Descriptions.CONTENT_URI, null, where, args, null);
+	// }
+	// case COMMENTS_ID: {
+	// String where = Comments.Columns.POINT_ID + "=?";
+	// String[] args = new String[] { String.valueOf(myPointId) };
+	// return new CursorLoader(getActivity(), Comments.CONTENT_URI, null, where, args, null);
+	// }
+	// default:
+	// throw new IllegalArgumentException("Unknown loader id: " + loaderId);
+	// }
+	// }
+	//
+	// @Override
+	// public void onLoaderReset(final Loader<Cursor> loader) {
+	//
+	// switch (loader.getId()) {
+	// case COMMENTS_ID:
+	// mCommentsAdapter.swapCursor(null);
+	// break;
+	// default:
+	// throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
+	// }
+	// }
+	//
+	// @Override
+	// public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
+	//
+	// if (DEBUG) {
+	// Log.d(TAG, "[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
+	// }
+	// switch (loader.getId()) {
+	// case COMMENTS_ID:
+	// mCommentsAdapter.swapCursor(data);
+	// break;
+	// default:
+	// throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
+	// }
+	// }
+	// }
+	private static final int PICK_IMAGE_REQUEST = 0x02;
+	// private void initCommentsLoader() {
+	//
+	// Bundle args = new Bundle();
+	// args.putInt(ExtraKey.POINT_ID, mSelectedPoint.getPointId());
+	// getLoaderManager().initLoader(PointCursorLoader.COMMENTS_ID, args, mPointCursorLoader);
+	// }
+	private static final int PICK_URL_REQUEST = 0x01;
+	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
+	private SelectedPoint mSelectedPoint;
+
+	//
+	// public PointDetailMediaFragment() {
+	//
+	// // initialize default values
+	// mPointCursorLoader = new PointCursorLoader();
+	// }
+	//
+	/** Converts an intent into a {@link Bundle} suitable for use as fragment arguments. */
+	public static Bundle intentToFragmentArguments(final Intent intent) {
+
+		Bundle arguments = new Bundle();
+		if (intent == null) {
+			return arguments;
+		}
+		if (!intent.hasExtra(ExtraKey.DISCUSSION_ID)) {
+			throw new IllegalStateException("intent was without discussion id");
+		}
+		if (!intent.hasExtra(ExtraKey.POINT_ID)) {
+			throw new IllegalStateException("intent was without point id");
+		}
+		if (!intent.hasExtra(ExtraKey.PERSON_ID)) {
+			throw new IllegalStateException("intent was without person id");
+		}
+		if (!intent.hasExtra(ExtraKey.TOPIC_ID)) {
+			throw new IllegalStateException("intent was without topic id");
+		}
+		int discussionId = intent.getIntExtra(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
+		int personId = intent.getIntExtra(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
+		int topicId = intent.getIntExtra(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
+		int pointId = intent.getIntExtra(ExtraKey.POINT_ID, Integer.MIN_VALUE);
+		SelectedPoint point = new SelectedPoint();
+		point.setDiscussionId(discussionId);
+		point.setPersonId(personId);
+		point.setTopicId(topicId);
+		point.setPointId(pointId);
+		arguments.putParcelable(ExtraKey.SELECTED_POINT, point);
+		return arguments;
+	}
+
+	// private EditText mCommentEditText;
+	// private SimpleCursorAdapter mCommentsAdapter;
+	// private ListView mCommentsList;
+	// private int mLoggedInPersonId;
+	// private final PointCursorLoader mPointCursorLoader;
+	public static void requestImageAttachment(final Activity activity) {
+
+		Intent intent = new Intent();
+		intent.setType("image/*");
+		intent.setAction(Intent.ACTION_GET_CONTENT);
+		activity.startActivityForResult(intent, PICK_IMAGE_REQUEST);
+	}
+
+	public static void requestPdfAttachment(final Activity activity) {
+
+		// Intent intent = new Intent();
+		// intent.setType("application/pdf");
+		// intent.setAction(Intent.ACTION_GET_CONTENT);
+		// startActivityForResult(intent, PICK_IMAGE_REQUEST);
+		// FIXME: load pdf as a file here
+		// http://stackoverflow.com/questions/8646246/uri-from-intent-action-get-content-into-file
+	}
+
+	public static void requestUrlAttachment(final Activity activity) {
+
+		Intent intent = new Intent(Intent.ACTION_PICK);
+		intent.setType("text/url");
+		activity.startActivityForResult(intent, PICK_URL_REQUEST);
+	}
+
+	private static byte[] getBitmapAsByteArray(final Bitmap bitmap) {
+
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		// Middle value is quality, but PNG is lossless, so it's ignored.
+		bitmap.compress(CompressFormat.PNG, 0, outputStream);
+		return outputStream.toByteArray();
+	}
+
+	@Override
+	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+
+		Log.d(TAG, "[onActivityresult]");
+		switch (requestCode) {
+			case PICK_URL_REQUEST:
+				if (resultCode == Activity.RESULT_OK) {
+					byte[] bitmapArray = data.getByteArrayExtra(ExtraKey.BINARY_DATA);
+					String description = data.getStringExtra(ExtraKey.BINARY_DATA_DESCRIPTION);
+					onAttachSourceAdded(bitmapArray, description, Attachments.AttachmentType.GENERAL_WEB_LINK);
+				}
+				break;
+			case PICK_IMAGE_REQUEST:
+				if (resultCode == Activity.RESULT_OK) {
+					Uri selectedImageUri = data.getData();
+					String[] projection = { MediaColumns.DATA };
+					// TODO: move cursor out of main thread to cursor loader
+					Cursor cursor = getActivity()
+							.managedQuery(selectedImageUri, projection, null, null, null);
+					int column_index_data = cursor.getColumnIndexOrThrow(MediaColumns.DATA);
+					cursor.moveToFirst();
+					String selectedImagePath = cursor.getString(column_index_data);
+					cursor.close();
+					Bitmap galleryImage = BitmapFactory.decodeFile(selectedImagePath);
+					byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
+					onAttachSourceAdded(bitmapArray, selectedImagePath, Attachments.AttachmentType.PNG);
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	// @Override
+	// public boolean onContextItemSelected(final MenuItem item) {
+	//
+	// switch (item.getItemId()) {
+	// case R.id.menu_delete:
+	// onActionDeleteComment(item);
+	// return true;
+	// default:
+	// return super.onContextItemSelected(item);
+	// }
+	// }
+	//
+	// @Override
+	// public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+	//
+	// super.onCreateContextMenu(menu, v, menuInfo);
+	// AdapterView.AdapterContextMenuInfo info;
+	// try {
+	// // Casts the incoming data object into the type for AdapterView objects.
+	// info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+	// } catch (ClassCastException e) {
+	// // If the menu object can't be cast, logs an error.
+	// throw new RuntimeException("bad menuInfo: " + menuInfo, e);
+	// }
+	// Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position);
+	// if (cursor == null) {
+	// // For some reason the requested item isn't available, do nothing
+	// return;
+	// }
+	// int textIndex = cursor.getColumnIndexOrThrow(Comments.Columns.TEXT);
+	// int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
+	// int personId = cursor.getInt(personIdIndex);
+	// if (personId == mLoggedInPersonId) {
+	// menu.setHeaderTitle(cursor.getString(textIndex)); // if your table name is name
+	// android.view.MenuInflater inflater = getActivity().getMenuInflater();
+	// inflater.inflate(R.menu.context_comments, menu);
+	// }
+	// }
+	//
+	@Override
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+			final Bundle savedInstanceState) {
+
+		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.tab_fragment_point_attachments,
+				container, false);
+		setAttachUrlListener(layout);
+		setAttachImageListener(layout);
+		initFromArguments();
+		return layout;
+	}
+
+	private void initFromArguments() {
+
+		Bundle arguments = getArguments();
+		if (arguments == null) {
+			throw new NullPointerException("You are trying to instantiate fragment without arguments");
+		}
+		if (!arguments.containsKey(ExtraKey.SELECTED_POINT)) {
+			throw new IllegalStateException("fragment was called without selected point extra");
+		}
+		mSelectedPoint = arguments.getParcelable(ExtraKey.SELECTED_POINT);
+	}
+
+	private void onAttachSourceAdded(final byte[] attachmentData, final String attachmentDescription,
+			final int attachmentType) {
+
+		Bundle attachment = new Bundle();
+		attachment.putString(Attachments.Columns.NAME, attachmentDescription);
+		attachment.putByteArray(Attachments.Columns.DATA, attachmentData);
+		attachment.putInt(Attachments.Columns.POINT_ID, mSelectedPoint.getPointId());
+		attachment.putInt(Attachments.Columns.PERSON_ID, mSelectedPoint.getPersonId());
+		attachment.putInt(Attachments.Columns.FORMAT, attachmentType);
+		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment,
+				mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId());
+	}
+
+	private void setAttachImageListener(final View container) {
+
+		Button attachImageButton = (Button) container.findViewById(R.id.btn_attach_image);
+		attachImageButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(final View v) {
+
+				requestImageAttachment(getActivity());
+			}
+		});
+	}
+
+	private void setAttachUrlListener(final View container) {
+
+		Button attachUrlButton = (Button) container.findViewById(R.id.btn_attach_url);
+		attachUrlButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(final View v) {
+
+				requestUrlAttachment(getActivity());
+			}
+		});
+	}
+}

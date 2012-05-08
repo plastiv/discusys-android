@@ -1,11 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/menu_save"
-        android:icon="@drawable/ic_action_save"
+        android:id="@+id/menu_new_attachment"
+        android:icon="@drawable/ic_action_new_attachment"
         android:orderInCategory="0"
         android:showAsAction="always|withText"
-        android:title="@string/menu_action_save"/>
+        android:title="@string/menu_action_new_attachment"/>
     <item
         android:id="@+id/menu_cancel"
         android:icon="@drawable/ic_action_cancel"

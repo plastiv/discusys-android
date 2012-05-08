@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
     android:installLocation="auto"
-    android:versionCode="10"
-    android:versionName="0.1.23" >
+    android:versionCode="11"
+    android:versionName="0.1.24" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -18,18 +18,6 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
 
-        <!-- <activity -->
-        <!--
-        <activity
-            android:name=".ui.activities.EditTextActivity"
-            android:label="@string/app_regular_mode" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        -->
         <!-- persons -->
         <activity
             android:name=".ui.activities.PersonsActivity"
@@ -121,7 +109,7 @@
         <activity
             android:name=".ui.activities.PointDetailsActivity"
             android:label="@string/activity_title_point"
-            android:uiOptions="splitActionBarWhenNarrow" >
+            android:windowSoftInputMode="stateUnchanged" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

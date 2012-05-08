@@ -73,14 +73,14 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		if (mDualPane) {
 			// We can display everything in-place with fragments
 			// Check what fragment is currently shown, replace if needed.
-			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
-					R.id.frame_layout_details);
+			PointDescriptionTabFragment details = (PointDescriptionTabFragment) getFragmentManager()
+					.findFragmentById(R.id.frame_layout_details);
 			if ((details == null) || (details.isEmpty())) {
 				// Make new fragment to show this selection.
 				Log.d(TAG, "hellp");
-				details = new PointDetailFragment();
+				details = new PointDescriptionTabFragment();
 				Intent intent = createNewPointIntent();
-				details.setArguments(PointDetailFragment.intentToFragmentArguments(intent));
+				details.setArguments(PointDescriptionTabFragment.intentToFragmentArguments(intent));
 				// Execute a transaction, replacing any existing fragment
 				// with this one inside the frame.
 				FragmentTransaction ft = getFragmentManager().beginTransaction();
@@ -197,7 +197,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		// Check to see if we have a frame in which to embed the details
 		// fragment directly in the containing UI.
 		View detailsFrame = getActivity().findViewById(R.id.frame_layout_details);
-		mDualPane = (detailsFrame != null) && (detailsFrame.getVisibility() == View.VISIBLE);
+		// mDualPane = (detailsFrame != null) && (detailsFrame.getVisibility() == View.VISIBLE);
+		mDualPane = false;
 		if (savedInstanceState != null) {
 			// Restore last state for checked position in correct list
 			mCurPosition = savedInstanceState.getInt(EXTRA_POSITION, 0);
@@ -252,7 +253,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			case LOADER_OTHER_POINTS_ID: {
 				// String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "!=? ";
 				String[] args = { String.valueOf(mTopicId), String.valueOf(mPersonId) };
-				String sortOrder = Points.TABLE_NAME + "." + BaseColumns._ID + " DESC";
+				// String sortOrder = Points.TABLE_NAME + "." + BaseColumns._ID + " DESC";
+				String sortOrder = Persons.TABLE_NAME + "." + Persons.Columns.ID + " ASC";
 				return new CursorLoader(getActivity(), Points.CONTENT_AND_PERSON_URI, null, null, args,
 						sortOrder);
 			}
@@ -320,7 +322,7 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		mOtherPointsList.clearChoices();
 		if (mDualPane) {
 			// Make new fragment to show this selection.
-			PointDetailFragment details = new PointDetailFragment();
+			PointDescriptionTabFragment details = new PointDescriptionTabFragment();
 			details.setEmpty(true);
 			// Execute a transaction, replacing any existing fragment
 			// with this one inside the frame.
@@ -339,19 +341,19 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
 			pointId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
 		} else {
-			pointId = PointDetailFragment.INVALID_POINT_ID;
+			pointId = PointDescriptionTabFragment.INVALID_POINT_ID;
 			return;
 		}
 		if (mDualPane) {
 			// We can display everything in-place with fragments
 			// Check what fragment is currently shown, replace if needed.
-			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
-					R.id.frame_layout_details);
+			PointDescriptionTabFragment details = (PointDescriptionTabFragment) getFragmentManager()
+					.findFragmentById(R.id.frame_layout_details);
 			if ((details == null) || (details.getPointId() != pointId)) {
 				// Make new fragment to show this selection.
-				details = new PointDetailFragment();
+				details = new PointDescriptionTabFragment();
 				Intent intent = createEditPointIntent(pointId);
-				details.setArguments(PointDetailFragment.intentToFragmentArguments(intent));
+				details.setArguments(PointDescriptionTabFragment.intentToFragmentArguments(intent));
 				// Execute a transaction, replacing any existing fragment
 				// with this one inside the frame.
 				FragmentTransaction ft = getFragmentManager().beginTransaction();
@@ -375,19 +377,19 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 			int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
 			valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
 		} else {
-			valueId = PointDetailFragment.INVALID_POINT_ID;
+			valueId = PointDescriptionTabFragment.INVALID_POINT_ID;
 			return;
 		}
 		if (mDualPane) {
 			// We can display everything in-place with fragments
 			// Check what fragment is currently shown, replace if needed.
-			PointDetailFragment details = (PointDetailFragment) getFragmentManager().findFragmentById(
-					R.id.frame_layout_details);
+			PointDescriptionTabFragment details = (PointDescriptionTabFragment) getFragmentManager()
+					.findFragmentById(R.id.frame_layout_details);
 			if ((details == null) || (details.getPointId() != valueId)) {
 				// Make new fragment to show this selection.
-				details = new PointDetailFragment();
+				details = new PointDescriptionTabFragment();
 				Intent intent = createViewPointIntent(valueId);
-				details.setArguments(PointDetailFragment.intentToFragmentArguments(intent));
+				details.setArguments(PointDescriptionTabFragment.intentToFragmentArguments(intent));
 				// Execute a transaction, replacing any existing fragment
 				// with this one inside the frame.
 				FragmentTransaction ft = getFragmentManager().beginTransaction();
@@ -486,8 +488,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 
 			switch (item.getItemId()) {
 				case R.id.menu_save:
-					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
-							.onActionSave();
+					((PointDescriptionTabFragment) getFragmentManager().findFragmentById(
+							R.id.frame_layout_details)).onActionSave();
 					mode.finish();
 					return true;
 				case R.id.menu_cancel:
@@ -495,8 +497,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 					mode.finish();
 					return true;
 				case R.id.menu_delete:
-					((PointDetailFragment) getFragmentManager().findFragmentById(R.id.frame_layout_details))
-							.onActionDelete();
+					((PointDescriptionTabFragment) getFragmentManager().findFragmentById(
+							R.id.frame_layout_details)).onActionDelete();
 					mode.finish();
 					return true;
 				default:
