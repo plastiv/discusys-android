@@ -142,21 +142,10 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		mCommentsList = (ListView) inflater.inflate(R.layout.tab_fragment_point_comments, container, false);
 		addCommentsHeader();
 		addCommentsFooter();
-		if (savedInstanceState != null) {
-			populateFromSavedInstanceState(savedInstanceState);
-		}
 		setUpCommentsAdapter();
 		initFromArguments();
 		initCommentsLoader();
 		return mCommentsList;
-	}
-
-	@Override
-	public void onSaveInstanceState(final Bundle outState) {
-
-		super.onSaveInstanceState(outState);
-		Log.d(TAG, "[onSaveInstanceState] " + mCommentEditText.getText().toString());
-		outState.putString(EXTRA_KEY_COMMENT_TEXT, mCommentEditText.getText().toString());
 	}
 
 	private void addCommentsFooter() {
@@ -250,15 +239,6 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		int personId = cursor.getInt(personIdIndex);
 		((BaseActivity) getActivity()).getServiceHelper().deleteComment(commentId, pointId,
 				mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId(), personId);
-	}
-
-	private void populateFromSavedInstanceState(final Bundle savedInstanceState) {
-
-		if (!savedInstanceState.containsKey(EXTRA_KEY_COMMENT_TEXT)) {
-			throw new IllegalStateException("SavedInstanceState doesnt contain comment text");
-		}
-		Log.d(TAG, "[populateFromSavedInstanceState] " + savedInstanceState.getString(EXTRA_KEY_COMMENT_TEXT));
-		mCommentEditText.setText(savedInstanceState.getString(EXTRA_KEY_COMMENT_TEXT));
 	}
 
 	private void setUpCommentsAdapter() {
