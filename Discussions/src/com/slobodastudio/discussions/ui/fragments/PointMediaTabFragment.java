@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments.AttachmentType;
@@ -12,6 +13,7 @@ import com.slobodastudio.discussions.ui.activities.BaseActivity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -19,7 +21,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BaseColumns;
-import android.provider.MediaStore.MediaColumns;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -39,12 +40,13 @@ import android.widget.TextView;
 import com.actionbarsherlock.app.SherlockFragment;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 
 public class PointMediaTabFragment extends SherlockFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	private static final int PICK_CAMERA_PHOTO = 0x03;
 	private static final int PICK_IMAGE_REQUEST = 0x02;
-	private static final int PICK_URL_REQUEST = 0x01;
 	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
 	private boolean footerButtonsEnabled;
 	private SimpleCursorAdapter mAttachmentsAdapter;
@@ -95,6 +97,13 @@ public class PointMediaTabFragment extends SherlockFragment {
 		return arguments;
 	}
 
+	public static void requestCameraPhoto(final Activity activity) {
+
+		Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+		activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+		activity.startActivityForResult(cameraIntent, PICK_CAMERA_PHOTO);
+	}
+
 	public static void requestImageAttachment(final Activity activity) {
 
 		Intent intent = new Intent();
@@ -113,13 +122,6 @@ public class PointMediaTabFragment extends SherlockFragment {
 		// http://stackoverflow.com/questions/8646246/uri-from-intent-action-get-content-into-file
 	}
 
-	public static void requestUrlAttachment(final Activity activity) {
-
-		Intent intent = new Intent(Intent.ACTION_PICK);
-		intent.setType("text/url");
-		activity.startActivityForResult(intent, PICK_URL_REQUEST);
-	}
-
 	private static byte[] getBitmapAsByteArray(final Bitmap bitmap) {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -133,27 +135,17 @@ public class PointMediaTabFragment extends SherlockFragment {
 
 		Log.d(TAG, "[onActivityresult]");
 		switch (requestCode) {
-			case PICK_URL_REQUEST:
-				if (resultCode == Activity.RESULT_OK) {
-					byte[] bitmapArray = data.getByteArrayExtra(ExtraKey.BINARY_DATA);
-					String description = data.getStringExtra(ExtraKey.BINARY_DATA_DESCRIPTION);
-					onAttachSourceAdded(bitmapArray, description, Attachments.AttachmentType.GENERAL_WEB_LINK);
-				}
+			case PICK_CAMERA_PHOTO: {
+				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+				byte[] bitmapArray = getBitmapAsByteArray(bitmap);
+				onAttachSourceAdded(bitmapArray, "Image, taken from android camera",
+						Attachments.AttachmentType.JPG);
+				getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 				break;
+			}
 			case PICK_IMAGE_REQUEST:
 				if (resultCode == Activity.RESULT_OK) {
-					Uri selectedImageUri = data.getData();
-					String[] projection = { MediaColumns.DATA };
-					// TODO: move cursor out of main thread to cursor loader
-					Cursor cursor = getActivity()
-							.managedQuery(selectedImageUri, projection, null, null, null);
-					int column_index_data = cursor.getColumnIndexOrThrow(MediaColumns.DATA);
-					cursor.moveToFirst();
-					String selectedImagePath = cursor.getString(column_index_data);
-					cursor.close();
-					Bitmap galleryImage = BitmapFactory.decodeFile(selectedImagePath);
-					byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
-					onAttachSourceAdded(bitmapArray, selectedImagePath, Attachments.AttachmentType.PNG);
+					loadImage(data);
 				}
 				break;
 			default:
@@ -182,7 +174,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
 				Context.LAYOUT_INFLATER_SERVICE);
 		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
-		setAttachUrlListener(footerView);
+		setAttachPhotoListener(footerView);
 		setAttachImageListener(footerView);
 		mAttachmentsList.addFooterView(footerView);
 	}
@@ -220,17 +212,49 @@ public class PointMediaTabFragment extends SherlockFragment {
 		footerButtonsEnabled = arguments.getBoolean(ExtraKey.VIEW_ENABLED);
 	}
 
+	private void loadImage(final Intent intent) {
+
+		Uri selectedImageUri = intent.getData();
+		// String[] projection = { MediaColumns.DATA };
+		// // TODO: move cursor out of main thread to cursor loader
+		// Cursor cursor = getActivity()
+		// .managedQuery(selectedImageUri, projection, null, null, null);
+		// int column_index_data = cursor.getColumnIndexOrThrow(MediaColumns.DATA);
+		// cursor.moveToFirst();
+		// String selectedImagePath = cursor.getString(column_index_data);
+		// cursor.close();
+		// Bitmap galleryImage = BitmapFactory.decodeFile(selectedImagePath);
+		Bitmap galleryImage;
+		try {
+			galleryImage = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(
+					selectedImageUri));
+			if (galleryImage != null) {
+				// Bitmap newBitmap = Bitmap.createScaledBitmap(bitmap, 70, 70, true);
+				// bitmap.recycle();
+				// if (newBitmap != null) {
+				// publishProgress(new LoadedImage(newBitmap));
+				// }
+				byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
+				onAttachSourceAdded(bitmapArray, "Image, loaded from android sdcard",
+						Attachments.AttachmentType.PNG);
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	private void onAttachSourceAdded(final byte[] attachmentData, final String attachmentDescription,
 			final int attachmentType) {
 
-		Bundle attachment = new Bundle();
-		attachment.putString(Attachments.Columns.NAME, attachmentDescription);
-		attachment.putByteArray(Attachments.Columns.DATA, attachmentData);
-		attachment.putInt(Attachments.Columns.POINT_ID, mSelectedPoint.getPointId());
-		attachment.putInt(Attachments.Columns.PERSON_ID, mSelectedPoint.getPersonId());
-		attachment.putInt(Attachments.Columns.FORMAT, attachmentType);
-		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment,
-				mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId());
+		Attachment attachment = new Attachment();
+		attachment.setData(attachmentData);
+		attachment.setName(attachmentDescription);
+		attachment.setTitle(attachmentDescription);
+		attachment.setPersonId(mSelectedPoint.getPersonId());
+		attachment.setPointId(mSelectedPoint.getPointId());
+		attachment.setFormat(attachmentType);
+		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mSelectedPoint);
 	}
 
 	private void setAttachImageListener(final View container) {
@@ -255,15 +279,15 @@ public class PointMediaTabFragment extends SherlockFragment {
 		mAttachmentsList.setAdapter(mAttachmentsAdapter);
 	}
 
-	private void setAttachUrlListener(final View container) {
+	private void setAttachPhotoListener(final View container) {
 
-		Button attachUrlButton = (Button) container.findViewById(R.id.btn_attach_url);
-		attachUrlButton.setOnClickListener(new OnClickListener() {
+		Button attachPhotoButton = (Button) container.findViewById(R.id.btn_attach_photo);
+		attachPhotoButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(final View v) {
 
-				requestUrlAttachment(getActivity());
+				requestCameraPhoto(getActivity());
 			}
 		});
 	}

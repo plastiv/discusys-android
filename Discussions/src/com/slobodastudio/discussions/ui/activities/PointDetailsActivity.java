@@ -78,6 +78,11 @@ public class PointDetailsActivity extends BaseActivity {
 			if ((sourceTabFragment != null)) {
 				sourceTabFragment.onActivityResult(requestCode, resultCode, data);
 			}
+			Fragment mediaTabFragment = getSupportFragmentManager()
+					.findFragmentByTag(FragmentTag.POINT_MEDIA);
+			if ((mediaTabFragment != null)) {
+				mediaTabFragment.onActivityResult(requestCode, resultCode, data);
+			}
 		}
 	}
 

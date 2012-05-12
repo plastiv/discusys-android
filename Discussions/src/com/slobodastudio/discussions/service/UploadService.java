@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.SelectedPoint;
@@ -175,37 +176,24 @@ public class UploadService extends IntentService {
 
 	private void insertAttachment(final Intent intent) {
 
-		Bundle attachmentBundle = intent.getBundleExtra(EXTRA_VALUE);
-		logd("[insertAttachment] " + attachmentBundle.getString(Attachments.Columns.NAME));
+		Attachment attachment = intent.getParcelableExtra(EXTRA_VALUE);
+		logd("[insertAttachment] " + attachment.getTitle());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
-		String name = attachmentBundle.getString(Attachments.Columns.NAME);
-		int personId = attachmentBundle.getInt(Attachments.Columns.PERSON_ID, Integer.MIN_VALUE);
-		int pointId = attachmentBundle.getInt(Attachments.Columns.POINT_ID, Integer.MIN_VALUE);
-		byte[] sourceData = attachmentBundle.getByteArray(Attachments.Columns.DATA);
-		int formatType = attachmentBundle.getInt(Attachments.Columns.FORMAT, Integer.MIN_VALUE);
-		OEntity entity = odataWrite.insertAttachment(name, personId, pointId, sourceData, formatType);
+		OEntity entity = odataWrite.insertAttachment(attachment);
 		int attachmentId = (Integer) entity.getProperty(Attachments.Columns.ID).getValue();
 		logd("[insertAttachment] new attachment id: " + attachmentId);
-		ContentValues cv = new ContentValues();
-		cv.put(Attachments.Columns.ID, attachmentId);
-		cv.put(Attachments.Columns.NAME, name);
-		cv.put(Attachments.Columns.PERSON_ID, personId);
-		cv.put(Attachments.Columns.POINT_ID, pointId);
-		cv.put(Attachments.Columns.DATA, sourceData);
-		cv.put(Attachments.Columns.FORMAT, formatType);
+		attachment.setAttachmentId(attachmentId);
+		ContentValues cv = attachment.toContentValues();
 		getContentResolver().insert(Attachments.CONTENT_URI, cv);
+		if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
+			throw new IllegalArgumentException("[insertSource] called without required selected point");
+		}
+		SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
 		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				pointId);
-		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-			throw new IllegalArgumentException("[insertAttachment] called without required discussion id");
-		}
-		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-		if (!intent.hasExtra(EXTRA_TOPIC_ID)) {
-			throw new IllegalArgumentException("[insertAttachment] called without required topic id");
-		}
-		int topicId = intent.getIntExtra(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
+				selectedPoint.getPointId());
 		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				discussionId, personId, topicId, StatsType.BADGE_EDITED);
+				selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
+				StatsType.BADGE_EDITED);
 	}
 
 	private void insertComment(final Intent intent) {

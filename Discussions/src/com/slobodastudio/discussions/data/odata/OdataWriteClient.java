@@ -1,5 +1,6 @@
 package com.slobodastudio.discussions.data.odata;
 
+import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.Source;
@@ -48,16 +49,17 @@ public class OdataWriteClient extends BaseOdataClient {
 		mConsumer.deleteEntity(Points.TABLE_NAME, pointId).execute();
 	}
 
-	public OEntity insertAttachment(final String name, final int personId, final int pointId,
-			final byte[] sourceData, final int formatType) {
+	public OEntity insertAttachment(final Attachment attachment) {
 
 		// @formatter:off
 		return mConsumer.createEntity(Attachments.TABLE_NAME)
-				.link(Attachments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
-				.properties(OProperties.string(Attachments.Columns.NAME, name))
-				.link(Attachments.Columns.POINT_ID, OEntityKey.parse(String.valueOf(pointId)))
-				.properties(OProperties.int32(Attachments.Columns.FORMAT, formatType))
-				.properties(OProperties.binary(Attachments.Columns.DATA, sourceData))
+				.link(Attachments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(attachment.getPersonId())))
+				.properties(OProperties.string(Attachments.Columns.NAME, attachment.getName()))
+				.link(Attachments.Columns.POINT_ID, OEntityKey.parse(String.valueOf(attachment.getPointId())))
+				.properties(OProperties.int32(Attachments.Columns.FORMAT, attachment.getFormat()))
+				.properties(OProperties.binary(Attachments.Columns.DATA, attachment.getData()))
+				.properties(OProperties.string(Attachments.Columns.TITLE, attachment.getTitle()))
+				.properties(OProperties.string(Attachments.Columns.LINK, attachment.getLink()))
 				.execute();
 		// @formatter:on
 	}
