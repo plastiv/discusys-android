@@ -24,7 +24,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 40;
+	private static final int DATABASE_VERSION = 42;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -108,6 +108,8 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Points.Columns.NAME + " TEXT NOT NULL,"
 				+ Points.Columns.SHARED_TO_PUBLIC + " INTEGER NOT NULL,"
 				+ Points.Columns.SIDE_CODE + " INTEGER NOT NULL,"
+				+ Points.Columns.RECENTLY_ENTERED_MEDIA_URL + " TEXT,"
+				+ Points.Columns.RECENTLY_ENTERED_SOURCE + " TEXT,"
 				+ SyncColumns.SYNC + " INTEGER DEFAULT 1,"
 				+ " UNIQUE (" + Points.Columns.ID + ") ON CONFLICT REPLACE)");
 		
@@ -123,6 +125,8 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Attachments.Columns.VIDEO_EMBED_URL + " TEXT,"
 				+ Attachments.Columns.VIDEO_LINK_URL + " TEXT,"
 				+ Attachments.Columns.VIDEO_THUMB_URL + " TEXT,"
+				+ Attachments.Columns.LINK + " TEXT,"
+				+ Attachments.Columns.TITLE + " TEXT,"
 				+ " UNIQUE (" + Attachments.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		// many-to-many table

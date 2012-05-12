@@ -113,11 +113,15 @@ public final class DiscussionsContract {
 			/** Type Int32. */
 			public static final String ID = "Id";
 			/** Type String. */
+			public static final String LINK = "Link";
+			/** Type String. */
 			public static final String NAME = "Name";
 			/** Type Int32. Foreign key. Should be used only by servers data. */
 			public static final String PERSON_ID = "Person";
 			/** Type Int32. Foreign key. Should be used only by servers data. */
 			public static final String POINT_ID = "ArgPoint";
+			/** Type String. */
+			public static final String TITLE = "Title";
 			/** Type String. */
 			public static final String VIDEO_EMBED_URL = "VideoEmbedURL";
 			/** Type String. */
@@ -622,6 +626,10 @@ public final class DiscussionsContract {
 			public static final String NUMBERED_POINT = "NumberedPoint";
 			/** Type Int32. */
 			public static final String PERSON_ID = "Person";
+			/** Type String. */
+			public static final String RECENTLY_ENTERED_MEDIA_URL = "RecentlyEnteredMediaUrl";
+			/** Type String. */
+			public static final String RECENTLY_ENTERED_SOURCE = "RecentlyEnteredSource";
 			/** Type Boolean. */
 			public static final String SHARED_TO_PUBLIC = "SharedToPublic";
 			/** Type Int32. */

@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
@@ -162,6 +161,8 @@ public class PointDetailsActivity extends BaseActivity {
 	private void setupActionBarTabs(final Bundle savedInstanceState) {
 
 		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		// getSupportActionBar().setDisplayShowTitleEnabled(false);
+		getSupportActionBar().setDisplayShowHomeEnabled(false);
 		addDescriptionTab();
 		addCommentsTab();
 		addMediaTab();
@@ -213,7 +214,7 @@ public class PointDetailsActivity extends BaseActivity {
 		@Override
 		public void onTabReselected(final Tab tab, final FragmentTransaction ft) {
 
-			Toast.makeText(mActivity, "Reselected!", Toast.LENGTH_SHORT).show();
+			// do nothing. Tab already present
 		}
 
 		@Override

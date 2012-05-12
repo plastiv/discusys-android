@@ -6,21 +6,26 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
 
-import java.io.UnsupportedEncodingException;
-
 public class Point implements Value {
 
-	private final int agreementCode;
-	private final byte[] drawing;
-	private final boolean expanded;
-	private final int groupId;
+	private int agreementCode;
+	private byte[] drawing;
+	private boolean expanded;
+	private Integer groupId;
 	private int id;
-	private final String name;
-	private final String numberedPoint;
-	private final int personId;
-	private final boolean sharedToPublic;
-	private final int sideCode;
-	private final int topicId;
+	private String name;
+	private String numberedPoint;
+	private int personId;
+	private String recentlyEnteredMediaUrl;
+	private String recentlyEnteredSource;
+	private boolean sharedToPublic;
+	private int sideCode;
+	private int topicId;
+
+	public Point() {
+
+		super();
+	}
 
 	public Point(final Bundle bundle) {
 
@@ -28,7 +33,11 @@ public class Point implements Value {
 		agreementCode = bundle.getInt(Points.Columns.AGREEMENT_CODE);
 		drawing = bundle.getByteArray(Points.Columns.DRAWING);
 		expanded = bundle.getBoolean(Points.Columns.EXPANDED);
-		groupId = bundle.getInt(Points.Columns.GROUP_ID);
+		if (bundle.getInt(Points.Columns.GROUP_ID) == Integer.MIN_VALUE) {
+			groupId = null;
+		} else {
+			groupId = bundle.getInt(Points.Columns.GROUP_ID);
+		}
 		id = bundle.getInt(Points.Columns.ID);
 		name = bundle.getString(Points.Columns.NAME);
 		numberedPoint = bundle.getString(Points.Columns.NUMBERED_POINT);
@@ -36,6 +45,8 @@ public class Point implements Value {
 		sharedToPublic = bundle.getBoolean(Points.Columns.SHARED_TO_PUBLIC);
 		sideCode = bundle.getInt(Points.Columns.SIDE_CODE);
 		topicId = bundle.getInt(Points.Columns.TOPIC_ID);
+		recentlyEnteredMediaUrl = bundle.getString(Points.Columns.RECENTLY_ENTERED_MEDIA_URL);
+		recentlyEnteredSource = bundle.getString(Points.Columns.RECENTLY_ENTERED_SOURCE);
 	}
 
 	public Point(final Cursor cursor) {
@@ -85,24 +96,6 @@ public class Point implements Value {
 		}
 	}
 
-	public Point(final int agreementCode, final byte[] drawing, final boolean expanded, final int groupId,
-			final int id, final String name, final String numberedPoint, final int personId,
-			final boolean sharedToPublic, final int sideCode, final int topicId) {
-
-		super();
-		this.agreementCode = agreementCode;
-		this.drawing = drawing;
-		this.expanded = expanded;
-		this.groupId = groupId;
-		this.id = id;
-		this.name = name;
-		this.numberedPoint = numberedPoint;
-		this.personId = personId;
-		this.sharedToPublic = sharedToPublic;
-		this.sideCode = sideCode;
-		this.topicId = topicId;
-	}
-
 	public int getAgreementCode() {
 
 		return agreementCode;
@@ -113,7 +106,7 @@ public class Point implements Value {
 		return drawing;
 	}
 
-	public int getGroupId() {
+	public Integer getGroupId() {
 
 		return groupId;
 	}
@@ -138,6 +131,16 @@ public class Point implements Value {
 		return personId;
 	}
 
+	public String getRecentlyEnteredMediaUrl() {
+
+		return recentlyEnteredMediaUrl;
+	}
+
+	public String getRecentlyEnteredSource() {
+
+		return recentlyEnteredSource;
+	}
+
 	public int getSideCode() {
 
 		return sideCode;
@@ -158,9 +161,86 @@ public class Point implements Value {
 		return sharedToPublic;
 	}
 
+	public void setAgreementCode(final int agreementCode) {
+
+		this.agreementCode = agreementCode;
+	}
+
+	// public Point(final int agreementCode, final byte[] drawing, final boolean expanded, final int groupId,
+	// final int id, final String name, final String numberedPoint, final int personId,
+	// final boolean sharedToPublic, final int sideCode, final int topicId) {
+	//
+	// super();
+	// this.agreementCode = agreementCode;
+	// this.drawing = drawing;
+	// this.expanded = expanded;
+	// this.groupId = groupId;
+	// this.id = id;
+	// this.name = name;
+	// this.numberedPoint = numberedPoint;
+	// this.personId = personId;
+	// this.sharedToPublic = sharedToPublic;
+	// this.sideCode = sideCode;
+	// this.topicId = topicId;
+	// }
+	public void setDrawing(final byte[] drawing) {
+
+		this.drawing = drawing;
+	}
+
+	public void setExpanded(final boolean expanded) {
+
+		this.expanded = expanded;
+	}
+
+	public void setGroupId(final Integer groupId) {
+
+		this.groupId = groupId;
+	}
+
 	public void setId(final int id) {
 
 		this.id = id;
+	}
+
+	public void setName(final String name) {
+
+		this.name = name;
+	}
+
+	public void setNumberedPoint(final String numberedPoint) {
+
+		this.numberedPoint = numberedPoint;
+	}
+
+	public void setPersonId(final int personId) {
+
+		this.personId = personId;
+	}
+
+	public void setRecentlyEnteredMediaUrl(final String recentlyEnteredMediaUrl) {
+
+		this.recentlyEnteredMediaUrl = recentlyEnteredMediaUrl;
+	}
+
+	public void setRecentlyEnteredSource(final String recentlyEnteredSource) {
+
+		this.recentlyEnteredSource = recentlyEnteredSource;
+	}
+
+	public void setSharedToPublic(final boolean sharedToPublic) {
+
+		this.sharedToPublic = sharedToPublic;
+	}
+
+	public void setSideCode(final int sideCode) {
+
+		this.sideCode = sideCode;
+	}
+
+	public void setTopicId(final int topicId) {
+
+		this.topicId = topicId;
 	}
 
 	public Bundle toBundle() {
@@ -169,7 +249,11 @@ public class Point implements Value {
 		bundle.putInt(Points.Columns.AGREEMENT_CODE, agreementCode);
 		bundle.putByteArray(Points.Columns.DRAWING, drawing);
 		bundle.putBoolean(Points.Columns.EXPANDED, expanded);
-		bundle.putInt(Points.Columns.GROUP_ID, groupId);
+		if (groupId == null) {
+			bundle.putInt(Points.Columns.GROUP_ID, Integer.MIN_VALUE);
+		} else {
+			bundle.putInt(Points.Columns.GROUP_ID, groupId);
+		}
 		bundle.putInt(Points.Columns.ID, id);
 		bundle.putString(Points.Columns.NAME, name);
 		bundle.putString(Points.Columns.NUMBERED_POINT, numberedPoint);
@@ -177,6 +261,8 @@ public class Point implements Value {
 		bundle.putBoolean(Points.Columns.SHARED_TO_PUBLIC, sharedToPublic);
 		bundle.putInt(Points.Columns.SIDE_CODE, sideCode);
 		bundle.putInt(Points.Columns.TOPIC_ID, topicId);
+		bundle.putString(Points.Columns.RECENTLY_ENTERED_MEDIA_URL, recentlyEnteredMediaUrl);
+		bundle.putString(Points.Columns.RECENTLY_ENTERED_SOURCE, recentlyEnteredSource);
 		return bundle;
 	}
 
@@ -185,16 +271,15 @@ public class Point implements Value {
 
 		ContentValues cv = new ContentValues();
 		cv.put(Points.Columns.AGREEMENT_CODE, agreementCode);
-		// FIXME
-		cv.put(Points.Columns.DRAWING, new byte[] { 1 });
+		cv.put(Points.Columns.DRAWING, drawing);
 		cv.put(Points.Columns.EXPANDED, expanded);
-		// FIXME
-		cv.put(Points.Columns.GROUP_ID, 1);
+		cv.put(Points.Columns.GROUP_ID, groupId);
 		cv.put(Points.Columns.ID, id);
 		cv.put(Points.Columns.NAME, name);
-		// FIXME
-		cv.put(Points.Columns.NUMBERED_POINT, "test");
+		cv.put(Points.Columns.NUMBERED_POINT, numberedPoint);
 		cv.put(Points.Columns.PERSON_ID, personId);
+		cv.put(Points.Columns.RECENTLY_ENTERED_MEDIA_URL, recentlyEnteredMediaUrl);
+		cv.put(Points.Columns.RECENTLY_ENTERED_SOURCE, recentlyEnteredSource);
 		cv.put(Points.Columns.SHARED_TO_PUBLIC, sharedToPublic);
 		cv.put(Points.Columns.SIDE_CODE, sideCode);
 		cv.put(Points.Columns.TOPIC_ID, topicId);
@@ -204,24 +289,6 @@ public class Point implements Value {
 	@Override
 	public String toMyString() {
 
-		StringBuilder sb = new StringBuilder();
-		sb.append(Points.Columns.AGREEMENT_CODE).append(':').append(agreementCode).append('\n');
-		String drawingStr;
-		try {
-			drawingStr = new String(drawing, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException("Cant convert drawing to UTF-8 string", e);
-		}
-		sb.append(Points.Columns.DRAWING).append(':').append(drawingStr).append('\n');
-		sb.append(Points.Columns.EXPANDED).append(':').append(expanded).append('\n');
-		sb.append(Points.Columns.GROUP_ID).append(':').append(groupId).append('\n');
-		sb.append(Points.Columns.ID).append(':').append(id).append('\n');
-		sb.append(Points.Columns.NAME).append(':').append(name).append('\n');
-		sb.append(Points.Columns.NUMBERED_POINT).append(':').append(numberedPoint).append('\n');
-		sb.append(Points.Columns.PERSON_ID).append(':').append(personId).append('\n');
-		sb.append(Points.Columns.SHARED_TO_PUBLIC).append(':').append(sharedToPublic).append('\n');
-		sb.append(Points.Columns.SIDE_CODE).append(':').append(sideCode).append('\n');
-		sb.append(Points.Columns.TOPIC_ID).append(':').append(topicId).append('\n');
-		return sb.toString();
+		return toBundle().toString();
 	}
 }

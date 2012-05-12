@@ -132,31 +132,28 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 					.toString(), null, mPointId);
 			((BaseActivity) getActivity()).getServiceHelper().updateDescription(description.toBundle());
 		}
-		// save point
-		int expectedAgreementCode = Points.ArgreementCode.UNSOLVED;
-		byte[] expectedDrawing = new byte[] { 0, 1 };
-		boolean expectedExpanded = false;
-		int expectedGroupId = 1;
-		String expectedNumberedPoint = "";
-		int expectedPersonId = mPersonId;
-		String expectedPointName = mNameEditText.getText().toString();
-		boolean expectedSharedToPublic = mSharedToPublicCheckBox.isChecked();
-		int expectedSideCode = getSelectedSideCodeId();
-		int expectedTopicId = mTopicId;
+		Point point = new Point();
+		point.setAgreementCode(Points.ArgreementCode.UNSOLVED);
+		point.setDrawing(null);
+		point.setExpanded(false);
+		point.setGroupId(null);
+		point.setNumberedPoint(null);
+		point.setRecentlyEnteredMediaUrl("");
+		point.setRecentlyEnteredSource("");
+		//
+		point.setPersonId(mPersonId);
+		point.setName(mNameEditText.getText().toString());
+		point.setSharedToPublic(mSharedToPublicCheckBox.isChecked());
+		point.setSideCode(getSelectedSideCodeId());
+		point.setTopicId(mTopicId);
 		if (mPointId != INVALID_POINT_ID) {
 			// update point
-			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
-					expectedGroupId, mPointId, expectedPointName, expectedNumberedPoint, expectedPersonId,
-					expectedSharedToPublic, expectedSideCode, expectedTopicId);
+			point.setId(mPointId);
 			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle(), mDiscussionId);
 		} else {
 			// new point
-			Bundle values;
-			Point point = new Point(expectedAgreementCode, expectedDrawing, expectedExpanded,
-					expectedGroupId, INVALID_POINT_ID, expectedPointName, expectedNumberedPoint,
-					expectedPersonId, expectedSharedToPublic, expectedSideCode, expectedTopicId);
-			// ((BaseActivity) getActivity()).getServiceHelper().insertPoint(point.toBundle());
-			values = point.toBundle();
+			point.setId(INVALID_POINT_ID);
+			Bundle values = point.toBundle();
 			// with new description
 			if (mDescriptionId != Integer.MIN_VALUE) {
 				throw new IllegalStateException("Cant be new point without new description");
@@ -164,7 +161,6 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			// new description
 			Description description = new Description(mDescriptionId, mDesctiptionEditText.getText()
 					.toString(), null, mPointId);
-			// ((BaseActivity) getActivity()).getServiceHelper().insertDescription(description.toBundle());
 			values.putAll(description.toBundle());
 			((BaseActivity) getActivity()).getServiceHelper()
 					.insertPointAndDescription(values, mDiscussionId);
@@ -426,10 +422,10 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 						mNameEditText.setText(value.getName());
 						mSideCodeSpinner.setSelection(value.getSideCode(), true);
 						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+						getSherlockActivity().getSupportActionBar().setTitle(value.getName());
 						Bundle args = new Bundle();
 						args.putInt(ExtraKey.POINT_ID, mPointId);
 						getLoaderManager().initLoader(DESCRIPTION_ID, args, this);
-						// getLoaderManager().initLoader(COMMENTS_ID, args, this);
 					} else {
 						Log.w(TAG, "[onLoadFinished] LOADER_POINT_ID count was: " + data.getCount());
 					}

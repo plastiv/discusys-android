@@ -141,50 +141,31 @@ public class OdataWriteClient extends BaseOdataClient {
 		}
 	}
 
-	public OEntity insertPoint(final int agreementCode, final Byte[] drawing, final boolean expanded,
-			final Integer groupId, final String numberedPoint, final int personId, final String pointName,
-			final boolean sharedToPublic, final int sideCode, final int topicId) {
-
-		// @formatter:off
-		OCreateRequest<OEntity> request = mConsumer.createEntity(Points.TABLE_NAME)
-				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, Integer.valueOf(agreementCode)))				
-				.properties(OProperties.boolean_(Points.Columns.EXPANDED, Boolean.valueOf(expanded)))	
-				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
-				.properties(OProperties.string(Points.Columns.NAME, pointName))
-				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(sharedToPublic)))
-				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(sideCode)))		
-				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(topicId)));
-		
-		if(drawing != null) {
-			//request.properties(OProperties.binary(Points.Columns.DRAWING, drawing));
-		}
-		if(groupId != null) {
-			
-			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(groupId)));
-		}
-		if(numberedPoint != null) {
-			request.properties(OProperties.string(Points.Columns.NUMBERED_POINT, numberedPoint));
-		}
-		return request.execute();
-		// @formatter:on
-	}
-
 	public OEntity insertPoint(final Point point) {
 
 		// @formatter:off
-		return mConsumer.createEntity(Points.TABLE_NAME)
+		OCreateRequest<OEntity> request = mConsumer.createEntity(Points.TABLE_NAME)
 				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, point.getAgreementCode()))
-				.properties(OProperties.binary(Points.Columns.DRAWING, point.getDrawing()))
 				.properties(OProperties.boolean_(Points.Columns.EXPANDED, point.isExpanded()))
-				//.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())))
 				.properties(OProperties.string(Points.Columns.NUMBERED_POINT, point.getNumberedPoint()))
 				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(point.getPersonId())))
 				.properties(OProperties.string(Points.Columns.NAME, point.getName()))
 				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(point.isSharedToPublic())))
-				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))		
-				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())))
-				.execute();
+				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))	
+				.properties(OProperties.string(Points.Columns.RECENTLY_ENTERED_MEDIA_URL, point.getRecentlyEnteredMediaUrl()))
+				.properties(OProperties.string(Points.Columns.RECENTLY_ENTERED_SOURCE, point.getRecentlyEnteredSource()))
+				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())));
 		// @formatter:on
+		if (point.getDrawing() != null) {
+			request.properties(OProperties.binary(Points.Columns.DRAWING, point.getDrawing()));
+		}
+		if (point.getGroupId() != null) {
+			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())));
+		}
+		if (point.getNumberedPoint() != null) {
+			request.properties(OProperties.string(Points.Columns.NUMBERED_POINT, point.getNumberedPoint()));
+		}
+		return request.execute();
 	}
 
 	public OEntity insertTopic(final String topicName, final int discussionId, final int personId) {
