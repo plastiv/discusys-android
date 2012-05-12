@@ -4,11 +4,14 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.model.SelectedPoint;
+import com.slobodastudio.discussions.data.model.Source;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
 import com.slobodastudio.discussions.photon.constants.StatsType;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
@@ -30,6 +33,7 @@ public class UploadService extends IntentService {
 
 	public static final String EXTRA_DISCUSSION_ID = "intent.extra.key.EXTRA_DISCUSSION_ID";
 	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
+	public static final String EXTRA_SELECTED_POINT = "intent.extra.key.EXTRA_SELECTED_POINT";
 	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE = "intent.extra.key.EXTRA_VALUE";
@@ -37,6 +41,7 @@ public class UploadService extends IntentService {
 	public static final int TYPE_INSERT_COMMENT = 0x5;
 	public static final int TYPE_INSERT_DESCRIPTION = 0x3;
 	public static final int TYPE_INSERT_POINT_AND_DESCRIPTION = 0x4;
+	public static final int TYPE_INSERT_SOURCE = 0x7;
 	public static final int TYPE_UPDATE_DESCRIPTION = 0x2;
 	public static final int TYPE_UPDATE_POINT = 0x1;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
@@ -142,6 +147,9 @@ public class UploadService extends IntentService {
 					break;
 				case TYPE_INSERT_ATTACHMENT:
 					insertAttachment(intent);
+					break;
+				case TYPE_INSERT_SOURCE:
+					insertSource(intent);
 					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: "
@@ -272,6 +280,28 @@ public class UploadService extends IntentService {
 				discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_CREATED);
 		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
 		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
+	}
+
+	private void insertSource(final Intent intent) {
+
+		Source source = intent.getParcelableExtra(EXTRA_VALUE);
+		logd("[insertSource] " + source.getLink());
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		OEntity entity = odataWrite.insertSource(source);
+		int sourceId = (Integer) entity.getProperty(Sources.Columns.ID).getValue();
+		logd("[insertSource] new attachment id: " + sourceId);
+		source.setSourceId(sourceId);
+		ContentValues cv = source.toContentValues();
+		getContentResolver().insert(Sources.CONTENT_URI, cv);
+		if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
+			throw new IllegalArgumentException("[insertSource] called without required selected point");
+		}
+		SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				selectedPoint.getPointId());
+		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
+				StatsType.BADGE_EDITED);
 	}
 
 	private void updateDescription(final Intent intent) {

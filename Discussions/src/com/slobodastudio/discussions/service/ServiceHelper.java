@@ -1,6 +1,8 @@
 package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.model.SelectedPoint;
+import com.slobodastudio.discussions.data.model.Source;
 import com.slobodastudio.discussions.photon.PhotonController;
 import com.slobodastudio.discussions.ui.IntentAction;
 
@@ -145,6 +147,17 @@ public class ServiceHelper {
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_POINT_AND_DESCRIPTION);
 		intent.putExtra(UploadService.EXTRA_VALUE, values);
 		intent.putExtra(UploadService.EXTRA_DISCUSSION_ID, discussionId);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		mContext.startService(intent);
+	}
+
+	public void insertSource(final Source source, final SelectedPoint selectedPoint) {
+
+		Intent intent = new Intent(IntentAction.UPLOAD);
+		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_SOURCE);
+		intent.putExtra(UploadService.EXTRA_VALUE, source);
+		intent.putExtra(UploadService.EXTRA_SELECTED_POINT, selectedPoint);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);

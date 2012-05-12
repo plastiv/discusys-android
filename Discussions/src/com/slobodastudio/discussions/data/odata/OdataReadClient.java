@@ -11,6 +11,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTo
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.utils.MyLog;
 
@@ -390,6 +391,36 @@ public class OdataReadClient extends BaseOdataClient {
 		cur.close();
 	}
 
+	public void refreshSources() {
+
+		logd("[refreshSources]");
+		Enumerable<OEntity> sources = getSourcesEntities();
+		logd("[refreshSources] entities count: " + sources.count());
+		List<Integer> serversIds = new ArrayList<Integer>(sources.count());
+		for (OEntity source : sources) {
+			serversIds.add(getAsInt(source, Attachments.Columns.ID));
+			insertSource(source);
+		}
+		logd("[refreshSources] all sources was inserted");
+		// check if server has a deleted points
+		Cursor cur = mContentResolver.query(Sources.CONTENT_URI, new String[] { Sources.Columns.ID }, null,
+				null, null);
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Sources.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int sourceId = cur.getInt(idIndex);
+				if (!serversIds.contains(sourceId)) {
+					// delete this row
+					logd("[refreshSources] delete source: " + sourceId);
+					Uri uri = Sources.buildTableUri(sourceId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
+	}
+
 	public void refreshTopics() {
 
 		logd("[refreshTopics] ");
@@ -534,6 +565,11 @@ public class OdataReadClient extends BaseOdataClient {
 
 		return mConsumer.getEntities(Points.TABLE_NAME).expand(Topics.TABLE_NAME + "," + Persons.TABLE_NAME)
 				.filter("Topic/Id eq " + String.valueOf(topicId)).execute();
+	}
+
+	private Enumerable<OEntity> getSourcesEntities() {
+
+		return mConsumer.getEntities(Sources.TABLE_NAME).expand(Descriptions.TABLE_NAME).execute();
 	}
 
 	private Enumerable<OEntity> getTopicsEntities() {
@@ -707,6 +743,19 @@ public class OdataReadClient extends BaseOdataClient {
 		// TODO no sync cloumn needed
 		cv.put(Points.Columns.SYNC, false);
 		return mContentResolver.insert(Points.CONTENT_URI, cv);
+	}
+
+	private Uri insertSource(final OEntity source) {
+
+		ContentValues cv = OEntityToContentValue(source);
+		OEntity description = source.getLink(Descriptions.TABLE_NAME, ORelatedEntityLinkInline.class)
+				.getRelatedEntity();
+		if ((description == null)) {
+			// TODO: thwo ex here
+			return null;
+		}
+		cv.put(Sources.Columns.DESCRIPTION_ID, getAsInt(description, Sources.Columns.ID));
+		return mContentResolver.insert(Sources.CONTENT_URI, cv);
 	}
 
 	private Uri insertTopic(final OEntity entity) {

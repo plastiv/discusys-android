@@ -192,6 +192,8 @@ public class DownloadService extends IntentService {
 		logd("[downloadAll] comments completed");
 		odataClient.refreshAttachments();
 		logd("[downloadAll] attachments completed");
+		odataClient.refreshSources();
+		logd("[downloadAll] sources completed");
 	}
 
 	private void downloadDescription(final Intent intent) {

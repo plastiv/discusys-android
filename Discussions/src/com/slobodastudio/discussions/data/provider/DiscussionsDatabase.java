@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTo
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.SyncColumns;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
@@ -24,7 +25,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 42;
+	private static final int DATABASE_VERSION = 44;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -129,6 +130,13 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Attachments.Columns.TITLE + " TEXT,"
 				+ " UNIQUE (" + Attachments.Columns.ID + ") ON CONFLICT REPLACE)");
 		
+		db.execSQL("CREATE TABLE " + Sources.TABLE_NAME + " (" 
+				+ BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ Sources.Columns.ID + " INTEGER NOT NULL,"
+				+ Sources.Columns.LINK + " TEXT NOT NULL,"
+				+ Sources.Columns.DESCRIPTION_ID + " INTEGER NOT NULL,"				
+				+ " UNIQUE (" + Sources.Columns.ID + ") ON CONFLICT REPLACE)");
+		
 		// many-to-many table
 		db.execSQL("CREATE TABLE " + PersonsTopics.TABLE_NAME + " ("
                 + BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -171,6 +179,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 			db.execSQL("DROP TABLE IF EXISTS " + Seats.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Sessions.TABLE_NAME);
 			db.execSQL("DROP TABLE IF EXISTS " + Attachments.TABLE_NAME);
+			db.execSQL("DROP TABLE IF EXISTS " + Sources.TABLE_NAME);
 			db.execSQL("DROP TRIGGER IF EXISTS " + Triggers.PERSONS_DELETE_TOPICS);
 			onCreate(db);
 		}

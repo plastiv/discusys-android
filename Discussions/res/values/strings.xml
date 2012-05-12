@@ -21,6 +21,7 @@
     <string name="tab_title_comments">Comments</string>
     <string name="tab_title_description">Description</string>
     <string name="tab_title_media">Media</string>
+    <string name="tab_title_source">Source</string>
     <!-- buttons -->
     <string name="button_title_comment">Comment</string>
     <string name="button_title_attach_url">Attach url</string>

@@ -2,12 +2,14 @@ package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.model.Source;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentValues;
@@ -166,6 +168,16 @@ public class OdataWriteClient extends BaseOdataClient {
 			request.properties(OProperties.string(Points.Columns.NUMBERED_POINT, point.getNumberedPoint()));
 		}
 		return request.execute();
+	}
+
+	public OEntity insertSource(final Source source) {
+
+		// @formatter:off
+		return mConsumer.createEntity(Sources.TABLE_NAME)
+				.properties(OProperties.string(Sources.Columns.LINK, source.getLink()))
+				.link(Sources.Columns.DESCRIPTION_ID, OEntityKey.parse(String.valueOf(source.getDescriptionId())))
+				.execute();
+		// @formatter:on
 	}
 
 	public OEntity insertTopic(final String topicName, final int discussionId, final int personId) {

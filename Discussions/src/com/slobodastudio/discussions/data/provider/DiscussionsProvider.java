@@ -11,6 +11,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.PersonsTo
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.ContentProvider;
@@ -57,6 +58,8 @@ public class DiscussionsProvider extends ContentProvider {
 	private static final int SEATS_ITEM = 800;
 	private static final int SESSIONS_DIR = 901;
 	private static final int SESSIONS_ITEM = 900;
+	private static final int SOURCES_DIR = 1201;
+	private static final int SOURCES_ITEM = 1200;
 	private static final UriMatcher sUriMatcher = buildUriMatcher();
 	private static final String TAG = DiscussionsProvider.class.getSimpleName();
 	private static final int TOPICS_DIR = 401;
@@ -126,6 +129,12 @@ public class DiscussionsProvider extends ContentProvider {
 				final String valueId = Attachments.getValueId(uri);
 				return builder.table(Attachments.TABLE_NAME).where(Attachments.Columns.ID + "=?", valueId);
 			}
+			case SOURCES_DIR:
+				return builder.table(Sources.TABLE_NAME);
+			case SOURCES_ITEM: {
+				final String valueId = Sources.getValueId(uri);
+				return builder.table(Sources.TABLE_NAME).where(Sources.Columns.ID + "=?", valueId);
+			}
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -175,6 +184,9 @@ public class DiscussionsProvider extends ContentProvider {
 		// attachment
 		matcher.addURI(authority, Attachments.A_TABLE_PREFIX, ATTACHMENT_DIR);
 		matcher.addURI(authority, Attachments.A_TABLE_PREFIX + "/*", ATTACHMENT_ITEM);
+		// sources
+		matcher.addURI(authority, Sources.A_TABLE_PREFIX, SOURCES_DIR);
+		matcher.addURI(authority, Sources.A_TABLE_PREFIX + "/*", SOURCES_ITEM);
 		return matcher;
 	}
 
@@ -265,6 +277,10 @@ public class DiscussionsProvider extends ContentProvider {
 				return Attachments.CONTENT_DIR_TYPE;
 			case ATTACHMENT_ITEM:
 				return Attachments.CONTENT_ITEM_TYPE;
+			case SOURCES_DIR:
+				return Sources.CONTENT_DIR_TYPE;
+			case SOURCES_ITEM:
+				return Sources.CONTENT_ITEM_TYPE;
 			default:
 				throw new IllegalArgumentException("Unknown uri: " + uri);
 		}
@@ -328,6 +344,10 @@ public class DiscussionsProvider extends ContentProvider {
 				case ATTACHMENT_DIR:
 					insertedId = db.insertOrThrow(Attachments.TABLE_NAME, null, values);
 					insertedUri = Attachments.buildTableUri(insertedId);
+					break;
+				case SOURCES_DIR:
+					insertedId = db.insertOrThrow(Sources.TABLE_NAME, null, values);
+					insertedUri = Sources.buildTableUri(insertedId);
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown uri: " + uri);

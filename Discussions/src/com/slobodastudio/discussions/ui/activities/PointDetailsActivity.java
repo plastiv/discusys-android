@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointDescriptionTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointMediaTabFragment;
+import com.slobodastudio.discussions.ui.fragments.PointSourcesTabFragment;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -72,10 +73,10 @@ public class PointDetailsActivity extends BaseActivity {
 		Log.d(TAG, "[onActivityResult]");
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode == Activity.RESULT_OK) {
-			Fragment mediaTabFragment = getSupportFragmentManager()
-					.findFragmentByTag(FragmentTag.POINT_MEDIA);
-			if ((mediaTabFragment != null)) {
-				mediaTabFragment.onActivityResult(requestCode, resultCode, data);
+			Fragment sourceTabFragment = getSupportFragmentManager().findFragmentByTag(
+					FragmentTag.POINT_SOURCE);
+			if ((sourceTabFragment != null)) {
+				sourceTabFragment.onActivityResult(requestCode, resultCode, data);
 			}
 		}
 	}
@@ -158,6 +159,18 @@ public class PointDetailsActivity extends BaseActivity {
 		getSupportActionBar().addTab(mediaTab);
 	}
 
+	private void addSourceTab() {
+
+		Tab mediaTab = getSupportActionBar().newTab();
+		mediaTab.setText(R.string.tab_title_source);
+		Bundle fragmentArguments = PointSourcesTabFragment.intentToFragmentArguments(getIntent());
+		TabListener<PointSourcesTabFragment> mediaTabListener = new TabListener<PointSourcesTabFragment>(
+				this, FragmentTag.POINT_SOURCE, PointSourcesTabFragment.class, fragmentArguments);
+		mediaTab.setTabListener(mediaTabListener);
+		mediaTab.setIcon(R.drawable.ic_tab_sources);
+		getSupportActionBar().addTab(mediaTab);
+	}
+
 	private void setupActionBarTabs(final Bundle savedInstanceState) {
 
 		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -166,6 +179,7 @@ public class PointDetailsActivity extends BaseActivity {
 		addDescriptionTab();
 		addCommentsTab();
 		addMediaTab();
+		addSourceTab();
 		if (savedInstanceState != null) {
 			getSupportActionBar()
 					.setSelectedNavigationItem(savedInstanceState.getInt(EXTRA_KEY_TAB_INDEX, 0));
@@ -177,6 +191,7 @@ public class PointDetailsActivity extends BaseActivity {
 		private static final String POINT_COMMENTS = "point_comments_tag";
 		private static final String POINT_DESCRIPTION = "point_description_tag";
 		private static final String POINT_MEDIA = "point_media_tag";
+		private static final String POINT_SOURCE = "point_source_tag";
 	}
 
 	private class TabListener<T extends Fragment> implements ActionBar.TabListener {
@@ -186,11 +201,6 @@ public class PointDetailsActivity extends BaseActivity {
 		private final Class<T> mClass;
 		private Fragment mFragment;
 		private final String mTag;
-
-		public TabListener(final SherlockFragmentActivity activity, final String tag, final Class<T> clz) {
-
-			this(activity, tag, clz, null);
-		}
 
 		public TabListener(final SherlockFragmentActivity activity, final String tag, final Class<T> clz,
 				final Bundle args) {
