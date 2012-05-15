@@ -12,7 +12,6 @@
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        android:enabled="false"
         android:text="@string/button_title_attach_photo" />
 
     <Button
@@ -23,10 +22,10 @@
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        android:enabled="false"
         android:text="@string/button_title_attach_image" />
 
-    <Button
+    <!--
+         <Button
         android:id="@+id/btn_attach_pdf"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -37,5 +36,6 @@
         android:layout_marginTop="8dp"
         android:enabled="false"
         android:text="@string/button_title_attach_pdf" />
+    -->
 
 </LinearLayout>
