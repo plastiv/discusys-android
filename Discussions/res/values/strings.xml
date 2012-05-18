@@ -7,6 +7,7 @@
     <!-- titles -->
     <string name="activity_title_persons">Persons</string>
     <string name="activity_title_discussions">Discussions</string>
+    <string name="activity_title_discussions_info">Discussion info</string>
     <string name="activity_title_topics">Topics</string>
     <string name="activity_title_points">Points</string>
     <string name="activity_title_point">Edit point</string>
@@ -35,6 +36,7 @@
     <string name="menu_action_save">Save</string>
     <string name="menu_action_cancel">Cancel</string>
     <string name="menu_action_new_attachment">Save link</string>
+    <string name="menu_action_view_discussion_info">View discussion info</string>
     <!-- texts -->
     <string name="text_empty_list">Empty list</string>
     <string name="text_empty_persons_list">No persons</string>
@@ -45,6 +47,7 @@
     <string name="text_empty_sessions_list">No sessions</string>
     <string name="text_empty_seats_list">No seats</string>
     <string name="text_empty_attachments_list">Attachments list is empty</string>
+    <string name="text_empty_discussion_info">Disscussion info is empty</string>
     <string name="text_select_point">Select point to see details</string>
     <string name="text_other_users_points">Other points</string>
     <string name="text_current_user_points">User\'s points</string>

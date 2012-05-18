@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.ui.IntentAction;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
@@ -110,9 +111,23 @@ public class ServiceHelper {
 
 	public void insertAttachment(final Attachment attachment, final SelectedPoint selectedPoint) {
 
+		Log.d(TAG, "[insertAttachment]" + attachment.getTitle());
 		Intent intent = new Intent(IntentAction.UPLOAD);
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_ATTACHMENT);
 		intent.putExtra(UploadService.EXTRA_VALUE, attachment);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		intent.putExtra(UploadService.EXTRA_SELECTED_POINT, selectedPoint);
+		mContext.startService(intent);
+	}
+
+	public void insertAttachment(final Attachment attachment, final SelectedPoint selectedPoint, final Uri uri) {
+
+		Log.d(TAG, "[insertAttachment]" + attachment.getTitle());
+		Intent intent = new Intent(IntentAction.UPLOAD);
+		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_ATTACHMENT);
+		intent.putExtra(UploadService.EXTRA_VALUE, attachment);
+		intent.putExtra(UploadService.EXTRA_URI, uri);
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		intent.putExtra(UploadService.EXTRA_SELECTED_POINT, selectedPoint);

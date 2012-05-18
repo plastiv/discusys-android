@@ -68,6 +68,19 @@
             </intent-filter>
         </activity>
 
+        <!-- discussion info -->
+        <activity
+            android:name=".ui.activities.DiscussionInfoActivity"
+            android:label="@string/activity_title_discussions_info" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.discussion" />
+            </intent-filter>
+        </activity>
+
         <!-- seats -->
         <activity
             android:name=".ui.activities.SeatsActivity"

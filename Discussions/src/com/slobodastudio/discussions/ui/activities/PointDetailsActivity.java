@@ -112,6 +112,12 @@ public class PointDetailsActivity extends BaseActivity {
 		outState.putInt(EXTRA_KEY_TAB_INDEX, getSupportActionBar().getSelectedNavigationIndex());
 	}
 
+	@Override
+	protected void onStop() {
+
+		super.onStop();
+	}
+
 	private void addCommentsTab() {
 
 		Tab commentsTab = getSupportActionBar().newTab();

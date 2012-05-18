@@ -94,34 +94,8 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void refreshAttachments() {
 
-		logd("[refreshAttachments]");
 		Enumerable<OEntity> attachments = getAttachmentsEntities();
-		logd("[refreshAttachments] entities count: " + attachments.count());
-		List<Integer> serversIds = new ArrayList<Integer>(attachments.count());
-		for (OEntity attachment : attachments) {
-			serversIds.add(getAsInt(attachment, Attachments.Columns.ID));
-			// ContentValues cv = OEntityToContentValue(attachment);
-			// mContentResolver.insert(Attachments.CONTENT_URI, cv);
-			insertAttachment(attachment);
-		}
-		logd("[refreshAttachments] all attachments was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Attachments.CONTENT_URI, new String[] { Attachments.Columns.ID },
-				null, null, null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Attachments.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int attachmentId = cur.getInt(idIndex);
-				if (!serversIds.contains(attachmentId)) {
-					// delete this row
-					logd("[refreshAttachments] delete attachment: " + attachmentId);
-					Uri uri = Attachments.buildTableUri(attachmentId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		insertAttachments(attachments);
 	}
 
 	public void refreshComments() {
@@ -393,32 +367,8 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void refreshSources() {
 
-		logd("[refreshSources]");
 		Enumerable<OEntity> sources = getSourcesEntities();
-		logd("[refreshSources] entities count: " + sources.count());
-		List<Integer> serversIds = new ArrayList<Integer>(sources.count());
-		for (OEntity source : sources) {
-			serversIds.add(getAsInt(source, Attachments.Columns.ID));
-			insertSource(source);
-		}
-		logd("[refreshSources] all sources was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Sources.CONTENT_URI, new String[] { Sources.Columns.ID }, null,
-				null, null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Sources.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int sourceId = cur.getInt(idIndex);
-				if (!serversIds.contains(sourceId)) {
-					// delete this row
-					logd("[refreshSources] delete source: " + sourceId);
-					Uri uri = Sources.buildTableUri(sourceId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		insertSources(sources);
 	}
 
 	public void refreshTopics() {
@@ -451,6 +401,12 @@ public class OdataReadClient extends BaseOdataClient {
 			}
 		}
 		cur.close();
+	}
+
+	public void updateAttachments(final int pointId) {
+
+		Enumerable<OEntity> attachments = getAttachmentsEntities(pointId);
+		insertAttachments(attachments);
 	}
 
 	public void updateComments(final int pointId) {
@@ -488,10 +444,12 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void updatePoint(final int pointId) {
 
-		OEntity entity = mConsumer.getEntity(Points.TABLE_NAME, pointId).expand(
+		OEntity point = mConsumer.getEntity(Points.TABLE_NAME, pointId).expand(
 				Topics.TABLE_NAME + "," + Persons.TABLE_NAME + "," + "Description").execute();
-		updatePoint(entity);
+		updatePoint(point);
 		updateComments(pointId);
+		updateAttachments(pointId);
+		updateSources(point);
 	}
 
 	public void updatePointsFromTopic(final int topicId) {
@@ -503,9 +461,12 @@ public class OdataReadClient extends BaseOdataClient {
 		logd("[updatePointsFromTopic] points entities count: " + points.count());
 		List<Integer> serversIds = new ArrayList<Integer>(points.count());
 		for (OEntity point : points) {
-			serversIds.add(getAsInt(point, Points.Columns.ID));
+			int pointId = getAsInt(point, Points.Columns.ID);
+			serversIds.add(pointId);
 			updatePoint(point);
-			updateComments(getAsInt(point, Points.Columns.ID));
+			updateComments(pointId);
+			updateAttachments(pointId);
+			updateSources(point);
 		}
 		logd("[updatePointsFromTopic] all points was inserted");
 		// check if server has a deleted points
@@ -534,6 +495,12 @@ public class OdataReadClient extends BaseOdataClient {
 	private Enumerable<OEntity> getAttachmentsEntities() {
 
 		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(Points.TABLE_NAME).execute();
+	}
+
+	private Enumerable<OEntity> getAttachmentsEntities(final int pointId) {
+
+		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(Points.TABLE_NAME).filter(
+				"ArgPoint/Id eq " + String.valueOf(pointId)).execute();
 	}
 
 	private Enumerable<OEntity> getCommentsEntities() {
@@ -572,6 +539,12 @@ public class OdataReadClient extends BaseOdataClient {
 		return mConsumer.getEntities(Sources.TABLE_NAME).expand(Descriptions.TABLE_NAME).execute();
 	}
 
+	private Enumerable<OEntity> getSourcesEntities(final int descrtiptionId) {
+
+		return mConsumer.getEntities(Sources.TABLE_NAME).expand(Descriptions.TABLE_NAME).filter(
+				"RichText/Id eq " + String.valueOf(descrtiptionId)).execute();
+	}
+
 	private Enumerable<OEntity> getTopicsEntities() {
 
 		ODataConsumer mConsumerXml = ODataJerseyConsumer.newBuilder(ODataConstants.SERVICE_URL).build();
@@ -596,6 +569,34 @@ public class OdataReadClient extends BaseOdataClient {
 		}
 		cv.put(Attachments.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
 		return mContentResolver.insert(Attachments.CONTENT_URI, cv);
+	}
+
+	private void insertAttachments(final Enumerable<OEntity> attachments) {
+
+		logd("[refreshAttachments] entities count: " + attachments.count());
+		List<Integer> serversIds = new ArrayList<Integer>(attachments.count());
+		for (OEntity attachment : attachments) {
+			serversIds.add(getAsInt(attachment, Attachments.Columns.ID));
+			insertAttachment(attachment);
+		}
+		logd("[refreshAttachments] all attachments was inserted");
+		// check if server has a deleted points
+		Cursor cur = mContentResolver.query(Attachments.CONTENT_URI, new String[] { Attachments.Columns.ID },
+				null, null, null);
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Attachments.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int attachmentId = cur.getInt(idIndex);
+				if (!serversIds.contains(attachmentId)) {
+					// delete this row
+					logd("[refreshAttachments] delete attachment: " + attachmentId);
+					Uri uri = Attachments.buildTableUri(attachmentId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
 	}
 
 	private Uri insertComment(final OEntity comment) {
@@ -758,6 +759,34 @@ public class OdataReadClient extends BaseOdataClient {
 		return mContentResolver.insert(Sources.CONTENT_URI, cv);
 	}
 
+	private void insertSources(final Enumerable<OEntity> sources) {
+
+		logd("[refreshSources] entities count: " + sources.count());
+		List<Integer> serversIds = new ArrayList<Integer>(sources.count());
+		for (OEntity source : sources) {
+			serversIds.add(getAsInt(source, Attachments.Columns.ID));
+			insertSource(source);
+		}
+		logd("[refreshSources] all sources was inserted");
+		// check if server has a deleted points
+		Cursor cur = mContentResolver.query(Sources.CONTENT_URI, new String[] { Sources.Columns.ID }, null,
+				null, null);
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Sources.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int sourceId = cur.getInt(idIndex);
+				if (!serversIds.contains(sourceId)) {
+					// delete this row
+					logd("[refreshSources] delete source: " + sourceId);
+					Uri uri = Sources.buildTableUri(sourceId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
+	}
+
 	private Uri insertTopic(final OEntity entity) {
 
 		// get properties
@@ -819,5 +848,14 @@ public class OdataReadClient extends BaseOdataClient {
 			insertDescriptionToDb(cvDescription);
 		}
 		return uri;
+	}
+
+	private void updateSources(final OEntity point) {
+
+		OEntity description = point.getLink("Description", ORelatedEntityLinkInline.class).getRelatedEntity();
+		if (description != null) {
+			int descriptionId = getAsInt(description, Descriptions.Columns.ID);
+			insertSources(getSourcesEntities(descriptionId));
+		}
 	}
 }

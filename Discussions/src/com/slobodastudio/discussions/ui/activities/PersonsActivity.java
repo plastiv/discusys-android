@@ -37,9 +37,10 @@ public class PersonsActivity extends BaseActivity {
 		switch (item.getItemId()) {
 			case R.id.menu_refresh:
 				mServiceHelper.downloadAll();
-				break;
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
 
 	@Override

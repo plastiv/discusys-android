@@ -16,6 +16,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Base64;
 
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
@@ -57,7 +58,7 @@ public class OdataWriteClient extends BaseOdataClient {
 				.properties(OProperties.string(Attachments.Columns.NAME, attachment.getName()))
 				.link(Attachments.Columns.POINT_ID, OEntityKey.parse(String.valueOf(attachment.getPointId())))
 				.properties(OProperties.int32(Attachments.Columns.FORMAT, attachment.getFormat()))
-				.properties(OProperties.binary(Attachments.Columns.DATA, attachment.getData()))
+				.properties(OProperties.binary(Attachments.Columns.DATA, Base64.encode(attachment.getData(),Base64.DEFAULT)))
 				.properties(OProperties.string(Attachments.Columns.TITLE, attachment.getTitle()))
 				.properties(OProperties.string(Attachments.Columns.LINK, attachment.getLink()))
 				.execute();

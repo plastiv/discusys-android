@@ -145,7 +145,8 @@ public class PointMediaTabFragment extends SherlockFragment {
 			}
 			case PICK_IMAGE_REQUEST:
 				if (resultCode == Activity.RESULT_OK) {
-					loadImage(data);
+					onAttachSourceAdded(data.getData(), "Image, loaded from android sdcard",
+							Attachments.AttachmentType.PNG);
 				}
 				break;
 			default:
@@ -215,15 +216,6 @@ public class PointMediaTabFragment extends SherlockFragment {
 	private void loadImage(final Intent intent) {
 
 		Uri selectedImageUri = intent.getData();
-		// String[] projection = { MediaColumns.DATA };
-		// // TODO: move cursor out of main thread to cursor loader
-		// Cursor cursor = getActivity()
-		// .managedQuery(selectedImageUri, projection, null, null, null);
-		// int column_index_data = cursor.getColumnIndexOrThrow(MediaColumns.DATA);
-		// cursor.moveToFirst();
-		// String selectedImagePath = cursor.getString(column_index_data);
-		// cursor.close();
-		// Bitmap galleryImage = BitmapFactory.decodeFile(selectedImagePath);
 		Bitmap galleryImage;
 		try {
 			galleryImage = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(
@@ -235,6 +227,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 				// publishProgress(new LoadedImage(newBitmap));
 				// }
 				byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
+				galleryImage.recycle();
 				onAttachSourceAdded(bitmapArray, "Image, loaded from android sdcard",
 						Attachments.AttachmentType.PNG);
 			}
@@ -255,6 +248,18 @@ public class PointMediaTabFragment extends SherlockFragment {
 		attachment.setPointId(mSelectedPoint.getPointId());
 		attachment.setFormat(attachmentType);
 		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mSelectedPoint);
+	}
+
+	private void onAttachSourceAdded(final Uri uri, final String attachmentDescription,
+			final int attachmentType) {
+
+		Attachment attachment = new Attachment();
+		attachment.setName(attachmentDescription);
+		attachment.setTitle(attachmentDescription);
+		attachment.setPersonId(mSelectedPoint.getPersonId());
+		attachment.setPointId(mSelectedPoint.getPointId());
+		attachment.setFormat(attachmentType);
+		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mSelectedPoint, uri);
 	}
 
 	private void setAttachImageListener(final View container) {

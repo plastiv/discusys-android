@@ -55,7 +55,6 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 			mServiceHelper = null;
 		}
 	};
-	// protected Fragment mFragment;
 	protected ControlService mService;
 	protected ServiceHelper mServiceHelper;
 	private final OdataSyncResultListener mListener = new OdataSyncResultListener() {

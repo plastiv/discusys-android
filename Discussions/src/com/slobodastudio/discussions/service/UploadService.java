@@ -23,11 +23,18 @@ import com.slobodastudio.discussions.utils.MyLog;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.util.Log;
 
 import org.odata4j.core.OEntity;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class UploadService extends IntentService {
@@ -37,6 +44,7 @@ public class UploadService extends IntentService {
 	public static final String EXTRA_SELECTED_POINT = "intent.extra.key.EXTRA_SELECTED_POINT";
 	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
+	public static final String EXTRA_URI = "intent.extra.key.EXTRA_URI";
 	public static final String EXTRA_VALUE = "intent.extra.key.EXTRA_VALUE";
 	public static final int TYPE_INSERT_ATTACHMENT = 0x6;
 	public static final int TYPE_INSERT_COMMENT = 0x5;
@@ -51,6 +59,14 @@ public class UploadService extends IntentService {
 	public UploadService() {
 
 		super(TAG);
+	}
+
+	private static byte[] getBitmapAsByteArray(final Bitmap bitmap) {
+
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		// Middle value is quality, but PNG is lossless, so it's ignored.
+		bitmap.compress(CompressFormat.PNG, 0, outputStream);
+		return outputStream.toByteArray();
 	}
 
 	private static void logd(final String message) {
@@ -174,10 +190,30 @@ public class UploadService extends IntentService {
 		}
 	}
 
+	private byte[] getByteArray(final Uri imageUri) {
+
+		try {
+			Bitmap galleryImage = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+			if (galleryImage != null) {
+				byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
+				galleryImage.recycle();
+				return bitmapArray;
+			}
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "Cant read image" + imageUri);
+		}
+		return null;
+	}
+
 	private void insertAttachment(final Intent intent) {
 
 		Attachment attachment = intent.getParcelableExtra(EXTRA_VALUE);
 		logd("[insertAttachment] " + attachment.getTitle());
+		if (intent.hasExtra(EXTRA_URI)) {
+			Uri imageUri = intent.getParcelableExtra(EXTRA_URI);
+			byte[] imageArray = getByteArray(imageUri);
+			attachment.setData(imageArray);
+		}
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
 		OEntity entity = odataWrite.insertAttachment(attachment);
 		int attachmentId = (Integer) entity.getProperty(Attachments.Columns.ID).getValue();
