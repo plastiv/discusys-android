@@ -87,6 +87,25 @@ public class SelectedPoint implements Parcelable {
 	}
 
 	@Override
+	public String toString() {
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("DiscussionId: ");
+		sb.append(mDiscussionId);
+		sb.append(", ");
+		sb.append("PersonId: ");
+		sb.append(mPersonId);
+		sb.append(", ");
+		sb.append("PointId: ");
+		sb.append(mPointId);
+		sb.append(", ");
+		sb.append("TopicId: ");
+		sb.append(mTopicId);
+		sb.append(", ");
+		return sb.toString();
+	}
+
+	@Override
 	public void writeToParcel(final Parcel out, final int flags) {
 
 		out.writeInt(mDiscussionId);

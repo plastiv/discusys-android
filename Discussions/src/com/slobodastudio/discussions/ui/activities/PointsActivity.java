@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.photon.DiscussionUser;
 import com.slobodastudio.discussions.photon.PhotonServiceCallback;
 import com.slobodastudio.discussions.photon.constants.PhotonConstants;
@@ -8,6 +9,7 @@ import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.fragments.PointsFragment;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
@@ -91,6 +93,9 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 			case R.id.menu_refresh:
 				onRefreshCurrentTopic();
 				return true;
+			case R.id.menu_discussion_info:
+				startDiscussionInfoActivity();
+				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
@@ -171,5 +176,14 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 			Log.d(TAG, "[initFromIntentExtras] personId: " + mPersonId + ", topicId: " + mTopicId
 					+ ", discussionId: " + mDiscussionId + ", personName: " + mPersonName);
 		}
+	}
+
+	private void startDiscussionInfoActivity() {
+
+		int discussionId = getIntent().getExtras().getInt(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
+		Uri discussionUri = Discussions.buildTableUri(discussionId);
+		Intent discussionInfoIntent = new Intent(Intent.ACTION_VIEW, discussionUri, this,
+				DiscussionInfoActivity.class);
+		startActivity(discussionInfoIntent);
 	}
 }

@@ -36,7 +36,7 @@
     <string name="menu_action_save">Save</string>
     <string name="menu_action_cancel">Cancel</string>
     <string name="menu_action_new_attachment">Save link</string>
-    <string name="menu_action_view_discussion_info">View discussion info</string>
+    <string name="menu_action_view_discussion_info">Info</string>
     <!-- texts -->
     <string name="text_empty_list">Empty list</string>
     <string name="text_empty_persons_list">No persons</string>

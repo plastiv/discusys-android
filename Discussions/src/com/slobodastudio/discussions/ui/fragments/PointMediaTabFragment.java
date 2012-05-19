@@ -413,12 +413,14 @@ public class PointMediaTabFragment extends SherlockFragment {
 				case AttachmentType.JPG:
 				case AttachmentType.PNG:
 				case AttachmentType.BMP:
-				case AttachmentType.GENERAL_WEB_LINK:
 					int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
 					byte[] pictureData = cursor.getBlob(dataColumnIndex);
-					Bitmap bitmap = BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length);
+					BitmapFactory.Options bounds = new BitmapFactory.Options();
+					bounds.inSampleSize = 4;
+					Bitmap bitmap = BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length, bounds);
 					imageView.setImageBitmap(scaleDown(bitmap));
 					break;
+				case AttachmentType.GENERAL_WEB_LINK:
 				case AttachmentType.NONE:
 				case AttachmentType.PDF:
 				case AttachmentType.YOUTUBE:

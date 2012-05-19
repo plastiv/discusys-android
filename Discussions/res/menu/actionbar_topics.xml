@@ -2,7 +2,7 @@
 
     <item
         android:id="@+id/menu_discussion_info"
-        android:icon="@drawable/ic_tab_description"
+        android:icon="@drawable/ic_action_info"
         android:orderInCategory="0"
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_action_view_discussion_info"/>

@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.TextView;
 
 import com.actionbarsherlock.view.MenuItem;
@@ -44,6 +45,7 @@ public class DiscussionInfoActivity extends BaseActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_discussion_description);
 		discussionText = (TextView) findViewById(R.id.tv_discussion_description);
+		discussionText.setMovementMethod(new ScrollingMovementMethod());
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
 			startDiscussionInfoLoader();
 		}

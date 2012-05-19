@@ -28,7 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -96,6 +96,17 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		return arguments;
 	}
 
+	private static AdapterContextMenuInfo castAdapterContextMenuInfo(final ContextMenuInfo contextMenuInfo) {
+
+		try {
+			// Casts the incoming data object into the type for AdapterView objects.
+			return (AdapterContextMenuInfo) contextMenuInfo;
+		} catch (ClassCastException e) {
+			// If the menu object can't be cast, logs an error.
+			throw new RuntimeException("bad menuInfo: " + contextMenuInfo, e);
+		}
+	}
+
 	@Override
 	public boolean onContextItemSelected(final MenuItem item) {
 
@@ -112,15 +123,8 @@ public class PointCommentsTabFragment extends SherlockFragment {
 	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
 
 		super.onCreateContextMenu(menu, v, menuInfo);
-		AdapterView.AdapterContextMenuInfo info;
-		try {
-			// Casts the incoming data object into the type for AdapterView objects.
-			info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-		} catch (ClassCastException e) {
-			// If the menu object can't be cast, logs an error.
-			throw new RuntimeException("bad menuInfo: " + menuInfo, e);
-		}
-		Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position);
+		AdapterContextMenuInfo info = castAdapterContextMenuInfo(menuInfo);
+		Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position - 1);
 		if (cursor == null) {
 			// For some reason the requested item isn't available, do nothing
 			return;
@@ -140,6 +144,7 @@ public class PointCommentsTabFragment extends SherlockFragment {
 			final Bundle savedInstanceState) {
 
 		mCommentsList = (ListView) inflater.inflate(R.layout.tab_fragment_point_comments, container, false);
+		registerForContextMenu(mCommentsList);
 		addCommentsHeader();
 		addCommentsFooter();
 		setUpCommentsAdapter();
@@ -218,15 +223,8 @@ public class PointCommentsTabFragment extends SherlockFragment {
 
 	private void onActionDeleteComment(final MenuItem item) {
 
-		AdapterView.AdapterContextMenuInfo info;
-		try {
-			// Casts the incoming data object into the type for AdapterView objects.
-			info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-		} catch (ClassCastException e) {
-			// If the menu object can't be cast, logs an error.
-			throw new RuntimeException("bad menuInfo: " + item.getMenuInfo(), e);
-		}
-		Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position);
+		AdapterContextMenuInfo info = castAdapterContextMenuInfo(item.getMenuInfo());
+		Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position - 1);
 		if (cursor == null) {
 			// For some reason the requested item isn't available, do nothing
 			return;
