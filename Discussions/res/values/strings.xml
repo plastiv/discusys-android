@@ -8,6 +8,7 @@
     <string name="activity_title_persons">Persons</string>
     <string name="activity_title_discussions">Discussions</string>
     <string name="activity_title_discussions_info">Discussion info</string>
+    <string name="activity_title_image_preview">View image</string>
     <string name="activity_title_topics">Topics</string>
     <string name="activity_title_points">Points</string>
     <string name="activity_title_point">Edit point</string>

@@ -494,7 +494,8 @@ public class OdataReadClient extends BaseOdataClient {
 
 	private Enumerable<OEntity> getAttachmentsEntities() {
 
-		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(Points.TABLE_NAME).execute();
+		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(Points.TABLE_NAME).filter(
+				"ArgPoint ne null").execute();
 	}
 
 	private Enumerable<OEntity> getAttachmentsEntities(final int pointId) {

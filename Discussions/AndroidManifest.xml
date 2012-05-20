@@ -2,12 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
     android:installLocation="auto"
-    android:versionCode="14"
-    android:versionName="0.1.27" >
+    android:versionCode="15"
+    android:versionName="0.1.28" >
 
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="14" />
+        android:targetSdkVersion="15" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -78,6 +78,19 @@
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:mimeType="vnd.android.cursor.item/vnd.discussions.discussion" />
+            </intent-filter>
+        </activity>
+        
+        <!-- Image Preview -->
+        <activity
+            android:name=".ui.activities.ImagePreviewActivity"
+            android:label="@string/activity_title_discussions_info" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.attachment" />
             </intent-filter>
         </activity>
 

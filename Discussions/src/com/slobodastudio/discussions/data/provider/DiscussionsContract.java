@@ -120,6 +120,8 @@ public final class DiscussionsContract {
 			public static final String PERSON_ID = "Person";
 			/** Type Int32. Foreign key. Should be used only by servers data. */
 			public static final String POINT_ID = "ArgPoint";
+			/** Type byte[]. */
+			public static final String THUMB = "Thumb";
 			/** Type String. */
 			public static final String TITLE = "Title";
 			/** Type String. */

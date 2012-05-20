@@ -26,23 +26,25 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
+import android.text.Html;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.app.SherlockListFragment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 
-public class PointMediaTabFragment extends SherlockFragment {
+public class PointMediaTabFragment extends SherlockListFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int PICK_CAMERA_PHOTO = 0x03;
@@ -131,6 +133,24 @@ public class PointMediaTabFragment extends SherlockFragment {
 	}
 
 	@Override
+	public void onActivityCreated(final Bundle savedInstanceState) {
+
+		super.onActivityCreated(savedInstanceState);
+		setListShown(false);
+		initFromArguments();
+		// View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_attachments, container, false);
+		// mAttachmentsList = (ListView) attachmentsView.findViewById(R.id.listview_attachments);
+		// View attachmentsView = inflater.inflate(R.layout.media_list, container, false);
+		mAttachmentsList = getListView();
+		addAttachmentsHeader();
+		if (footerButtonsEnabled) {
+			addAttachmentsFooter();
+		}
+		setAttachmentsAdapter();
+		initAttachmentsLoader();
+	}
+
+	@Override
 	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
 		Log.d(TAG, "[onActivityresult]");
@@ -154,22 +174,23 @@ public class PointMediaTabFragment extends SherlockFragment {
 		}
 	}
 
-	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-			final Bundle savedInstanceState) {
-
-		initFromArguments();
-		View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_attachments, container, false);
-		mAttachmentsList = (ListView) attachmentsView.findViewById(R.id.listview_attachments);
-		addAttachmentsHeader();
-		if (footerButtonsEnabled) {
-			addAttachmentsFooter();
-		}
-		setAttachmentsAdapter();
-		initAttachmentsLoader();
-		return attachmentsView;
-	}
-
+	// @Override
+	// public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+	// final Bundle savedInstanceState) {
+	//
+	// initFromArguments();
+	// // View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_attachments, container, false);
+	// // mAttachmentsList = (ListView) attachmentsView.findViewById(R.id.listview_attachments);
+	// View attachmentsView = inflater.inflate(R.layout.media_list, container, false);
+	// mAttachmentsList = (ListView) attachmentsView.findViewById(android.R.id.list);
+	// addAttachmentsHeader();
+	// if (footerButtonsEnabled) {
+	// addAttachmentsFooter();
+	// }
+	// setAttachmentsAdapter();
+	// initAttachmentsLoader();
+	// return attachmentsView;
+	// }
 	private void addAttachmentsFooter() {
 
 		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
@@ -353,6 +374,11 @@ public class PointMediaTabFragment extends SherlockFragment {
 			switch (loader.getId()) {
 				case ATTACHMENTS_ID:
 					mAttachmentsAdapter.swapCursor(data);
+					if (isResumed()) {
+						setListShown(true);
+					} else {
+						setListShownNoAnimation(true);
+					}
 					break;
 				case POINT_NAME_ID:
 					if (data.moveToFirst()) {
@@ -378,6 +404,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 					return true;
 				case R.id.text_attachment_name:
 					((TextView) view).setText(cursor.getString(columnIndex));
+					// ((TextView) view).setText(Attachments.buildTableUri(10).toString());
 					return true;
 				default:
 					// TODO: throw exception
@@ -389,6 +416,22 @@ public class PointMediaTabFragment extends SherlockFragment {
 
 			return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, getResources()
 					.getDisplayMetrics());
+		}
+
+		private Spanned getMediaLink(final Cursor cursor) {
+
+			Uri mediaUri = Attachments.buildTableUri(10);
+			int descriptionColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.TITLE);
+			String description = cursor.getString(descriptionColumn);
+			if (TextUtils.isEmpty(description)) {
+				int imagePathColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.NAME);
+				description = cursor.getString(imagePathColumn);
+			}
+			String hrefLink = "<a href=\"" + mediaUri.toString() + ">" + description + "</a>";
+			Log.d(TAG, "mediaUri: " + mediaUri.toString());
+			Log.d(TAG, "Description: " + description);
+			Log.d(TAG, "Htaml: " + hrefLink);
+			return Html.fromHtml(hrefLink);
 		}
 
 		private Bitmap scaleDown(final Bitmap realImage) {
@@ -415,10 +458,23 @@ public class PointMediaTabFragment extends SherlockFragment {
 				case AttachmentType.BMP:
 					int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
 					byte[] pictureData = cursor.getBlob(dataColumnIndex);
-					BitmapFactory.Options bounds = new BitmapFactory.Options();
-					bounds.inSampleSize = 4;
-					Bitmap bitmap = BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length, bounds);
+					BitmapFactory.Options options = new BitmapFactory.Options();
+					options.inTempStorage = new byte[3 * 1024];
+					options.inSampleSize = 8;
+					Bitmap bitmap = BitmapFactory
+							.decodeByteArray(pictureData, 0, pictureData.length, options);
 					imageView.setImageBitmap(scaleDown(bitmap));
+					int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
+					final int valueId = cursor.getInt(idColumn);
+					imageView.setOnClickListener(new OnClickListener() {
+
+						@Override
+						public void onClick(final View v) {
+
+							Intent intent = new Intent(Intent.ACTION_VIEW, Attachments.buildTableUri(valueId));
+							startActivity(intent);
+						}
+					});
 					break;
 				case AttachmentType.GENERAL_WEB_LINK:
 				case AttachmentType.NONE:

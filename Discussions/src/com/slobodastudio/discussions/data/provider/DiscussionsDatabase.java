@@ -25,7 +25,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 44;
+	private static final int DATABASE_VERSION = 45;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -123,6 +123,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Attachments.Columns.POINT_ID + " INTEGER NOT NULL,"
 				+ Attachments.Columns.DISCUSSION_ID + " INTEGER,"
 				+ Attachments.Columns.DATA + " BLOB,"
+				+ Attachments.Columns.THUMB + " BLOB,"
 				+ Attachments.Columns.VIDEO_EMBED_URL + " TEXT,"
 				+ Attachments.Columns.VIDEO_LINK_URL + " TEXT,"
 				+ Attachments.Columns.VIDEO_THUMB_URL + " TEXT,"
@@ -150,7 +151,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ " BEGIN DELETE FROM " + Topics.TABLE_NAME  
 				+ " WHERE " + Topics.Columns.ID + "=OLD." + PersonsTopics.Columns.TOPIC_ID + ";"
                 + " END;");
-		// @formatter:on
+		// @formatter:on 
 	}
 
 	@Override
