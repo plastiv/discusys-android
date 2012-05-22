@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
     android:installLocation="auto"
-    android:versionCode="15"
-    android:versionName="0.1.28" >
+    android:versionCode="17"
+    android:versionName="0.1.30" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -11,6 +11,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name=".DiscussionsApplication"
@@ -80,7 +81,7 @@
                 <data android:mimeType="vnd.android.cursor.item/vnd.discussions.discussion" />
             </intent-filter>
         </activity>
-        
+
         <!-- Image Preview -->
         <activity
             android:name=".ui.activities.ImagePreviewActivity"

@@ -1,6 +1,8 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.photon.constants.PhotonConstants;
+import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointDescriptionTabFragment;
@@ -24,6 +26,9 @@ public class PointDetailsActivity extends BaseActivity {
 
 	private static final String EXTRA_KEY_TAB_INDEX = "extra_key_tab_index";
 	private static final String TAG = PointDetailsActivity.class.getSimpleName();
+	private int discussionId;
+	private int personId;
+	private String personName;
 
 	@Override
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
@@ -92,7 +97,12 @@ public class PointDetailsActivity extends BaseActivity {
 	@Override
 	protected void onControlServiceConnected() {
 
-		// No operation with service in this activity
+		connectPhoton();
+		PointMediaTabFragment mediaTabFragment = (PointMediaTabFragment) getSupportFragmentManager()
+				.findFragmentByTag(FragmentTag.POINT_MEDIA);
+		if ((mediaTabFragment != null)) {
+			mediaTabFragment.onServiceConnected();
+		}
 	}
 
 	@Override
@@ -100,6 +110,7 @@ public class PointDetailsActivity extends BaseActivity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_point_details);
+		initFromIntentExtra(getIntent());
 		String action = getIntent().getAction();
 		if (IntentAction.NEW.equals(action)) {
 			addDescripitionFragmentOnly();
@@ -183,6 +194,31 @@ public class PointDetailsActivity extends BaseActivity {
 		mediaTab.setTabListener(mediaTabListener);
 		mediaTab.setIcon(R.drawable.ic_tab_sources);
 		getSupportActionBar().addTab(mediaTab);
+	}
+
+	private void connectPhoton() {
+
+		if (mBound && !mService.getPhotonController().isConnected()) {
+			mService.getPhotonController().connect(discussionId, PhotonConstants.DB_SERVER_ADDRESS,
+					personName, personId);
+			// mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
+		}
+	}
+
+	private void initFromIntentExtra(final Intent intent) {
+
+		if (!intent.hasExtra(ExtraKey.DISCUSSION_ID)) {
+			throw new IllegalStateException("intent was without discussion id");
+		}
+		if (!intent.hasExtra(ExtraKey.PERSON_ID)) {
+			throw new IllegalStateException("intent was without person id");
+		}
+		if (!intent.hasExtra(ExtraKey.TOPIC_ID)) {
+			throw new IllegalStateException("intent was without topic id");
+		}
+		personName = intent.getStringExtra(ExtraKey.PERSON_NAME);
+		discussionId = intent.getIntExtra(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
+		personId = intent.getIntExtra(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 	}
 
 	private void setupActionBarTabs(final Bundle savedInstanceState) {

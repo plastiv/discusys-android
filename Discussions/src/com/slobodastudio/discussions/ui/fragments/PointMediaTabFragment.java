@@ -20,7 +20,9 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.BaseColumns;
+import android.provider.MediaStore;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -42,11 +44,14 @@ import android.widget.TextView;
 import com.actionbarsherlock.app.SherlockListFragment;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Random;
 
 public class PointMediaTabFragment extends SherlockListFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	private static final String IMAGE_FOLDER = "discussions_images";
 	private static final int PICK_CAMERA_PHOTO = 0x03;
 	private static final int PICK_IMAGE_REQUEST = 0x02;
 	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
@@ -56,6 +61,8 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	private ListView mAttachmentsList;
 	private TextView mPointNameTextView;
 	private SelectedPoint mSelectedPoint;
+	private int tempType;
+	private Uri tempUri;
 
 	public PointMediaTabFragment() {
 
@@ -101,7 +108,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 
 	public static void requestCameraPhoto(final Activity activity) {
 
-		Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+		Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 		activity.startActivityForResult(cameraIntent, PICK_CAMERA_PHOTO);
 	}
@@ -109,7 +116,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	public static void requestImageAttachment(final Activity activity) {
 
 		Intent intent = new Intent();
-		intent.setType("image/*");
+		intent.setType("image/jpeg");
 		intent.setAction(Intent.ACTION_GET_CONTENT);
 		activity.startActivityForResult(intent, PICK_IMAGE_REQUEST);
 	}
@@ -130,6 +137,23 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		// Middle value is quality, but PNG is lossless, so it's ignored.
 		bitmap.compress(CompressFormat.PNG, 0, outputStream);
 		return outputStream.toByteArray();
+	}
+
+	private static Uri getNewImageFileUri() {
+
+		File root = Environment.getExternalStorageDirectory();
+		File dir = new File(root, IMAGE_FOLDER);
+		boolean canCreate = dir.mkdirs();
+		if (canCreate) {
+			Random generator = new Random();
+			int n = 10000;
+			n = generator.nextInt(n);
+			String fname = "Image-" + n + ".jpg";
+			File file = new File(dir, fname);
+			Uri fileUri = Uri.fromFile(file);
+			return fileUri;
+		}
+		return null;
 	}
 
 	@Override
@@ -156,21 +180,48 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		Log.d(TAG, "[onActivityresult]");
 		switch (requestCode) {
 			case PICK_CAMERA_PHOTO: {
-				Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-				byte[] bitmapArray = getBitmapAsByteArray(bitmap);
-				onAttachSourceAdded(bitmapArray, "Image, taken from android camera",
-						Attachments.AttachmentType.JPG);
+				if (resultCode == Activity.RESULT_OK) {
+					tempUri = data.getData();
+					tempType = PICK_CAMERA_PHOTO;
+					// onAttachSourceAdded(data.getData(), "Image, taken from android camera",
+					// Attachments.AttachmentType.JPG);
+				}
+				// Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+				// byte[] bitmapArray = getBitmapAsByteArray(bitmap);
+				// onAttachSourceAdded(bitmapArray, "Image, taken from android camera",
+				// Attachments.AttachmentType.JPG);
 				getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 				break;
 			}
 			case PICK_IMAGE_REQUEST:
 				if (resultCode == Activity.RESULT_OK) {
-					onAttachSourceAdded(data.getData(), "Image, loaded from android sdcard",
-							Attachments.AttachmentType.PNG);
+					tempUri = data.getData();
+					tempType = PICK_IMAGE_REQUEST;
+					// onAttachSourceAdded(data.getData(), "Image, loaded from android sdcard",
+					// Attachments.AttachmentType.JPG);
 				}
 				break;
 			default:
 				break;
+		}
+	}
+
+	public void onServiceConnected() {
+
+		if (tempUri != null) {
+			switch (tempType) {
+				case PICK_CAMERA_PHOTO:
+					onAttachSourceAdded(tempUri, "Image, taken from android camera",
+							Attachments.AttachmentType.JPG);
+					break;
+				case PICK_IMAGE_REQUEST:
+					onAttachSourceAdded(tempUri, "Image, loaded from android sdcard",
+							Attachments.AttachmentType.JPG);
+					break;
+				default:
+					break;
+			}
+			tempUri = null;
 		}
 	}
 
@@ -395,6 +446,8 @@ public class PointMediaTabFragment extends SherlockListFragment {
 
 	private class AttachmentsViewBinder implements ViewBinder {
 
+		private final byte[] buffer = new byte[16 * 1024];
+
 		@Override
 		public boolean setViewValue(final View view, final Cursor cursor, final int columnIndex) {
 
@@ -459,7 +512,10 @@ public class PointMediaTabFragment extends SherlockListFragment {
 					int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
 					byte[] pictureData = cursor.getBlob(dataColumnIndex);
 					BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inTempStorage = new byte[3 * 1024];
+					options.inTempStorage = buffer;
+					options.inDither = false;
+					options.inPurgeable = true;
+					options.inInputShareable = true;
 					options.inSampleSize = 8;
 					Bitmap bitmap = BitmapFactory
 							.decodeByteArray(pictureData, 0, pictureData.length, options);

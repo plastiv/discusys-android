@@ -65,7 +65,7 @@ public class UploadService extends IntentService {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		// Middle value is quality, but PNG is lossless, so it's ignored.
-		bitmap.compress(CompressFormat.PNG, 0, outputStream);
+		bitmap.compress(CompressFormat.JPEG, 90, outputStream);
 		return outputStream.toByteArray();
 	}
 
@@ -193,7 +193,13 @@ public class UploadService extends IntentService {
 	private byte[] getByteArray(final Uri imageUri) {
 
 		try {
-			Bitmap galleryImage = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inTempStorage = new byte[16 * 1024];
+			options.inDither = false;
+			options.inPurgeable = true;
+			options.inInputShareable = true;
+			Bitmap galleryImage = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri),
+					null, options);
 			if (galleryImage != null) {
 				byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
 				galleryImage.recycle();

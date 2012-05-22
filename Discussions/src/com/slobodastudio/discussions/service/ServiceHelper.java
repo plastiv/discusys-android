@@ -128,9 +128,11 @@ public class ServiceHelper {
 		intent.putExtra(UploadService.EXTRA_TYPE_ID, UploadService.TYPE_INSERT_ATTACHMENT);
 		intent.putExtra(UploadService.EXTRA_VALUE, attachment);
 		intent.putExtra(UploadService.EXTRA_URI, uri);
+		intent.putExtra(UploadService.EXTRA_SELECTED_POINT, selectedPoint);
+		Log.d(TAG, "Syncing: " + isSyncing());
+		Log.d(TAG, "Odata listener: " + (mOdataResultReceiver != null));
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
-		intent.putExtra(UploadService.EXTRA_SELECTED_POINT, selectedPoint);
 		mContext.startService(intent);
 	}
 

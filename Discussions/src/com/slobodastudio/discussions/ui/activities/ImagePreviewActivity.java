@@ -64,6 +64,7 @@ public class ImagePreviewActivity extends BaseActivity {
 	private class AttachmentImageCursorLoader implements LoaderCallbacks<Cursor> {
 
 		private static final int ATTACHMENT_ID = 0x00;
+		private final byte[] buffer = new byte[16 * 1024];
 
 		@Override
 		public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
@@ -122,7 +123,13 @@ public class ImagePreviewActivity extends BaseActivity {
 				int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
 				byte[] pictureData = cursor.getBlob(dataColumnIndex);
 				BitmapFactory.Options options = new BitmapFactory.Options();
-				options.inTempStorage = new byte[3 * 1024];
+				options.inTempStorage = buffer;
+				options.inDither = false; // Disable Dithering mode
+				options.inPurgeable = true; // Tell to gc that whether it needs free memory, the Bitmap can
+											// be cleared
+				options.inInputShareable = true; // Which kind of reference will be used to recover the
+													// Bitmap data after being clear, when it will be used in
+													// the future
 				// options.inSampleSize = 8;
 				Bitmap bitmap = BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length, options);
 				imageView.setImageBitmap(bitmap);

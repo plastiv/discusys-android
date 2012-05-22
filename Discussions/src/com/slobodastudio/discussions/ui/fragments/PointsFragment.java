@@ -270,8 +270,8 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.fragment_points, null);
 		mUserPointsList = (ListView) layout.findViewById(R.id.user_points_listview);
 		mOtherPointsList = (ListView) layout.findViewById(R.id.other_user_points_listview);
-		mUserPointsList.setEmptyView(layout.findViewById(R.id.user_points_listview_empty));
-		mOtherPointsList.setEmptyView(layout.findViewById(R.id.other_user_points_listview_empty));
+		// mUserPointsList.setEmptyView(layout.findViewById(R.id.user_points_listview_empty));
+		// mOtherPointsList.setEmptyView(layout.findViewById(R.id.other_user_points_listview_empty));
 		return layout;
 	}
 

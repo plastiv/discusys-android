@@ -12,9 +12,12 @@ import android.graphics.Picture;
 import android.graphics.drawable.PictureDrawable;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -61,7 +64,20 @@ public class WebViewActivity extends BaseActivity {
 		mWebView.loadUrl("http://www.google.com");
 		mWebView.getSettings().setBuiltInZoomControls(true);
 		final EditText urlEditText = (EditText) findViewById(R.id.edittext_url);
-		urlEditText.setEnabled(false);
+		urlEditText.setOnEditorActionListener(new OnEditorActionListener() {
+
+			@Override
+			public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event) {
+
+				if (actionId == EditorInfo.IME_ACTION_GO) {
+					// search pressed and perform your functionality.
+					mWebView.loadUrl(urlEditText.getText().toString());
+					return true;
+				}
+				return false;
+			}
+		});
+		// urlEditText.setEnabled(false);
 		mWebView.setWebViewClient(new WebViewClient() {
 
 			@Override
@@ -124,13 +140,13 @@ public class WebViewActivity extends BaseActivity {
 	private void onActionSave() {
 
 		// FIXME add try catch out of memory block
-		Bitmap nonCroppedBitmap = pictureDrawable2Bitmap(mWebView.capturePicture());
-		int croppedWidht = getSmallestSide(nonCroppedBitmap);
-		int croppedHeight = getSmallestSide(nonCroppedBitmap);
-		Bitmap croppedBitmap = Bitmap.createBitmap(nonCroppedBitmap, 0, 0, croppedWidht, croppedHeight);
-		byte[] bitmapArray = getBitmapAsByteArray(croppedBitmap);
+		// Bitmap nonCroppedBitmap = pictureDrawable2Bitmap(mWebView.capturePicture());
+		// int croppedWidht = getSmallestSide(nonCroppedBitmap);
+		// int croppedHeight = getSmallestSide(nonCroppedBitmap);
+		// Bitmap croppedBitmap = Bitmap.createBitmap(nonCroppedBitmap, 0, 0, croppedWidht, croppedHeight);
+		// byte[] bitmapArray = getBitmapAsByteArray(croppedBitmap);
 		Intent intent = getIntent();
-		intent.putExtra(ExtraKey.BINARY_DATA, bitmapArray);
+		// intent.putExtra(ExtraKey.BINARY_DATA, bitmapArray);
 		intent.putExtra(ExtraKey.BINARY_DATA_DESCRIPTION, mWebView.getUrl());
 		setMyResult(RESULT_OK, intent);
 		finish();
