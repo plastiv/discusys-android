@@ -2,25 +2,34 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
+import com.slobodastudio.discussions.utils.lazylist.ImageLoader;
+import com.slobodastudio.discussions.utils.lazylist.TouchImageView;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
-import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
 public class ImagePreviewActivity extends BaseActivity {
 
 	private static final String EXTRA_URI = "EXTRA_URI";
-	private ImageView imageView;
+	private ImageLoader imageLoader;
+	private TouchImageView imageView;
+
+	@Override
+	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
+
+		MenuInflater menuInflater = getSupportMenuInflater();
+		menuInflater.inflate(R.menu.actionbar_image_preview, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
@@ -28,6 +37,9 @@ public class ImagePreviewActivity extends BaseActivity {
 		switch (item.getItemId()) {
 			case android.R.id.home:
 				finish();
+				return true;
+			case R.id.menu_delete:
+				Toast.makeText(this, "Not implemented yet", Toast.LENGTH_SHORT).show();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -45,12 +57,16 @@ public class ImagePreviewActivity extends BaseActivity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image_preview);
-		imageView = (ImageView) findViewById(R.id.iv_full_image);
+		imageView = (TouchImageView) findViewById(R.id.iv_full_image);
+		imageLoader = new ImageLoader(getApplicationContext());
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
+			String attachmentId = Attachments.getValueId(getIntent().getData());
+			String uriString = Attachments.getAttachmentDownloadLink(attachmentId);
+			imageLoader.setScaled(false);
+			imageLoader.DisplayImage(uriString, imageView);
 			startAttachmentImageLoader();
 		}
 		getSupportActionBar().setDisplayShowHomeEnabled(false);
-		Log.d("ImageView", getIntent().getDataString());
 	}
 
 	private void startAttachmentImageLoader() {
@@ -64,7 +80,6 @@ public class ImagePreviewActivity extends BaseActivity {
 	private class AttachmentImageCursorLoader implements LoaderCallbacks<Cursor> {
 
 		private static final int ATTACHMENT_ID = 0x00;
-		private final byte[] buffer = new byte[16 * 1024];
 
 		@Override
 		public Loader<Cursor> onCreateLoader(final int loaderId, final Bundle arguments) {
@@ -82,7 +97,6 @@ public class ImagePreviewActivity extends BaseActivity {
 
 			switch (loader.getId()) {
 				case ATTACHMENT_ID:
-					imageView.setImageBitmap(null);
 					getSupportActionBar().setTitle("");
 					break;
 				default:
@@ -95,7 +109,6 @@ public class ImagePreviewActivity extends BaseActivity {
 
 			switch (loader.getId()) {
 				case ATTACHMENT_ID:
-					swapAttachmentImage(data);
 					swapAttachmentTitle(data);
 					break;
 				default:
@@ -115,25 +128,6 @@ public class ImagePreviewActivity extends BaseActivity {
 				throw new IllegalArgumentException("Loader was called without extra discussion uri");
 			}
 			return arguments.getParcelable(EXTRA_URI);
-		}
-
-		private void swapAttachmentImage(final Cursor cursor) {
-
-			if (cursor.moveToFirst()) {
-				int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
-				byte[] pictureData = cursor.getBlob(dataColumnIndex);
-				BitmapFactory.Options options = new BitmapFactory.Options();
-				options.inTempStorage = buffer;
-				options.inDither = false; // Disable Dithering mode
-				options.inPurgeable = true; // Tell to gc that whether it needs free memory, the Bitmap can
-											// be cleared
-				options.inInputShareable = true; // Which kind of reference will be used to recover the
-													// Bitmap data after being clear, when it will be used in
-													// the future
-				// options.inSampleSize = 8;
-				Bitmap bitmap = BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length, options);
-				imageView.setImageBitmap(bitmap);
-			}
 		}
 
 		private void swapAttachmentTitle(final Cursor cursor) {

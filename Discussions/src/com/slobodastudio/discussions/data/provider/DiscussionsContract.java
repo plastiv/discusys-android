@@ -1,5 +1,7 @@
 package com.slobodastudio.discussions.data.provider;
 
+import com.slobodastudio.discussions.data.odata.ODataConstants;
+
 import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -78,6 +80,26 @@ public final class DiscussionsContract {
 		public static Uri buildTableUri(final String valueId) {
 
 			return CONTENT_URI.buildUpon().appendPath(valueId).build();
+		}
+
+		public static String getAttachmentDownloadLink(final int id) {
+
+			StringBuilder sb = new StringBuilder();
+			sb.append(ODataConstants.SERVICE_URL);
+			sb.append("/Attachment(");
+			sb.append(id);
+			sb.append(")/$value");
+			return sb.toString();
+		}
+
+		public static String getAttachmentDownloadLink(final String id) {
+
+			StringBuilder sb = new StringBuilder();
+			sb.append(ODataConstants.SERVICE_URL);
+			sb.append("/Attachment(");
+			sb.append(id);
+			sb.append(")/$value");
+			return sb.toString();
 		}
 
 		/** Read {@link Columns#_ID} from this table {@link Uri}.

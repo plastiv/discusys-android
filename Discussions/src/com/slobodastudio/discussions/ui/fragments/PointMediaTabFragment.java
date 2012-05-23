@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachmen
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
+import com.slobodastudio.discussions.utils.lazylist.ImageLoaderSingleton;
 
 import android.app.Activity;
 import android.content.Context;
@@ -56,6 +57,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	private static final int PICK_IMAGE_REQUEST = 0x02;
 	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
 	private boolean footerButtonsEnabled;
+	private com.slobodastudio.discussions.utils.lazylist.ImageLoader imageLoader;
 	private SimpleCursorAdapter mAttachmentsAdapter;
 	private final AttachmentsCursorLoader mAttachmentsCursorLoader;
 	private ListView mAttachmentsList;
@@ -160,6 +162,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
+		imageLoader = ImageLoaderSingleton.getInstance(getActivity().getApplicationContext());
 		setListShown(false);
 		initFromArguments();
 		// View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_attachments, container, false);
@@ -350,7 +353,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	private void setAttachmentsAdapter() {
 
 		mAttachmentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_media, null,
-				new String[] { Attachments.Columns.NAME, Attachments.Columns.DATA }, new int[] {
+				new String[] { Attachments.Columns.TITLE, Attachments.Columns.DATA }, new int[] {
 						R.id.text_attachment_name, R.id.image_attachment_preview }, 0);
 		mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
 		mAttachmentsList.setAdapter(mAttachmentsAdapter);
@@ -509,19 +512,22 @@ public class PointMediaTabFragment extends SherlockListFragment {
 				case AttachmentType.JPG:
 				case AttachmentType.PNG:
 				case AttachmentType.BMP:
-					int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
-					byte[] pictureData = cursor.getBlob(dataColumnIndex);
-					BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inTempStorage = buffer;
-					options.inDither = false;
-					options.inPurgeable = true;
-					options.inInputShareable = true;
-					options.inSampleSize = 8;
-					Bitmap bitmap = BitmapFactory
-							.decodeByteArray(pictureData, 0, pictureData.length, options);
-					imageView.setImageBitmap(scaleDown(bitmap));
+					// imageLoader.DisplayImage(data[position], image);
+					// int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
+					// byte[] pictureData = cursor.getBlob(dataColumnIndex);
+					// BitmapFactory.Options options = new BitmapFactory.Options();
+					// options.inTempStorage = buffer;
+					// options.inDither = false;
+					// options.inPurgeable = true;
+					// options.inInputShareable = true;
+					// options.inSampleSize = 8;
+					// Bitmap bitmap = BitmapFactory
+					// .decodeByteArray(pictureData, 0, pictureData.length, options);
+					// imageView.setImageBitmap(scaleDown(bitmap));
 					int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
 					final int valueId = cursor.getInt(idColumn);
+					String urlString = Attachments.getAttachmentDownloadLink(valueId);
+					imageLoader.DisplayImage(urlString, imageView);
 					imageView.setOnClickListener(new OnClickListener() {
 
 						@Override
@@ -532,11 +538,27 @@ public class PointMediaTabFragment extends SherlockListFragment {
 						}
 					});
 					break;
+				case AttachmentType.YOUTUBE:
+					int youtubeThumbColumn = cursor
+							.getColumnIndexOrThrow(Attachments.Columns.VIDEO_THUMB_URL);
+					final String youtubeThumbString = cursor.getString(youtubeThumbColumn);
+					int youtubeVideoColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.VIDEO_LINK_URL);
+					final String youtubeLink = cursor.getString(youtubeVideoColumn);
+					imageLoader.DisplayImage(youtubeThumbString, imageView);
+					imageView.setOnClickListener(new OnClickListener() {
+
+						@Override
+						public void onClick(final View v) {
+
+							Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(youtubeLink));
+							startActivity(intent);
+						}
+					});
+					break;
 				case AttachmentType.GENERAL_WEB_LINK:
 				case AttachmentType.NONE:
 				case AttachmentType.PDF:
-				case AttachmentType.YOUTUBE:
-					imageView.setImageResource(R.drawable.image_not_found);
+					imageView.setImageResource(R.drawable.stub);
 					break;
 				default:
 					// TODO: throw ex
