@@ -36,6 +36,17 @@ public class ServiceHelper {
 		mOdataResultReceiver = new OdataSyncResultReceiver(new Handler());
 	}
 
+	public void deleteAttachment(final int attachmentId, final SelectedPoint selectedPoint) {
+
+		Intent intent = new Intent(IntentAction.DELETE);
+		intent.putExtra(DeleteService.EXTRA_TYPE_ID, DeleteService.TYPE_DELETE_ATTACHMENT);
+		intent.putExtra(DeleteService.EXTRA_VALUE_ID, attachmentId);
+		intent.putExtra(DeleteService.EXTRA_SELECTED_POINT, selectedPoint);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		mContext.startService(intent);
+	}
+
 	public void deleteComment(final int commentId, final int pointId, final int discussionId,
 			final int topicId, final int personId) {
 

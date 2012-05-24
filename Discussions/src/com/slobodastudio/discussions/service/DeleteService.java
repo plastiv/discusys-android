@@ -2,7 +2,9 @@ package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
@@ -25,9 +27,11 @@ public class DeleteService extends IntentService {
 	public static final String EXTRA_PERSON_ID = "intent.extra.key.EXTRA_PERSON_ID";
 	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
 	public static final String EXTRA_POINT_ID = "intent.extra.key.EXTRA_POINT_ID";
+	public static final String EXTRA_SELECTED_POINT = "intent.extra.key.EXTRA_SELECTED_POINT";
 	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
 	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
 	public static final String EXTRA_VALUE_ID = "intent.extra.key.EXTRA_VALUE_ID";
+	public static final int TYPE_DELETE_ATTACHMENT = 0x2;
 	public static final int TYPE_DELETE_COMMENT = 0x1;
 	public static final int TYPE_DELETE_POINT = 0x0;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
@@ -122,6 +126,9 @@ public class DeleteService extends IntentService {
 				case TYPE_DELETE_COMMENT:
 					deleteComment(intent);
 					break;
+				case TYPE_DELETE_ATTACHMENT:
+					deleteAttachment(intent);
+					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: "
 							+ intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE));
@@ -142,6 +149,26 @@ public class DeleteService extends IntentService {
 		if (receiver != null) {
 			receiver.send(OdataSyncResultReceiver.STATUS_FINISHED, Bundle.EMPTY);
 		}
+	}
+
+	private void deleteAttachment(final Intent intent) {
+
+		int attachmentId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
+		logd("[deleteAttachment] id: " + attachmentId);
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		odataWrite.deleteAttachment(attachmentId);
+		if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
+			throw new IllegalArgumentException("[deleteAttachment] called without required discussion id");
+		}
+		SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				selectedPoint.getPointId());
+		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
+				StatsType.BADGE_EDITED);
+		String where = Attachments.Columns.ID + "=?";
+		String[] args = new String[] { String.valueOf(attachmentId) };
+		getContentResolver().delete(Attachments.CONTENT_URI, where, args);
 	}
 
 	private void deleteComment(final Intent intent) {

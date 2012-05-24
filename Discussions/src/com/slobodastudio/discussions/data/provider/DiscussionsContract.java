@@ -120,6 +120,7 @@ public final class DiscussionsContract {
 			public static final int NONE = 0;
 			public static final int PDF = 4;
 			public static final int PNG = 2;
+			public static final int PNG_SCREENSHOT = 7;
 			public static final int YOUTUBE = 5;
 		}
 
@@ -127,7 +128,7 @@ public final class DiscussionsContract {
 		public static final class Columns implements BaseColumns {
 
 			/** Type byte[]. */
-			public static final String DATA = "Data";
+			// public static final String DATA = "Data";
 			/** Type Int32. Foreign key. Should be used only by servers data. */
 			public static final String DISCUSSION_ID = "Discussion";
 			/** Type Int32. Enum. */

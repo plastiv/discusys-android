@@ -1,8 +1,10 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.ui.view.MediaList;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -12,6 +14,7 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.method.ScrollingMovementMethod;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.view.MenuItem;
@@ -20,6 +23,7 @@ public class DiscussionInfoActivity extends BaseActivity {
 
 	private static final String EXTRA_URI = "EXTRA_URI";
 	private TextView discussionText;
+	private MediaList mediaList;
 
 	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
@@ -50,6 +54,7 @@ public class DiscussionInfoActivity extends BaseActivity {
 			startDiscussionInfoLoader();
 		}
 		getSupportActionBar().setDisplayShowHomeEnabled(false);
+		mediaList = new MediaList(this, (ListView) findViewById(R.id.listview_attachments));
 	}
 
 	private void startDiscussionInfoLoader() {
@@ -59,10 +64,12 @@ public class DiscussionInfoActivity extends BaseActivity {
 		args.putParcelable(EXTRA_URI, getIntent().getData());
 		getSupportLoaderManager().initLoader(DiscussionInfoCursorLoader.DESCRIPTION_ID, args, loader);
 		getSupportLoaderManager().initLoader(DiscussionInfoCursorLoader.DISCUSSION_ID, args, loader);
+		getSupportLoaderManager().initLoader(DiscussionInfoCursorLoader.ATTACHMENT_ID, args, loader);
 	}
 
 	private class DiscussionInfoCursorLoader implements LoaderCallbacks<Cursor> {
 
+		private static final int ATTACHMENT_ID = 0x02;
 		private static final int DESCRIPTION_ID = 0x00;
 		private static final int DISCUSSION_ID = 0x01;
 
@@ -74,6 +81,8 @@ public class DiscussionInfoActivity extends BaseActivity {
 					return getDescriptionCursorLoader(arguments);
 				case DISCUSSION_ID:
 					return getDiscussionCursorLoader(arguments);
+				case ATTACHMENT_ID:
+					return getAttachmentCursorLoader(arguments);
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loaderId);
 			}
@@ -88,6 +97,9 @@ public class DiscussionInfoActivity extends BaseActivity {
 					break;
 				case DISCUSSION_ID:
 					getSupportActionBar().setTitle("");
+					break;
+				case ATTACHMENT_ID:
+					mediaList.getAdapter().swapCursor(null);
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
@@ -104,9 +116,22 @@ public class DiscussionInfoActivity extends BaseActivity {
 				case DISCUSSION_ID:
 					swapDiscussionTitle(data);
 					break;
+				case ATTACHMENT_ID:
+					mediaList.getAdapter().swapCursor(data);
+					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
 			}
+		}
+
+		private CursorLoader getAttachmentCursorLoader(final Bundle arguments) {
+
+			Uri discussionUri = getUriFromArguments(arguments);
+			String discussionId = Discussions.getValueId(discussionUri);
+			String where = Attachments.Columns.DISCUSSION_ID + "=?";
+			String[] args = new String[] { discussionId };
+			return new CursorLoader(DiscussionInfoActivity.this, Attachments.CONTENT_URI, null, where, args,
+					null);
 		}
 
 		private CursorLoader getDescriptionCursorLoader(final Bundle arguments) {

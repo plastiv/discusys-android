@@ -23,7 +23,6 @@ public class Attachment implements Parcelable {
 		}
 	};
 	private int attachmentId;
-	private byte[] data;
 	private int discussionId;
 	private int format;
 	private String link;
@@ -38,7 +37,6 @@ public class Attachment implements Parcelable {
 	public Attachment() {
 
 		attachmentId = Integer.MIN_VALUE;
-		data = new byte[0];
 		discussionId = Integer.MIN_VALUE;
 		format = Integer.MIN_VALUE;
 		link = "";
@@ -54,9 +52,6 @@ public class Attachment implements Parcelable {
 	private Attachment(final Parcel in) {
 
 		attachmentId = in.readInt();
-		int size = in.readInt();
-		data = new byte[size];
-		in.readByteArray(data);
 		discussionId = in.readInt();
 		format = in.readInt();
 		link = in.readString();
@@ -78,11 +73,6 @@ public class Attachment implements Parcelable {
 	public int getAttachmentId() {
 
 		return attachmentId;
-	}
-
-	public byte[] getData() {
-
-		return data;
 	}
 
 	public int getDiscussionId() {
@@ -140,11 +130,6 @@ public class Attachment implements Parcelable {
 		this.attachmentId = attachmentId;
 	}
 
-	public void setData(final byte[] data) {
-
-		this.data = data;
-	}
-
 	public void setDiscussionId(final int discussionId) {
 
 		this.discussionId = discussionId;
@@ -199,7 +184,6 @@ public class Attachment implements Parcelable {
 
 		ContentValues cv = new ContentValues();
 		cv.put(Attachments.Columns.ID, attachmentId);
-		cv.put(Attachments.Columns.DATA, data);
 		cv.put(Attachments.Columns.DISCUSSION_ID, discussionId);
 		cv.put(Attachments.Columns.FORMAT, format);
 		cv.put(Attachments.Columns.LINK, link);
@@ -217,8 +201,6 @@ public class Attachment implements Parcelable {
 	public void writeToParcel(final Parcel out, final int flags) {
 
 		out.writeInt(attachmentId);
-		out.writeInt(data.length);
-		out.writeByteArray(data);
 		out.writeInt(discussionId);
 		out.writeInt(format);
 		out.writeString(link);

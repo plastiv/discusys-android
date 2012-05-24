@@ -494,8 +494,8 @@ public class OdataReadClient extends BaseOdataClient {
 
 	private Enumerable<OEntity> getAttachmentsEntities() {
 
-		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(Points.TABLE_NAME).filter(
-				"ArgPoint ne null").execute();
+		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(
+				Points.TABLE_NAME + "," + Discussions.TABLE_NAME).execute();
 	}
 
 	private Enumerable<OEntity> getAttachmentsEntities(final int pointId) {
@@ -559,14 +559,13 @@ public class OdataReadClient extends BaseOdataClient {
 		OEntity point = attachment.getLink(Points.TABLE_NAME, ORelatedEntityLinkInline.class)
 				.getRelatedEntity();
 		if ((point == null)) {
-			// TODO: thwo ex here
-			// Log.e(TAG, "Related topic link was null for comment: " + getAsInt(comment,
-			// Comments.Columns.ID));
-			// if (ApplicationConstants.ODATA_SANITIZE) {
-			// Log.w(TAG, "Try to delete comment: " + getAsInt(comment, Comments.Columns.ID));
-			// mConsumer.deleteEntity(Comments.TABLE_NAME, getAsInt(comment, Comments.Columns.ID)).execute();
-			// }
-			return null;
+			OEntity discussion = attachment.getLink(Discussions.TABLE_NAME, ORelatedEntityLinkInline.class)
+					.getRelatedEntity();
+			if ((discussion == null)) {
+				return null;
+			}
+			cv.put(Attachments.Columns.DISCUSSION_ID, getAsInt(discussion, Discussions.Columns.ID));
+			return mContentResolver.insert(Attachments.CONTENT_URI, cv);
 		}
 		cv.put(Attachments.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
 		return mContentResolver.insert(Attachments.CONTENT_URI, cv);

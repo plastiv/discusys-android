@@ -5,66 +5,49 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments.AttachmentType;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
-import com.slobodastudio.discussions.utils.lazylist.ImageLoaderSingleton;
+import com.slobodastudio.discussions.ui.view.MediaList;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
-import android.text.Html;
-import android.text.Spanned;
-import android.text.TextUtils;
 import android.util.Log;
-import android.util.TypedValue;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockListFragment;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Random;
-
 public class PointMediaTabFragment extends SherlockListFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
-	private static final String IMAGE_FOLDER = "discussions_images";
 	private static final int PICK_CAMERA_PHOTO = 0x03;
 	private static final int PICK_IMAGE_REQUEST = 0x02;
 	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
 	private boolean footerButtonsEnabled;
-	private com.slobodastudio.discussions.utils.lazylist.ImageLoader imageLoader;
-	private SimpleCursorAdapter mAttachmentsAdapter;
 	private final AttachmentsCursorLoader mAttachmentsCursorLoader;
-	private ListView mAttachmentsList;
+	private MediaList mediaList;
 	private TextView mPointNameTextView;
 	private SelectedPoint mSelectedPoint;
-	private int tempType;
-	private Uri tempUri;
+	private NewAttachment newAttachment;
 
 	public PointMediaTabFragment() {
 
@@ -133,47 +116,30 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		// http://stackoverflow.com/questions/8646246/uri-from-intent-action-get-content-into-file
 	}
 
-	private static byte[] getBitmapAsByteArray(final Bitmap bitmap) {
+	private static AdapterContextMenuInfo castAdapterContextMenuInfo(final ContextMenuInfo contextMenuInfo) {
 
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		// Middle value is quality, but PNG is lossless, so it's ignored.
-		bitmap.compress(CompressFormat.PNG, 0, outputStream);
-		return outputStream.toByteArray();
-	}
-
-	private static Uri getNewImageFileUri() {
-
-		File root = Environment.getExternalStorageDirectory();
-		File dir = new File(root, IMAGE_FOLDER);
-		boolean canCreate = dir.mkdirs();
-		if (canCreate) {
-			Random generator = new Random();
-			int n = 10000;
-			n = generator.nextInt(n);
-			String fname = "Image-" + n + ".jpg";
-			File file = new File(dir, fname);
-			Uri fileUri = Uri.fromFile(file);
-			return fileUri;
+		try {
+			// Casts the incoming data object into the type for AdapterView objects.
+			return (AdapterContextMenuInfo) contextMenuInfo;
+		} catch (ClassCastException e) {
+			// If the menu object can't be cast, logs an error.
+			throw new RuntimeException("bad menuInfo: " + contextMenuInfo, e);
 		}
-		return null;
 	}
 
 	@Override
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
-		imageLoader = ImageLoaderSingleton.getInstance(getActivity().getApplicationContext());
+		registerForContextMenu(getListView());
 		setListShown(false);
 		initFromArguments();
-		// View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_attachments, container, false);
-		// mAttachmentsList = (ListView) attachmentsView.findViewById(R.id.listview_attachments);
-		// View attachmentsView = inflater.inflate(R.layout.media_list, container, false);
-		mAttachmentsList = getListView();
 		addAttachmentsHeader();
 		if (footerButtonsEnabled) {
-			addAttachmentsFooter();
+			// addAttachmentsFooter();
 		}
-		setAttachmentsAdapter();
+		mediaList = new MediaList(getActivity(), getListView());
+		mediaList.setPositionOffset(1);
 		initAttachmentsLoader();
 	}
 
@@ -182,26 +148,19 @@ public class PointMediaTabFragment extends SherlockListFragment {
 
 		Log.d(TAG, "[onActivityresult]");
 		switch (requestCode) {
-			case PICK_CAMERA_PHOTO: {
+			case PICK_CAMERA_PHOTO:
 				if (resultCode == Activity.RESULT_OK) {
-					tempUri = data.getData();
-					tempType = PICK_CAMERA_PHOTO;
-					// onAttachSourceAdded(data.getData(), "Image, taken from android camera",
-					// Attachments.AttachmentType.JPG);
+					newAttachment = new NewAttachment(PICK_CAMERA_PHOTO, data.getData());
+				} else {
+					newAttachment = null;
 				}
-				// Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-				// byte[] bitmapArray = getBitmapAsByteArray(bitmap);
-				// onAttachSourceAdded(bitmapArray, "Image, taken from android camera",
-				// Attachments.AttachmentType.JPG);
 				getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 				break;
-			}
 			case PICK_IMAGE_REQUEST:
 				if (resultCode == Activity.RESULT_OK) {
-					tempUri = data.getData();
-					tempType = PICK_IMAGE_REQUEST;
-					// onAttachSourceAdded(data.getData(), "Image, loaded from android sdcard",
-					// Attachments.AttachmentType.JPG);
+					newAttachment = new NewAttachment(PICK_IMAGE_REQUEST, data.getData());
+				} else {
+					newAttachment = null;
 				}
 				break;
 			default:
@@ -209,42 +168,49 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		}
 	}
 
+	@Override
+	public boolean onContextItemSelected(final MenuItem item) {
+
+		switch (item.getItemId()) {
+			case R.id.menu_delete:
+				onActionDeleteAttachment(item);
+				return true;
+			default:
+				return super.onContextItemSelected(item);
+		}
+	}
+
+	@Override
+	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+
+		super.onCreateContextMenu(menu, v, menuInfo);
+		AdapterContextMenuInfo info = castAdapterContextMenuInfo(menuInfo);
+		Cursor cursor = (Cursor) mediaList.getAdapter().getItem(info.position - 1);
+		int textIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.TITLE);
+		menu.setHeaderTitle(cursor.getString(textIndex));
+		android.view.MenuInflater inflater = getActivity().getMenuInflater();
+		inflater.inflate(R.menu.context_attachments, menu);
+	}
+
 	public void onServiceConnected() {
 
-		if (tempUri != null) {
-			switch (tempType) {
+		if (newAttachment != null) {
+			switch (newAttachment.type) {
 				case PICK_CAMERA_PHOTO:
-					onAttachSourceAdded(tempUri, "Image, taken from android camera",
+					onAttachSourceAdded(newAttachment.uri, "Image, taken from android camera",
 							Attachments.AttachmentType.JPG);
 					break;
 				case PICK_IMAGE_REQUEST:
-					onAttachSourceAdded(tempUri, "Image, loaded from android sdcard",
+					onAttachSourceAdded(newAttachment.uri, "Image, loaded from android sdcard",
 							Attachments.AttachmentType.JPG);
 					break;
 				default:
 					break;
 			}
-			tempUri = null;
+			newAttachment = null;
 		}
 	}
 
-	// @Override
-	// public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-	// final Bundle savedInstanceState) {
-	//
-	// initFromArguments();
-	// // View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_attachments, container, false);
-	// // mAttachmentsList = (ListView) attachmentsView.findViewById(R.id.listview_attachments);
-	// View attachmentsView = inflater.inflate(R.layout.media_list, container, false);
-	// mAttachmentsList = (ListView) attachmentsView.findViewById(android.R.id.list);
-	// addAttachmentsHeader();
-	// if (footerButtonsEnabled) {
-	// addAttachmentsFooter();
-	// }
-	// setAttachmentsAdapter();
-	// initAttachmentsLoader();
-	// return attachmentsView;
-	// }
 	private void addAttachmentsFooter() {
 
 		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
@@ -252,7 +218,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
 		setAttachPhotoListener(footerView);
 		setAttachImageListener(footerView);
-		mAttachmentsList.addFooterView(footerView);
+		getListView().addFooterView(footerView);
 	}
 
 	private void addAttachmentsHeader() {
@@ -261,7 +227,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 				Context.LAYOUT_INFLATER_SERVICE);
 		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
 		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
-		mAttachmentsList.addHeaderView(headerView);
+		getListView().addHeaderView(headerView);
 	}
 
 	private void initAttachmentsLoader() {
@@ -288,41 +254,13 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		footerButtonsEnabled = arguments.getBoolean(ExtraKey.VIEW_ENABLED);
 	}
 
-	private void loadImage(final Intent intent) {
+	private void onActionDeleteAttachment(final MenuItem item) {
 
-		Uri selectedImageUri = intent.getData();
-		Bitmap galleryImage;
-		try {
-			galleryImage = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(
-					selectedImageUri));
-			if (galleryImage != null) {
-				// Bitmap newBitmap = Bitmap.createScaledBitmap(bitmap, 70, 70, true);
-				// bitmap.recycle();
-				// if (newBitmap != null) {
-				// publishProgress(new LoadedImage(newBitmap));
-				// }
-				byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
-				galleryImage.recycle();
-				onAttachSourceAdded(bitmapArray, "Image, loaded from android sdcard",
-						Attachments.AttachmentType.PNG);
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private void onAttachSourceAdded(final byte[] attachmentData, final String attachmentDescription,
-			final int attachmentType) {
-
-		Attachment attachment = new Attachment();
-		attachment.setData(attachmentData);
-		attachment.setName(attachmentDescription);
-		attachment.setTitle(attachmentDescription);
-		attachment.setPersonId(mSelectedPoint.getPersonId());
-		attachment.setPointId(mSelectedPoint.getPointId());
-		attachment.setFormat(attachmentType);
-		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mSelectedPoint);
+		AdapterContextMenuInfo info = castAdapterContextMenuInfo(item.getMenuInfo());
+		Cursor cursor = (Cursor) mediaList.getAdapter().getItem(info.position - 1);
+		int columnIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
+		int attachmentId = cursor.getInt(columnIndex);
+		((BaseActivity) getActivity()).getServiceHelper().deleteAttachment(attachmentId, mSelectedPoint);
 	}
 
 	private void onAttachSourceAdded(final Uri uri, final String attachmentDescription,
@@ -348,15 +286,6 @@ public class PointMediaTabFragment extends SherlockListFragment {
 				requestImageAttachment(getActivity());
 			}
 		});
-	}
-
-	private void setAttachmentsAdapter() {
-
-		mAttachmentsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_media, null,
-				new String[] { Attachments.Columns.TITLE, Attachments.Columns.DATA }, new int[] {
-						R.id.text_attachment_name, R.id.image_attachment_preview }, 0);
-		mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
-		mAttachmentsList.setAdapter(mAttachmentsAdapter);
 	}
 
 	private void setAttachPhotoListener(final View container) {
@@ -409,7 +338,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 
 			switch (loader.getId()) {
 				case ATTACHMENTS_ID:
-					mAttachmentsAdapter.swapCursor(null);
+					mediaList.getAdapter().swapCursor(null);
 					break;
 				case POINT_NAME_ID:
 					mPointNameTextView.setText("");
@@ -427,7 +356,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 			}
 			switch (loader.getId()) {
 				case ATTACHMENTS_ID:
-					mAttachmentsAdapter.swapCursor(data);
+					mediaList.getAdapter().swapCursor(data);
 					if (isResumed()) {
 						setListShown(true);
 					} else {
@@ -447,123 +376,16 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		}
 	}
 
-	private class AttachmentsViewBinder implements ViewBinder {
+	private class NewAttachment {
 
-		private final byte[] buffer = new byte[16 * 1024];
+		int type;
+		Uri uri;
 
-		@Override
-		public boolean setViewValue(final View view, final Cursor cursor, final int columnIndex) {
+		public NewAttachment(final int type, final Uri uri) {
 
-			switch (view.getId()) {
-				case R.id.image_attachment_preview:
-					setPreviewImage((ImageView) view, cursor);
-					return true;
-				case R.id.text_attachment_name:
-					((TextView) view).setText(cursor.getString(columnIndex));
-					// ((TextView) view).setText(Attachments.buildTableUri(10).toString());
-					return true;
-				default:
-					// TODO: throw exception
-					return false;
-			}
-		}
-
-		private float convertPixelsFromDensityPixel(final int valueInDp) {
-
-			return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, getResources()
-					.getDisplayMetrics());
-		}
-
-		private Spanned getMediaLink(final Cursor cursor) {
-
-			Uri mediaUri = Attachments.buildTableUri(10);
-			int descriptionColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.TITLE);
-			String description = cursor.getString(descriptionColumn);
-			if (TextUtils.isEmpty(description)) {
-				int imagePathColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.NAME);
-				description = cursor.getString(imagePathColumn);
-			}
-			String hrefLink = "<a href=\"" + mediaUri.toString() + ">" + description + "</a>";
-			Log.d(TAG, "mediaUri: " + mediaUri.toString());
-			Log.d(TAG, "Description: " + description);
-			Log.d(TAG, "Htaml: " + hrefLink);
-			return Html.fromHtml(hrefLink);
-		}
-
-		private Bitmap scaleDown(final Bitmap realImage) {
-
-			return scaleDown(realImage, convertPixelsFromDensityPixel(100), true);
-		}
-
-		private Bitmap scaleDown(final Bitmap realImage, final float maxImageSize, final boolean filter) {
-
-			float ratio = Math.min(maxImageSize / realImage.getWidth(), maxImageSize / realImage.getHeight());
-			int width = Math.round(ratio * realImage.getWidth());
-			int height = Math.round(ratio * realImage.getHeight());
-			Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width, height, filter);
-			return newBitmap;
-		}
-
-		private void setPreviewImage(final ImageView imageView, final Cursor cursor) {
-
-			int formatColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.FORMAT);
-			int attachmentFormat = cursor.getInt(formatColumnIndex);
-			switch (attachmentFormat) {
-				case AttachmentType.JPG:
-				case AttachmentType.PNG:
-				case AttachmentType.BMP:
-					// imageLoader.DisplayImage(data[position], image);
-					// int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.DATA);
-					// byte[] pictureData = cursor.getBlob(dataColumnIndex);
-					// BitmapFactory.Options options = new BitmapFactory.Options();
-					// options.inTempStorage = buffer;
-					// options.inDither = false;
-					// options.inPurgeable = true;
-					// options.inInputShareable = true;
-					// options.inSampleSize = 8;
-					// Bitmap bitmap = BitmapFactory
-					// .decodeByteArray(pictureData, 0, pictureData.length, options);
-					// imageView.setImageBitmap(scaleDown(bitmap));
-					int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
-					final int valueId = cursor.getInt(idColumn);
-					String urlString = Attachments.getAttachmentDownloadLink(valueId);
-					imageLoader.DisplayImage(urlString, imageView);
-					imageView.setOnClickListener(new OnClickListener() {
-
-						@Override
-						public void onClick(final View v) {
-
-							Intent intent = new Intent(Intent.ACTION_VIEW, Attachments.buildTableUri(valueId));
-							startActivity(intent);
-						}
-					});
-					break;
-				case AttachmentType.YOUTUBE:
-					int youtubeThumbColumn = cursor
-							.getColumnIndexOrThrow(Attachments.Columns.VIDEO_THUMB_URL);
-					final String youtubeThumbString = cursor.getString(youtubeThumbColumn);
-					int youtubeVideoColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.VIDEO_LINK_URL);
-					final String youtubeLink = cursor.getString(youtubeVideoColumn);
-					imageLoader.DisplayImage(youtubeThumbString, imageView);
-					imageView.setOnClickListener(new OnClickListener() {
-
-						@Override
-						public void onClick(final View v) {
-
-							Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(youtubeLink));
-							startActivity(intent);
-						}
-					});
-					break;
-				case AttachmentType.GENERAL_WEB_LINK:
-				case AttachmentType.NONE:
-				case AttachmentType.PDF:
-					imageView.setImageResource(R.drawable.stub);
-					break;
-				default:
-					// TODO: throw ex
-					break;
-			}
+			super();
+			this.type = type;
+			this.uri = uri;
 		}
 	}
 }

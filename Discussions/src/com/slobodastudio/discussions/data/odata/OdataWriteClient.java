@@ -37,6 +37,11 @@ public class OdataWriteClient extends BaseOdataClient {
 		HttpUtil.insertPersonTopic(personId, topicId);
 	}
 
+	public void deleteAttachment(final int attachmentId) {
+
+		mConsumer.deleteEntity(Attachments.TABLE_NAME, attachmentId).execute();
+	}
+
 	public void deleteComment(final int commentId) {
 
 		mConsumer.deleteEntity(Comments.TABLE_NAME, commentId).execute();
@@ -46,6 +51,7 @@ public class OdataWriteClient extends BaseOdataClient {
 
 		deleteCommentsByPointId(pointId);
 		deleteDescriptionByPointId(pointId);
+		deleteAttachmentsByPointId(pointId);
 		mConsumer.deleteEntity(Points.TABLE_NAME, pointId).execute();
 	}
 
@@ -57,7 +63,6 @@ public class OdataWriteClient extends BaseOdataClient {
 				.properties(OProperties.string(Attachments.Columns.NAME, attachment.getName()))
 				.link(Attachments.Columns.POINT_ID, OEntityKey.parse(String.valueOf(attachment.getPointId())))
 				.properties(OProperties.int32(Attachments.Columns.FORMAT, attachment.getFormat()))
-				.properties(OProperties.binary(Attachments.Columns.DATA, attachment.getData()))
 				.properties(OProperties.string(Attachments.Columns.TITLE, attachment.getTitle()))
 				.properties(OProperties.string(Attachments.Columns.LINK, attachment.getLink()))
 				.execute();
@@ -232,6 +237,18 @@ public class OdataWriteClient extends BaseOdataClient {
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())))
 				.execute();
 		// @formatter:on
+	}
+
+	private void deleteAttachmentsByPointId(final int pointId) {
+
+		String[] projection = new String[] { Attachments.Columns.ID };
+		String where = Attachments.Columns.POINT_ID + "=" + pointId;
+		Cursor cursor = mContentResolver.query(Attachments.CONTENT_URI, projection, where, null, null);
+		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+			int attachmentId = cursor.getInt(cursor.getColumnIndexOrThrow(Attachments.Columns.ID));
+			deleteAttachment(attachmentId);
+		}
+		cursor.close();
 	}
 
 	private void deleteCommentsByPointId(final int pointId) {

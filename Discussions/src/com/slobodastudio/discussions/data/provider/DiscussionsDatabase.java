@@ -25,7 +25,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 45;
+	private static final int DATABASE_VERSION = 47;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -120,9 +120,8 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Attachments.Columns.NAME + " TEXT NOT NULL,"
 				+ Attachments.Columns.FORMAT + " INTEGER NOT NULL,"
 				+ Attachments.Columns.PERSON_ID + " INTEGER, "
-				+ Attachments.Columns.POINT_ID + " INTEGER NOT NULL,"
+				+ Attachments.Columns.POINT_ID + " INTEGER,"
 				+ Attachments.Columns.DISCUSSION_ID + " INTEGER,"
-				+ Attachments.Columns.DATA + " BLOB,"
 				+ Attachments.Columns.THUMB + " BLOB,"
 				+ Attachments.Columns.VIDEO_EMBED_URL + " TEXT,"
 				+ Attachments.Columns.VIDEO_LINK_URL + " TEXT,"

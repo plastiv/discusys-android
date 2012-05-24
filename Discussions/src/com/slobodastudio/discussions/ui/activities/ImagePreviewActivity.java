@@ -133,7 +133,7 @@ public class ImagePreviewActivity extends BaseActivity {
 		private void swapAttachmentTitle(final Cursor cursor) {
 
 			if (cursor.moveToFirst()) {
-				int titleColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.NAME);
+				int titleColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.TITLE);
 				String title = cursor.getString(titleColumn);
 				getSupportActionBar().setTitle(title);
 			}

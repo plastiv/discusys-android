@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -78,7 +79,14 @@ public class ImageLoader {
 			// decode image size
 			BitmapFactory.Options o = new BitmapFactory.Options();
 			o.inJustDecodeBounds = true;
-			BitmapFactory.decodeStream(new FileInputStream(f), null, o);
+			FileInputStream inputStream = new FileInputStream(f);
+			BitmapFactory.decodeStream(inputStream, null, o);
+			try {
+				inputStream.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			// Find the correct scale value. It should be the power of 2.
 			int scale = 1;
 			if (scaled) {
@@ -96,7 +104,15 @@ public class ImageLoader {
 			// decode with inSampleSize
 			BitmapFactory.Options o2 = new BitmapFactory.Options();
 			o2.inSampleSize = scale;
-			return BitmapFactory.decodeStream(new FileInputStream(f), null, o2);
+			FileInputStream inputStream2 = new FileInputStream(f);
+			Bitmap bitmap = BitmapFactory.decodeStream(inputStream2, null, o2);
+			try {
+				inputStream2.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return bitmap;
 		} catch (FileNotFoundException e) {}
 		return null;
 	}
