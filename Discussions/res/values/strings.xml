@@ -19,6 +19,7 @@
     <string name="action_mode_title_view_points">View point</string>
     <string name="dialog_title_user_name">Input user name</string>
     <string name="dialog_title_creating_user">Creating user...</string>
+    <string name="dialog_title_downloading_database">Downloading database...</string>
     <string name="dialog_title_comment">Type your comment</string>
     <string name="tab_title_comments">Comments</string>
     <string name="tab_title_description">Description</string>

@@ -62,6 +62,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		@Override
 		public void handleError(final String message) {
 
+			showProgressDialog(false);
 			final String errorText = getString(R.string.toast_sync_error, message);
 			Toast.makeText(BaseActivity.this, errorText, Toast.LENGTH_LONG).show();
 		}
@@ -70,6 +71,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		public void updateSyncStatus(final boolean syncing) {
 
 			setSupportProgressBarIndeterminateVisibility(syncing);
+			showProgressDialog(syncing);
 		}
 	};
 
@@ -163,5 +165,10 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 			unbindService(mConnection);
 			mBound = false;
 		}
+	}
+
+	protected void showProgressDialog(final boolean shown) {
+
+		// TODO Auto-generated method stub
 	}
 }

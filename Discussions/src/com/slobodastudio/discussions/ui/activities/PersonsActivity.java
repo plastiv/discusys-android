@@ -3,6 +3,7 @@ package com.slobodastudio.discussions.ui.activities;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import com.actionbarsherlock.view.MenuItem;
 public class PersonsActivity extends BaseActivity {
 
 	private static final String TAG = PersonsActivity.class.getSimpleName();
+	ProgressDialog dialog;
 	private boolean mIsActivityCreated;
 
 	public PersonsActivity() {
@@ -78,6 +80,19 @@ public class PersonsActivity extends BaseActivity {
 		setTitle(R.string.activity_title_persons);
 		setContentView(R.layout.activity_persons);
 		// AnalyticsUtils.getInstance(this).trackPageView("/Home");
+	}
+
+	@Override
+	protected void showProgressDialog(final boolean shown) {
+
+		if (shown) {
+			dialog = ProgressDialog.show(PersonsActivity.this, null,
+					getString(R.string.dialog_title_downloading_database), true);
+			dialog.show();
+		} else {
+			dialog.dismiss();
+		}
+		super.showProgressDialog(shown);
 	}
 
 	private void showCurrentVersionInToast() {

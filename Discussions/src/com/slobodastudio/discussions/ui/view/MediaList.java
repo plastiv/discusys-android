@@ -55,8 +55,8 @@ public class MediaList {
 	private void setAttachmentsAdapter() {
 
 		mAttachmentsAdapter = new SimpleCursorAdapter(mContext, R.layout.list_item_media, null, new String[] {
-				Attachments.Columns.TITLE, Attachments.Columns.ID }, new int[] { R.id.text_attachment_name,
-				R.id.image_attachment_preview }, 0);
+				Attachments.Columns.TITLE, Attachments.Columns.ID, Attachments.Columns.FORMAT }, new int[] {
+				R.id.text_attachment_name, R.id.image_attachment_preview, R.id.image_attachment_filetype }, 0);
 		mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
 		mAttachmentsList.setAdapter(mAttachmentsAdapter);
 	}
@@ -121,9 +121,41 @@ public class MediaList {
 				case R.id.text_attachment_name:
 					((TextView) view).setText(cursor.getString(columnIndex));
 					return true;
+				case R.id.image_attachment_filetype:
+					setFiletypeImage((ImageView) view, cursor, columnIndex);
+					return true;
 				default:
 					Log.e(TAG, "[setViewValue] unknown view: " + view.getId());
 					return false;
+			}
+		}
+
+		private void setFiletypeImage(final ImageView imageView, final Cursor cursor, final int columnIndex) {
+
+			int attachmentFormat = cursor.getInt(columnIndex);
+			switch (attachmentFormat) {
+				case AttachmentType.JPG:
+				case AttachmentType.PNG:
+				case AttachmentType.BMP:
+					imageView.setImageResource(R.drawable.ic_filetype_image);
+					break;
+				case AttachmentType.PNG_SCREENSHOT:
+					imageView.setImageResource(R.drawable.ic_filetype_screenshot);
+					break;
+				case AttachmentType.YOUTUBE:
+					imageView.setImageResource(R.drawable.ic_filetype_youtube);
+					break;
+				case AttachmentType.PDF:
+					imageView.setImageResource(R.drawable.ic_filetype_pdf);
+					break;
+				case AttachmentType.GENERAL_WEB_LINK:
+				case AttachmentType.NONE:
+					imageView.setImageResource(R.drawable.stub);
+					break;
+				default:
+					Log.e(TAG, "[setPreviewImage] unknown attachment format: " + attachmentFormat);
+					imageView.setImageResource(R.drawable.stub);
+					break;
 			}
 		}
 
