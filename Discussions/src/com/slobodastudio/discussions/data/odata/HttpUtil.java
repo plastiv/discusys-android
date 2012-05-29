@@ -16,6 +16,7 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -62,6 +63,32 @@ public class HttpUtil {
 			customHttpClient = new DefaultHttpClient(conMgr, params);
 		}
 		return customHttpClient;
+	}
+
+	public static void insertAttachment() {
+
+		try {
+			HttpPost postRequest = new HttpPost(ODataConstants.SERVICE_URL + "Attachment");
+			ByteArrayEntity entity = new ByteArrayEntity(new byte[] { 1, 2, 3 });
+			// StringEntity entity = new StringEntity("{uri:\"" + ODataConstants.SERVICE_URL + "Person("
+			// + personId + ")\"}", "utf-8");
+			entity.setContentType("image/jpeg");
+			entity.setChunked(true);
+			postRequest.setEntity(entity);
+			HttpClient httpClient = getHttpClient();
+			HttpResponse response = httpClient.execute(postRequest);
+			if (response.getEntity() != null) {
+				Log.w("HttpResponse", "HttpResponse: " + getString(response));
+			}
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (ClientProtocolException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void insertPersonTopic(final int personId, final int topicId) {
