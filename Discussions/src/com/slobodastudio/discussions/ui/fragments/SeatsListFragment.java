@@ -253,7 +253,7 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 			cv.put(PersonsTopics.Columns.PERSON_ID, personId);
 			int topicId = cur.getInt(indexId);
 			cv.put(PersonsTopics.Columns.TOPIC_ID, topicId);
-			OdataWriteClient.insertPersonTopicLink(personId, topicId);
+			OdataWriteClient.insertPersonTopicLink(getActivity(), personId, topicId);
 			getActivity().getContentResolver().insert(Persons.buildTopicUri(1231231), cv);
 		}
 		cur.close();

@@ -3,8 +3,6 @@
  */
 package com.slobodastudio.discussions;
 
-import com.slobodastudio.discussions.data.odata.HttpUtil;
-
 import android.app.Application;
 import android.os.StrictMode;
 
@@ -16,7 +14,6 @@ public class DiscussionsApplication extends Application {
 	public void onCreate() {
 
 		super.onCreate();
-		HttpUtil.insertAttachment();
 		if (ApplicationConstants.DEV_MODE) {
 			StrictMode
 					.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());

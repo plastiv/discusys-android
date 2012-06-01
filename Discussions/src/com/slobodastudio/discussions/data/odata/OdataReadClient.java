@@ -548,7 +548,7 @@ public class OdataReadClient extends BaseOdataClient {
 
 	private Enumerable<OEntity> getTopicsEntities() {
 
-		ODataConsumer mConsumerXml = ODataJerseyConsumer.newBuilder(ODataConstants.SERVICE_URL).build();
+		ODataConsumer mConsumerXml = ODataJerseyConsumer.newBuilder(getOdataServerUrl()).build();
 		return mConsumerXml.getEntities(Topics.TABLE_NAME).expand(
 				Discussions.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
 	}

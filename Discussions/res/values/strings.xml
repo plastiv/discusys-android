@@ -15,17 +15,20 @@
     <string name="activity_title_sessions">Sessions</string>
     <string name="activity_title_seats">Seats</string>
     <string name="activity_title_webview">Select url</string>
+    <string name="activity_title_preferences">Preferences</string>
     <string name="action_mode_title_points">Edit point</string>
     <string name="action_mode_title_view_points">View point</string>
     <string name="dialog_title_user_name">Input user name</string>
     <string name="dialog_title_creating_user">Creating user...</string>
     <string name="dialog_title_downloading_database">Downloading database...</string>
     <string name="dialog_title_comment">Type your comment</string>
+    <string name="dialog_title_settings_server">Server url</string>
     <string name="tab_title_comments">Comments</string>
     <string name="tab_title_description">Description</string>
     <string name="tab_title_media">Media</string>
     <string name="tab_title_source">Source</string>
-    <!-- buttons -->
+    <string name="title_settings_server">Server url</string>
+   <!-- buttons -->
     <string name="button_title_comment">Comment</string>
     <string name="button_title_attach_url">Attach url</string>
     <string name="button_title_attach_image">Attach image</string>
@@ -39,6 +42,7 @@
     <string name="menu_action_cancel">Cancel</string>
     <string name="menu_action_new_attachment">Save link</string>
     <string name="menu_action_view_discussion_info">Info</string>
+    <string name="menu_action_settings">Settings</string>
     <!-- texts -->
     <string name="text_empty_list">Empty list</string>
     <string name="text_empty_persons_list">No persons</string>
@@ -70,5 +74,7 @@
     <string name="hint_your_comment">Text comment</string>
     <string name="hint_your_point_name">Name</string>
     <string name="hint_your_point_description">Full description</string>
+    <!--  -->
+    <string name="summary_server_settings">Select server address</string>
 
 </resources>

@@ -1,8 +1,9 @@
 package com.slobodastudio.discussions.data.provider;
 
-import com.slobodastudio.discussions.data.odata.ODataConstants;
+import com.slobodastudio.discussions.data.PreferenceHelper;
 
 import android.content.ContentUris;
+import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -82,20 +83,15 @@ public final class DiscussionsContract {
 			return CONTENT_URI.buildUpon().appendPath(valueId).build();
 		}
 
-		public static String getAttachmentDownloadLink(final int id) {
+		public static String getAttachmentDownloadLink(final Context context, final int id) {
 
-			StringBuilder sb = new StringBuilder();
-			sb.append(ODataConstants.SERVICE_URL);
-			sb.append("/Attachment(");
-			sb.append(id);
-			sb.append(")/$value");
-			return sb.toString();
+			return getAttachmentDownloadLink(context, String.valueOf(id));
 		}
 
-		public static String getAttachmentDownloadLink(final String id) {
+		public static String getAttachmentDownloadLink(final Context context, final String id) {
 
 			StringBuilder sb = new StringBuilder();
-			sb.append(ODataConstants.SERVICE_URL);
+			sb.append(PreferenceHelper.getOdataUrl(context));
 			sb.append("/Attachment(");
 			sb.append(id);
 			sb.append(")/$value");

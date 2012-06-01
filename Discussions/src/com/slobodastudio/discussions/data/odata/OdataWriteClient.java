@@ -32,9 +32,9 @@ public class OdataWriteClient extends BaseOdataClient {
 		super(context);
 	}
 
-	public static void insertPersonTopicLink(final int personId, final int topicId) {
+	public static void insertPersonTopicLink(final Context context, final int personId, final int topicId) {
 
-		HttpUtil.insertPersonTopic(personId, topicId);
+		HttpUtil.insertPersonTopic(context, personId, topicId);
 	}
 
 	public void deleteAttachment(final int attachmentId) {
@@ -272,8 +272,21 @@ public class OdataWriteClient extends BaseOdataClient {
 		for (descriptionCur.moveToFirst(); !descriptionCur.isAfterLast(); descriptionCur.moveToNext()) {
 			int descriptionId = descriptionCur.getInt(descriptionCur
 					.getColumnIndexOrThrow(Descriptions.Columns.ID));
+			deleteSourceByDescriptionId(descriptionId);
 			mConsumer.deleteEntity(Descriptions.TABLE_NAME, descriptionId).execute();
 		}
 		descriptionCur.close();
+	}
+
+	private void deleteSourceByDescriptionId(final int descriptionId) {
+
+		String[] projection = new String[] { Sources.Columns.ID };
+		String where = Sources.Columns.DESCRIPTION_ID + "=" + descriptionId;
+		Cursor cursor = mContentResolver.query(Sources.CONTENT_URI, projection, where, null, null);
+		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+			int sourceId = cursor.getInt(cursor.getColumnIndexOrThrow(Sources.Columns.ID));
+			mConsumer.deleteEntity(Sources.TABLE_NAME, sourceId).execute();
+		}
+		cursor.close();
 	}
 }

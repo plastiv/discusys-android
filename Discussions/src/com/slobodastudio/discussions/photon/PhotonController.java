@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.photon;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.PreferenceHelper;
 import com.slobodastudio.discussions.photon.constants.ActorPropertiesKey;
 import com.slobodastudio.discussions.photon.constants.DeviceType;
 import com.slobodastudio.discussions.photon.constants.DiscussionEventCode;
@@ -12,6 +13,7 @@ import com.slobodastudio.discussions.photon.constants.LiteOpPropertyType;
 import com.slobodastudio.discussions.photon.constants.PhotonConstants;
 import com.slobodastudio.discussions.utils.MyLog;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
@@ -73,8 +75,8 @@ public class PhotonController implements IPhotonPeerListener {
 		return intArray;
 	}
 
-	public void connect(final int discussionId, final String dbSrvAddr, final String UsrName,
-			final int usrDbId) {
+	public void connect(final Context context, final int discussionId, final String dbSrvAddr,
+			final String UsrName, final int usrDbId) {
 
 		mGameLobbyName = dbSrvAddr + "discussion#" + discussionId;
 		mLocalUser = new DiscussionUser();
@@ -82,9 +84,10 @@ public class PhotonController implements IPhotonPeerListener {
 		mLocalUser.setUserId(usrDbId);
 		mPeer = new LitePeer(this, PhotonConstants.USE_TCP);
 		mPeer.setSentCountAllowance(5);
-		if (!mPeer.connect(PhotonConstants.SERVER_URL, PhotonConstants.APPLICATION_NAME)) {
+		if (!mPeer.connect(PreferenceHelper.getPhotonUrl(context), PhotonConstants.APPLICATION_NAME)) {
 			throw new IllegalArgumentException("Can't connect to the server. Server address: "
-					+ PhotonConstants.SERVER_URL + " ; Application name: " + PhotonConstants.APPLICATION_NAME);
+					+ PreferenceHelper.getPhotonUrl(context) + " ; Application name: "
+					+ PhotonConstants.APPLICATION_NAME);
 		}
 		startPeerUpdateTimer();
 	}

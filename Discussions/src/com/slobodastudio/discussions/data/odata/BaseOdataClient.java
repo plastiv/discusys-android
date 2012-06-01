@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.PreferenceHelper;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -19,14 +20,13 @@ public class BaseOdataClient {
 	public BaseOdataClient(final Context context) {
 
 		// FIXME: check if network is accessible
-		// TODO: set format type to json
 		// FIXME catch 404 errors from HTTP RESPONSE
-		mConsumer = ODataJerseyConsumer.newBuilder(ODataConstants.SERVICE_URL).setFormatType(FormatType.JSON)
+		mContext = context;
+		mConsumer = ODataJerseyConsumer.newBuilder(getOdataServerUrl()).setFormatType(FormatType.JSON)
 				.build();
 		if (ApplicationConstants.ODATA_LOCAL) {
 			ODataConsumer.dump.all(true);
 		}
-		mContext = context;
 		mContentResolver = context.getContentResolver();
 	}
 
@@ -40,5 +40,10 @@ public class BaseOdataClient {
 	public void logServerMetaData() {
 
 		ODataReportUtil.reportMetadata(mConsumer.getMetadata());
+	}
+
+	protected String getOdataServerUrl() {
+
+		return PreferenceHelper.getOdataUrl(mContext);
 	}
 }

@@ -3,6 +3,9 @@
  */
 package com.slobodastudio.discussions.data.odata;
 
+import com.slobodastudio.discussions.data.PreferenceHelper;
+
+import android.content.Context;
 import android.util.Log;
 
 import org.apache.http.HttpResponse;
@@ -16,7 +19,6 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -67,37 +69,56 @@ public class HttpUtil {
 
 	public static void insertAttachment() {
 
-		try {
-			HttpPost postRequest = new HttpPost(ODataConstants.SERVICE_URL + "Attachment");
-			ByteArrayEntity entity = new ByteArrayEntity(new byte[] { 1, 2, 3 });
-			// StringEntity entity = new StringEntity("{uri:\"" + ODataConstants.SERVICE_URL + "Person("
-			// + personId + ")\"}", "utf-8");
-			entity.setContentType("image/jpeg");
-			entity.setChunked(true);
-			postRequest.setEntity(entity);
-			HttpClient httpClient = getHttpClient();
-			HttpResponse response = httpClient.execute(postRequest);
-			if (response.getEntity() != null) {
-				Log.w("HttpResponse", "HttpResponse: " + getString(response));
-			}
-		} catch (IllegalArgumentException e) {
-			throw new RuntimeException(e);
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException(e);
-		} catch (ClientProtocolException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		// try {
+		// HttpPost postRequest = new HttpPost(ODataConstants.SERVICE_URL + "Attachment");
+		// // StringEntity entity = new StringEntity("{uri:\"" + ODataConstants.SERVICE_URL + "Person(" + 1
+		// // + ")\"}", "utf-8");
+		// FileEntity entity = new FileEntity(new File("/data/data/com.slobodastudio.discussions/files",
+		// "odata.jpg"), "image/jpeg");
+		// Header[] headers = {
+		// new BasicHeader("Content-type", "image/jpeg"),
+		// new BasicHeader("Accept-Charset", "UTF-8"),
+		// new BasicHeader("DataServiceVersion", "1.0;NetFx"),
+		// new BasicHeader("MaxDataServiceVersion", "2.0;NetFx"),
+		// new BasicHeader("Accept", "application/json;odata=verbose"),
+		// new BasicHeader("Slug", "odata.jpg"),
+		// new BasicHeader("Host", "localhost"),
+		// new BasicHeader("Expect", "100-continue"),
+		// new BasicHeader("User-Agent",
+		// "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2") };
+		// entity.setContentType("image/jpeg");
+		// postRequest.setHeaders(headers);
+		// postRequest.setEntity(entity);
+		// HttpClient httpClient = getHttpClient();
+		// for (Header header : postRequest.getAllHeaders()) {
+		// Log.d("HttpRequest", header.getName() + ": " + header.getValue());
+		// }
+		// HttpResponse response = httpClient.execute(postRequest);
+		// for (Header header : response.getAllHeaders()) {
+		// Log.d("HttpResponse", header.getName() + ": " + header.getValue());
+		// }
+		// Log.d("HttpResponse", "Entity not null: " + (response.getEntity() != null));
+		// if (response.getEntity() != null) {
+		// Log.w("HttpResponse", "HttpResponse: " + getString(response));
+		// }
+		// } catch (IllegalArgumentException e) {
+		// throw new RuntimeException(e);
+		// } catch (UnsupportedEncodingException e) {
+		// throw new RuntimeException(e);
+		// } catch (ClientProtocolException e) {
+		// throw new RuntimeException(e);
+		// } catch (IOException e) {
+		// throw new RuntimeException(e);
+		// }
 	}
 
-	public static void insertPersonTopic(final int personId, final int topicId) {
+	public static void insertPersonTopic(final Context context, final int personId, final int topicId) {
 
 		try {
-			HttpPost postRequest = new HttpPost(ODataConstants.SERVICE_URL + "Topic(" + topicId
-					+ ")/$links/Person");
-			StringEntity entity = new StringEntity("{uri:\"" + ODataConstants.SERVICE_URL + "Person("
-					+ personId + ")\"}", "utf-8");
+			String odataUrl = PreferenceHelper.getOdataUrl(context);
+			HttpPost postRequest = new HttpPost(odataUrl + "Topic(" + topicId + ")/$links/Person");
+			StringEntity entity = new StringEntity("{uri:\"" + odataUrl + "Person(" + personId + ")\"}",
+					"utf-8");
 			entity.setContentType("application/json");
 			postRequest.setEntity(entity);
 			HttpClient httpClient = getHttpClient();

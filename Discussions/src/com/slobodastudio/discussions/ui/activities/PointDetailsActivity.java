@@ -199,7 +199,7 @@ public class PointDetailsActivity extends BaseActivity {
 	private void connectPhoton() {
 
 		if (mBound && !mService.getPhotonController().isConnected()) {
-			mService.getPhotonController().connect(discussionId, PhotonConstants.DB_SERVER_ADDRESS,
+			mService.getPhotonController().connect(this, discussionId, PhotonConstants.DB_SERVER_ADDRESS,
 					personName, personId);
 			// mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
 		}

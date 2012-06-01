@@ -2,7 +2,7 @@
  * TouchImageView.java By: Michael Ortiz Updated By: Patrick Lackemacher ------------------- Extends Android
  * ImageView to include pinch zooming and panning.
  */
-package com.slobodastudio.discussions.utils.lazylist;
+package com.slobodastudio.discussions.ui.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;

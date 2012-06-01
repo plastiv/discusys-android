@@ -8,10 +8,13 @@ import com.slobodastudio.discussions.utils.lazylist.ImageLoaderSingleton;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -111,6 +114,8 @@ public class MediaList {
 
 	private class AttachmentsViewBinder implements ViewBinder {
 
+		private final byte[] buffer = new byte[16 * 1024];
+
 		@Override
 		public boolean setViewValue(final View view, final Cursor cursor, final int columnIndex) {
 
@@ -128,6 +133,26 @@ public class MediaList {
 					Log.e(TAG, "[setViewValue] unknown view: " + view.getId());
 					return false;
 			}
+		}
+
+		private float convertPixelsFromDensityPixel(final int valueInDp) {
+
+			return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, mContext.getResources()
+					.getDisplayMetrics());
+		}
+
+		private Bitmap scaleDown(final Bitmap realImage) {
+
+			return scaleDown(realImage, convertPixelsFromDensityPixel(75), true);
+		}
+
+		private Bitmap scaleDown(final Bitmap realImage, final float maxImageSize, final boolean filter) {
+
+			float ratio = Math.min(maxImageSize / realImage.getWidth(), maxImageSize / realImage.getHeight());
+			int width = Math.round(ratio * realImage.getWidth());
+			int height = Math.round(ratio * realImage.getHeight());
+			Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width, height, filter);
+			return newBitmap;
 		}
 
 		private void setFiletypeImage(final ImageView imageView, final Cursor cursor, final int columnIndex) {
@@ -169,7 +194,7 @@ public class MediaList {
 				case AttachmentType.BMP:
 				case AttachmentType.PNG_SCREENSHOT:
 					final int valueId = cursor.getInt(columnIndex);
-					String urlString = Attachments.getAttachmentDownloadLink(valueId);
+					String urlString = Attachments.getAttachmentDownloadLink(mContext, valueId);
 					imageLoader.DisplayImage(urlString, imageView);
 					break;
 				case AttachmentType.YOUTUBE:
@@ -179,7 +204,33 @@ public class MediaList {
 					imageLoader.DisplayImage(youtubeThumbString, imageView);
 					break;
 				case AttachmentType.PDF:
-					imageView.setImageResource(R.drawable.ic_attachment_pdf);
+					int dataColumnIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.THUMB);
+					byte[] thumbData = cursor.getBlob(dataColumnIndex);
+					if (thumbData == null) {
+						imageView.setImageResource(R.drawable.ic_attachment_pdf);
+						break;
+					}
+					BitmapFactory.Options options = new BitmapFactory.Options();
+					options.inTempStorage = buffer;
+					options.inDither = false;
+					options.inPurgeable = true;
+					options.inInputShareable = true;
+					options.inSampleSize = 2;
+					Bitmap bitmap = BitmapFactory.decodeByteArray(thumbData, 0, thumbData.length, options);
+					imageView.setImageBitmap(bitmap);
+					// imageView.setImageBitmap(scaleDown(bitmap));
+					// int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
+					// final int valueId = cursor.getInt(idColumn);
+					// imageView.setOnClickListener(new OnClickListener() {
+					//
+					// @Override
+					// public void onClick(final View v) {
+					//
+					// Intent intent = new Intent(Intent.ACTION_VIEW, Attachments.buildTableUri(valueId));
+					// startActivity(intent);
+					// }
+					// });
+					// break;
 					break;
 				case AttachmentType.GENERAL_WEB_LINK:
 				case AttachmentType.NONE:

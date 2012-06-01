@@ -2,8 +2,8 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
+import com.slobodastudio.discussions.ui.view.TouchImageView;
 import com.slobodastudio.discussions.utils.lazylist.ImageLoader;
-import com.slobodastudio.discussions.utils.lazylist.TouchImageView;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -61,7 +61,7 @@ public class ImagePreviewActivity extends BaseActivity {
 		imageLoader = new ImageLoader(getApplicationContext());
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
 			String attachmentId = Attachments.getValueId(getIntent().getData());
-			String uriString = Attachments.getAttachmentDownloadLink(attachmentId);
+			String uriString = Attachments.getAttachmentDownloadLink(this, attachmentId);
 			imageLoader.setScaled(false);
 			imageLoader.DisplayImage(uriString, imageView);
 			startAttachmentImageLoader();

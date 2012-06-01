@@ -145,7 +145,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	private void connectPhoton() {
 
 		if (mBound && !mService.getPhotonController().isConnected()) {
-			mService.getPhotonController().connect(mDiscussionId, PhotonConstants.DB_SERVER_ADDRESS,
+			mService.getPhotonController().connect(this, mDiscussionId, PhotonConstants.DB_SERVER_ADDRESS,
 					mPersonName, mPersonId);
 			mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
 		}

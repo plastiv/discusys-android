@@ -15,6 +15,7 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class PersonsActivity extends BaseActivity {
 
+	private static final int REQUEST_PREFERENCES_CODE = 0x00;
 	private static final String TAG = PersonsActivity.class.getSimpleName();
 	ProgressDialog dialog;
 	private boolean mIsActivityCreated;
@@ -29,7 +30,7 @@ public class PersonsActivity extends BaseActivity {
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
 
 		MenuInflater menuInflater = getSupportMenuInflater();
-		menuInflater.inflate(R.menu.actionbar_list_refresh, menu);
+		menuInflater.inflate(R.menu.actionbar_main_activity, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -40,8 +41,27 @@ public class PersonsActivity extends BaseActivity {
 			case R.id.menu_refresh:
 				mServiceHelper.downloadAll();
 				return true;
+			case R.id.menu_settings:
+				Intent i = new Intent(this, DiscusysPreferenceActivity.class);
+				startActivityForResult(i, REQUEST_PREFERENCES_CODE);
+				return true;
 			default:
 				return super.onOptionsItemSelected(item);
+		}
+	}
+
+	@Override
+	protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+
+		super.onActivityResult(requestCode, resultCode, data);
+		switch (requestCode) {
+			case REQUEST_PREFERENCES_CODE:
+				if (resultCode == RESULT_OK) {
+					mServiceHelper.downloadAll();
+				}
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -54,6 +74,7 @@ public class PersonsActivity extends BaseActivity {
 		}
 		if (mIsActivityCreated && mBound) {
 			// when app first run
+			// HttpUtil.insertAttachment();
 			mServiceHelper.downloadAll();
 			mIsActivityCreated = false;
 		}
