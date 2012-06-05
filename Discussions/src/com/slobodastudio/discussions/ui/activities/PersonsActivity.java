@@ -4,6 +4,7 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
@@ -107,8 +108,23 @@ public class PersonsActivity extends BaseActivity {
 	protected void showProgressDialog(final boolean shown) {
 
 		if (shown) {
-			dialog = ProgressDialog.show(PersonsActivity.this, null,
-					getString(R.string.dialog_title_downloading_database), true);
+			// dialog = ProgressDialog.show(PersonsActivity.this, null,
+			// getString(R.string.dialog_title_downloading_database), true);
+			// dialog.setCancelable(true);
+			// dialog.setButton("Cancel", (DialogInterface.OnClickListener) null);
+			// dialog.show();
+			dialog = new ProgressDialog(this);
+			dialog.setMessage("Loading...");
+			dialog.setCancelable(true);
+			dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel",
+					new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(final DialogInterface dialog, final int which) {
+
+							dialog.dismiss();
+						}
+					});
 			dialog.show();
 		} else {
 			dialog.dismiss();
