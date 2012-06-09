@@ -28,7 +28,7 @@
     <string name="tab_title_media">Media</string>
     <string name="tab_title_source">Source</string>
     <string name="title_settings_server">Server url</string>
-   <!-- buttons -->
+    <!-- buttons -->
     <string name="button_title_comment">Comment</string>
     <string name="button_title_attach_url">Attach url</string>
     <string name="button_title_attach_image">Attach image</string>
@@ -76,5 +76,19 @@
     <string name="hint_your_point_description">Full description</string>
     <!--  -->
     <string name="summary_server_settings">Select server address</string>
+    <!-- Progress message -->
+    <string name="progress_connecting">Make server connection</string>
+    <string name="progress_downloading_persons">Persons ...</string>
+    <string name="progress_downloading_discussions">Discussions ...</string>
+    <string name="progress_downloading_topics">Topics ...</string>
+    <string name="progress_downloading_points">Points ...</string>
+    <string name="progress_downloading_descriptions">Descriptions...</string>
+    <string name="progress_downloading_sources">Sources ...</string>
+    <string name="progress_downloading_comments">Comments ...</string>
+    <string name="progress_downloading_attachments">Attachments ...</string>
+    <string name="progress_downloading_sessions">Sessions ...</string>
+    <string name="progress_downloading_seats">Seats ...</string>
+    <string name="progress_downloading_finished">Finished</string>
+    <string name="progress_title_download_database">Loading</string>
 
 </resources>

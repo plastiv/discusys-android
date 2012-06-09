@@ -3,11 +3,24 @@ package com.slobodastudio.discussions.service;
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.DataIoException;
+import com.slobodastudio.discussions.data.PreferenceHelper;
+import com.slobodastudio.discussions.data.odata.HttpUtil;
 import com.slobodastudio.discussions.data.odata.OdataReadClient;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
+import com.slobodastudio.discussions.utils.fragmentasynctask.ResultCodes;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -30,6 +43,7 @@ public class DownloadService extends IntentService {
 	public static final int TYPE_UPDATE_POINT = 0x7;
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = DownloadService.class.getSimpleName();
+	ResultReceiver receiver;
 
 	public DownloadService() {
 
@@ -86,27 +100,12 @@ public class DownloadService extends IntentService {
 		if (!intent.hasExtra(EXTRA_TYPE_ID)) {
 			throw new IllegalArgumentException("Service was started without extras: type id");
 		}
-		final ResultReceiver receiver = intent
-				.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
-		boolean connected;
-		if (ApplicationConstants.DEV_MODE) {
-			connected = true;
-		} else {
-			connected = ConnectivityUtil.isNetworkConnected(this);
-		}
-		if (connected) {
-			if (receiver != null) {
-				receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);
-			}
-		} else {
-			if (receiver != null) {
-				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT, getString(R.string.text_error_network_off));
-				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
-			}
-			stopSelf();
+		receiver = intent.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
+		if (!ConnectivityUtil.isNetworkConnected(this)) {
+			publishError(getString(R.string.text_error_network_off));
 			return;
 		}
+		publishProgress(getString(R.string.progress_connecting), 0);
 		logd("[onHandleIntent] intent: " + intent.toString() + ", receiver: " + receiver);
 		try {
 			switch (intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE)) {
@@ -134,33 +133,17 @@ public class DownloadService extends IntentService {
 			}
 		} catch (ClientHandlerException e) {
 			MyLog.e(TAG, "[onHandleIntent] ClientHandlerException. Intent action: " + intent.getAction(), e);
-			if (receiver != null) {
-				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT, getString(R.string.text_error_client_handler));
-				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
-			}
-			stopSelf();
+			publishError(getString(R.string.text_error_client_handler));
 			return;
 		} catch (DataIoException e) {
 			MyLog.e(TAG, "[onHandleIntent] DataIoException. Intent action: " + intent.getAction(), e);
-			if (receiver != null) {
-				final Bundle bundle = new Bundle();
-				int downloadType = intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE);
-				String errorMsg = getString(R.string.text_error_database_io, getTypeAsString(downloadType));
-				bundle.putString(Intent.EXTRA_TEXT, errorMsg);
-				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
-			}
-			stopSelf();
+			int downloadType = intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE);
+			String errorMsg = getString(R.string.text_error_database_io, getTypeAsString(downloadType));
+			publishError(errorMsg);
 			return;
 		} catch (Exception e) {
 			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
-			if (receiver != null) {
-				// Pass back error to surface listener
-				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT, e.getMessage());
-				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
-			}
-			stopSelf();
+			publishError(e.getMessage());
 			return;
 		}
 		logd("[onHandleIntent] sync finished");
@@ -173,27 +156,66 @@ public class DownloadService extends IntentService {
 	private void downloadAll() {
 
 		logd("[downloadAll]");
+		int downloadedCount = 0;
+		//
+		int sessionCount = getTableCount(Sessions.TABLE_NAME);
+		int seatsCount = getTableCount(Seats.TABLE_NAME);
+		int personsCount = getTableCount(Persons.TABLE_NAME);
+		int discussionsCount = getTableCount(Discussions.TABLE_NAME);
+		int pointsCount = getTableCount(Points.TABLE_NAME);
+		int topicsCount = getTableCount(Topics.TABLE_NAME);
+		int attachmentsCount = getTableCount(Attachments.TABLE_NAME);
+		int sourcesCount = getTableCount(Sources.TABLE_NAME);
+		int descriptionCount = getTableCount(Descriptions.TABLE_NAME);
+		int commentsCount = getTableCount(Comments.TABLE_NAME);
+		int totalCount = sessionCount + seatsCount + personsCount + discussionsCount + pointsCount
+				+ topicsCount + attachmentsCount + sourcesCount + descriptionCount + commentsCount;
+		publishMaxCount(totalCount);
 		OdataReadClient odataClient = new OdataReadClient(this);
+		//
 		odataClient.refreshSessions();
 		logd("[downloadAll] sessions completed");
+		downloadedCount += sessionCount;
+		publishProgress(getString(R.string.progress_downloading_seats), downloadedCount);
+		//
 		odataClient.refreshSeats();
 		logd("[downloadAll] seats completed");
+		downloadedCount += seatsCount;
+		publishProgress(getString(R.string.progress_downloading_persons), downloadedCount);
+		//
 		odataClient.refreshPersons();
 		logd("[downloadAll] persons completed");
+		downloadedCount += personsCount;
+		publishProgress(getString(R.string.progress_downloading_discussions), downloadedCount);
+		//
 		odataClient.refreshDiscussions();
 		logd("[downloadAll] discussions completed");
+		downloadedCount += discussionsCount;
+		publishProgress(getString(R.string.progress_downloading_topics), downloadedCount);
 		odataClient.refreshTopics();
 		logd("[downloadAll] topics completed");
+		downloadedCount += topicsCount;
+		publishProgress(getString(R.string.progress_downloading_points), downloadedCount);
 		odataClient.refreshPoints();
 		logd("[downloadAll] points completed");
+		downloadedCount += pointsCount;
+		publishProgress(getString(R.string.progress_downloading_descriptions), downloadedCount);
 		odataClient.refreshDescriptions();
 		logd("[downloadAll] descriptions completed");
+		downloadedCount += descriptionCount;
+		publishProgress(getString(R.string.progress_downloading_comments), downloadedCount);
 		odataClient.refreshComments();
 		logd("[downloadAll] comments completed");
+		downloadedCount += commentsCount;
+		publishProgress(getString(R.string.progress_downloading_attachments), downloadedCount);
 		odataClient.refreshAttachments();
 		logd("[downloadAll] attachments completed");
+		downloadedCount += attachmentsCount;
+		publishProgress(getString(R.string.progress_downloading_sources), downloadedCount);
 		odataClient.refreshSources();
 		logd("[downloadAll] sources completed");
+		downloadedCount += sourcesCount;
+		publishProgress(getString(R.string.progress_downloading_finished), downloadedCount);
 	}
 
 	private void downloadDescription(final Intent intent) {
@@ -235,6 +257,44 @@ public class DownloadService extends IntentService {
 		logd("[downloadPointsFromTopic] topic id: " + topicId);
 		OdataReadClient odata = new OdataReadClient(this);
 		odata.updatePointsFromTopic(topicId);
+	}
+
+	private Integer getTableCount(final String tableName) {
+
+		String odataUrl = PreferenceHelper.getOdataUrl(this);
+		String count = HttpUtil.getString(odataUrl + tableName + "/$count");
+		if (count == null) {
+			return 0;
+		}
+		return Integer.valueOf(count);
+	}
+
+	private void publishError(final String errorMessage) {
+
+		if (receiver != null) {
+			final Bundle bundle = new Bundle();
+			bundle.putString(Intent.EXTRA_TEXT, errorMessage);
+			receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
+		}
+	}
+
+	private void publishMaxCount(final int count) {
+
+		if (receiver != null) {
+			final Bundle bundle = new Bundle();
+			bundle.putInt("EXTRA_MAX_PROGRESS", count);
+			receiver.send(ResultCodes.STATUS_STARTED, bundle);
+		}
+	}
+
+	private void publishProgress(final String message, final int progress) {
+
+		if (receiver != null) {
+			final Bundle bundle = new Bundle();
+			bundle.putString(Intent.EXTRA_TEXT, message);
+			bundle.putInt("EXTRA_RESULT_PROGRESS", progress);
+			receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, bundle);
+		}
 	}
 
 	private void updatePoint(final Intent intent) {

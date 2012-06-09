@@ -8,10 +8,12 @@ import com.slobodastudio.discussions.data.PreferenceHelper;
 import android.content.Context;
 import android.util.Log;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerParams;
@@ -19,19 +21,21 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
 public class HttpUtil {
@@ -67,49 +71,74 @@ public class HttpUtil {
 		return customHttpClient;
 	}
 
-	public static void insertAttachment() {
+	public static String getString(final String uri) {
 
-		// try {
-		// HttpPost postRequest = new HttpPost(ODataConstants.SERVICE_URL + "Attachment");
-		// // StringEntity entity = new StringEntity("{uri:\"" + ODataConstants.SERVICE_URL + "Person(" + 1
-		// // + ")\"}", "utf-8");
-		// FileEntity entity = new FileEntity(new File("/data/data/com.slobodastudio.discussions/files",
-		// "odata.jpg"), "image/jpeg");
-		// Header[] headers = {
-		// new BasicHeader("Content-type", "image/jpeg"),
-		// new BasicHeader("Accept-Charset", "UTF-8"),
-		// new BasicHeader("DataServiceVersion", "1.0;NetFx"),
-		// new BasicHeader("MaxDataServiceVersion", "2.0;NetFx"),
-		// new BasicHeader("Accept", "application/json;odata=verbose"),
-		// new BasicHeader("Slug", "odata.jpg"),
-		// new BasicHeader("Host", "localhost"),
-		// new BasicHeader("Expect", "100-continue"),
-		// new BasicHeader("User-Agent",
-		// "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2") };
-		// entity.setContentType("image/jpeg");
-		// postRequest.setHeaders(headers);
-		// postRequest.setEntity(entity);
-		// HttpClient httpClient = getHttpClient();
-		// for (Header header : postRequest.getAllHeaders()) {
-		// Log.d("HttpRequest", header.getName() + ": " + header.getValue());
-		// }
-		// HttpResponse response = httpClient.execute(postRequest);
-		// for (Header header : response.getAllHeaders()) {
-		// Log.d("HttpResponse", header.getName() + ": " + header.getValue());
-		// }
-		// Log.d("HttpResponse", "Entity not null: " + (response.getEntity() != null));
-		// if (response.getEntity() != null) {
-		// Log.w("HttpResponse", "HttpResponse: " + getString(response));
-		// }
-		// } catch (IllegalArgumentException e) {
-		// throw new RuntimeException(e);
-		// } catch (UnsupportedEncodingException e) {
-		// throw new RuntimeException(e);
-		// } catch (ClientProtocolException e) {
-		// throw new RuntimeException(e);
-		// } catch (IOException e) {
-		// throw new RuntimeException(e);
-		// }
+		HttpGet httpGet = new HttpGet(uri);
+		HttpClient httpClient = getHttpClient();
+		try {
+			HttpResponse response = httpClient.execute(httpGet);
+			return EntityUtils.toString(response.getEntity());
+		} catch (ClientProtocolException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void insertAttachment(final Context context) {
+
+		try {
+			HttpPost postRequest = new HttpPost(PreferenceHelper.getOdataUrl(context) + "Attachment");
+			// StringEntity entity = new StringEntity("{uri:\"" + ODataConstants.SERVICE_URL + "Person(" + 1
+			// + ")\"}", "utf-8");
+			// FileEntity entity = new FileEntity(new File("/data/data/com.slobodastudio.discussions/files",
+			// "odata.jpg"), "image/jpeg");
+			InputStreamEntity entity = new InputStreamEntity(context.getAssets().open("odata.jpg"), context
+					.getAssets().openFd("odata.jpg").getLength());
+			Header[] headers = {
+					new BasicHeader("Content-type", "image/jpeg"),
+					new BasicHeader("Accept-Charset", "UTF-8"),
+					new BasicHeader("DataServiceVersion", "1.0;NetFx"),
+					new BasicHeader("MaxDataServiceVersion", "2.0;NetFx"),
+					new BasicHeader("Accept", "application/json;odata=verbose"),
+					new BasicHeader("Slug", "odata.jpg"),
+					new BasicHeader("Host", "localhost"),
+					new BasicHeader("Expect", "100-continue"),
+					new BasicHeader("User-Agent",
+							"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2") };
+			entity.setContentType("image/jpeg");
+			postRequest.setHeaders(headers);
+			postRequest.setEntity(entity);
+			HttpClient httpClient = getHttpClient();
+			for (Header header : postRequest.getAllHeaders()) {
+				Log.d("HttpRequest", header.getName() + ": " + header.getValue());
+			}
+			HttpResponse response = httpClient.execute(postRequest);
+			for (Header header : response.getAllHeaders()) {
+				Log.d("HttpResponse", header.getName() + ": " + header.getValue());
+			}
+			Log.d("HttpResponse", "Entity not null: " + (response.getEntity() != null));
+			String responseString = EntityUtils.toString(response.getEntity());
+			if (responseString != null) {
+				try {
+					JSONObject dValue = (JSONObject) new JSONObject(responseString).get("d");
+					Integer attachmentId = (Integer) dValue.get("Id");
+					Log.d("HttpResponse", "AttachmentId: " + attachmentId);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			Log.d("HttpResponse", "HttpResponse: " + responseString);
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (ClientProtocolException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void insertPersonTopic(final Context context, final int personId, final int topicId) {
@@ -124,7 +153,7 @@ public class HttpUtil {
 			HttpClient httpClient = getHttpClient();
 			HttpResponse response = httpClient.execute(postRequest);
 			if (response.getEntity() != null) {
-				Log.w("HttpResponse", "HttpResponse: " + getString(response));
+				Log.w("HttpResponse", "HttpResponse: " + EntityUtils.toString(response.getEntity()));
 			}
 		} catch (IllegalArgumentException e) {
 			throw new RuntimeException(e);
@@ -135,33 +164,6 @@ public class HttpUtil {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	private static String getString(final HttpResponse httpResponse) {
-
-		if (httpResponse == null) {
-			throw new IllegalArgumentException("HttpResponse was passed as null");
-		}
-		InputStream inputStream;
-		try {
-			inputStream = httpResponse.getEntity().getContent();
-		} catch (IllegalStateException e) {
-			throw new RuntimeException("Failed to read InputStream from HttpResponse", e);
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to read InputStream from HttpResponse", e);
-		}
-		// 8192 = 8k size buffer
-		BufferedReader br = new BufferedReader(new InputStreamReader(inputStream), 8192);
-		StringBuilder total = new StringBuilder();
-		try {
-			String line;
-			while ((line = br.readLine()) != null) {
-				total.append(line);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to read string from buffer reader", e);
-		}
-		return total.toString();
 	}
 
 	@Override

@@ -2,12 +2,12 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
+import com.slobodastudio.discussions.utils.fragmentasynctask.SyncStatusUpdaterFragment;
 
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -16,10 +16,9 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class PersonsActivity extends BaseActivity {
 
-	private static final int REQUEST_PREFERENCES_CODE = 0x00;
 	private static final String TAG = PersonsActivity.class.getSimpleName();
-	ProgressDialog dialog;
 	private boolean mIsActivityCreated;
+	private SyncStatusUpdaterFragment mSyncStatusUpdaterFragment;
 
 	public PersonsActivity() {
 
@@ -40,29 +39,14 @@ public class PersonsActivity extends BaseActivity {
 
 		switch (item.getItemId()) {
 			case R.id.menu_refresh:
-				mServiceHelper.downloadAll();
+				triggerRefresh();
 				return true;
 			case R.id.menu_settings:
-				Intent i = new Intent(this, DiscusysPreferenceActivity.class);
-				startActivityForResult(i, REQUEST_PREFERENCES_CODE);
+				Intent preferenceIntent = new Intent(this, DiscusysPreferenceActivity.class);
+				startActivity(preferenceIntent);
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
-		}
-	}
-
-	@Override
-	protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-
-		super.onActivityResult(requestCode, resultCode, data);
-		switch (requestCode) {
-			case REQUEST_PREFERENCES_CODE:
-				if (resultCode == RESULT_OK) {
-					mServiceHelper.downloadAll();
-				}
-				break;
-			default:
-				break;
 		}
 	}
 
@@ -75,8 +59,8 @@ public class PersonsActivity extends BaseActivity {
 		}
 		if (mIsActivityCreated && mBound) {
 			// when app first run
-			// HttpUtil.insertAttachment();
-			mServiceHelper.downloadAll();
+			// HttpUtil.insertAttachment(this);
+			triggerRefresh();
 			mIsActivityCreated = false;
 		}
 	}
@@ -102,34 +86,14 @@ public class PersonsActivity extends BaseActivity {
 		setTitle(R.string.activity_title_persons);
 		setContentView(R.layout.activity_persons);
 		// AnalyticsUtils.getInstance(this).trackPageView("/Home");
-	}
-
-	@Override
-	protected void showProgressDialog(final boolean shown) {
-
-		if (shown) {
-			// dialog = ProgressDialog.show(PersonsActivity.this, null,
-			// getString(R.string.dialog_title_downloading_database), true);
-			// dialog.setCancelable(true);
-			// dialog.setButton("Cancel", (DialogInterface.OnClickListener) null);
-			// dialog.show();
-			dialog = new ProgressDialog(this);
-			dialog.setMessage("Loading...");
-			dialog.setCancelable(true);
-			dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel",
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(final DialogInterface dialog, final int which) {
-
-							dialog.dismiss();
-						}
-					});
-			dialog.show();
-		} else {
-			dialog.dismiss();
+		FragmentManager fm = getSupportFragmentManager();
+		mSyncStatusUpdaterFragment = (SyncStatusUpdaterFragment) fm
+				.findFragmentByTag(SyncStatusUpdaterFragment.TAG);
+		if (mSyncStatusUpdaterFragment == null) {
+			mSyncStatusUpdaterFragment = new SyncStatusUpdaterFragment();
+			fm.beginTransaction().add(mSyncStatusUpdaterFragment, SyncStatusUpdaterFragment.TAG).commit();
+			// TODO should be called here triggerRefresh();
 		}
-		super.showProgressDialog(shown);
 	}
 
 	private void showCurrentVersionInToast() {
@@ -141,5 +105,10 @@ public class PersonsActivity extends BaseActivity {
 			throw new RuntimeException();
 		}
 		Toast.makeText(this, getString(R.string.toast_version, versionName), Toast.LENGTH_SHORT).show();
+	}
+
+	private void triggerRefresh() {
+
+		mServiceHelper.downloadAll(mSyncStatusUpdaterFragment.getReceiver());
 	}
 }

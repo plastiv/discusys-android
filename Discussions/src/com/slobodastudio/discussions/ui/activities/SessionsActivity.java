@@ -2,10 +2,12 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
+import com.slobodastudio.discussions.utils.fragmentasynctask.SyncStatusUpdaterFragment;
 
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,9 +16,10 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class SessionsActivity extends BaseActivity {
 
-	// TODO: separate same with PersonsActivity code to one BaseMainActivity
 	private static final String TAG = SessionsActivity.class.getSimpleName();
 	private boolean mIsActivityCreated;
+	// TODO: separate same with PersonsActivity code to one BaseMainActivity
+	private SyncStatusUpdaterFragment mSyncStatusUpdaterFragment;
 
 	public SessionsActivity() {
 
@@ -37,7 +40,7 @@ public class SessionsActivity extends BaseActivity {
 
 		switch (item.getItemId()) {
 			case R.id.menu_refresh:
-				mServiceHelper.downloadAll();
+				triggerRefresh();
 				break;
 		}
 		return super.onOptionsItemSelected(item);
@@ -52,7 +55,7 @@ public class SessionsActivity extends BaseActivity {
 		}
 		if (mIsActivityCreated && mBound) {
 			// when app first run
-			mServiceHelper.downloadAll();
+			triggerRefresh();
 			mIsActivityCreated = false;
 		}
 	}
@@ -78,6 +81,14 @@ public class SessionsActivity extends BaseActivity {
 		setTitle(R.string.activity_title_sessions);
 		setContentView(R.layout.activity_sessions);
 		// AnalyticsUtils.getInstance(this).trackPageView("/Home");
+		FragmentManager fm = getSupportFragmentManager();
+		mSyncStatusUpdaterFragment = (SyncStatusUpdaterFragment) fm
+				.findFragmentByTag(SyncStatusUpdaterFragment.TAG);
+		if (mSyncStatusUpdaterFragment == null) {
+			mSyncStatusUpdaterFragment = new SyncStatusUpdaterFragment();
+			fm.beginTransaction().add(mSyncStatusUpdaterFragment, SyncStatusUpdaterFragment.TAG).commit();
+			// TODO should be called here triggerRefresh();
+		}
 	}
 
 	private void showCurrentVersionInToast() {
@@ -89,5 +100,10 @@ public class SessionsActivity extends BaseActivity {
 			throw new RuntimeException();
 		}
 		Toast.makeText(this, getString(R.string.toast_version, versionName), Toast.LENGTH_SHORT).show();
+	}
+
+	private void triggerRefresh() {
+
+		mServiceHelper.downloadAll(mSyncStatusUpdaterFragment.getReceiver());
 	}
 }

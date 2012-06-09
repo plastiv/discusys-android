@@ -245,6 +245,7 @@ public class OdataReadClient extends BaseOdataClient {
 
 		Enumerable<OEntity> points = getPointsEntities();
 		List<Integer> serversIds = new ArrayList<Integer>(points.count());
+		logd("[refreshPoints] points entities count: " + points.count());
 		for (OEntity point : points) {
 			serversIds.add(getAsInt(point, Points.Columns.ID));
 			insertPoint(point);
@@ -495,7 +496,8 @@ public class OdataReadClient extends BaseOdataClient {
 	private Enumerable<OEntity> getAttachmentsEntities() {
 
 		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(
-				Points.TABLE_NAME + "," + Discussions.TABLE_NAME).execute();
+				Points.TABLE_NAME + "," + Discussions.TABLE_NAME).filter(
+				"ArgPoint/Id ne null or Discussion/Id ne null").execute();
 	}
 
 	private Enumerable<OEntity> getAttachmentsEntities(final int pointId) {
@@ -507,7 +509,8 @@ public class OdataReadClient extends BaseOdataClient {
 	private Enumerable<OEntity> getCommentsEntities() {
 
 		return mConsumer.getEntities(Comments.TABLE_NAME)
-				.expand(Points.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
+				.expand(Points.TABLE_NAME + "," + Persons.TABLE_NAME).filter(
+						"ArgPoint/Id ne null and Person/Id ne null").execute();
 	}
 
 	private Enumerable<OEntity> getCommentsEntities(final int pointId) {
@@ -520,13 +523,14 @@ public class OdataReadClient extends BaseOdataClient {
 	private Enumerable<OEntity> getDescriptionsEntities() {
 
 		return mConsumer.getEntities(Descriptions.TABLE_NAME).expand(
-				Points.TABLE_NAME + "," + Discussions.TABLE_NAME).execute();
+				Points.TABLE_NAME + "," + Discussions.TABLE_NAME).filter(
+				"ArgPoint/Id ne null or Discussion/Id ne null").execute();
 	}
 
 	private Enumerable<OEntity> getPointsEntities() {
 
 		return mConsumer.getEntities(Points.TABLE_NAME).expand(Topics.TABLE_NAME + "," + Persons.TABLE_NAME)
-				.execute();
+				.filter("Topic/Id ne null and Person/Id ne null").execute();
 	}
 
 	private Enumerable<OEntity> getPointsEntities(final int topicId) {
@@ -607,7 +611,7 @@ public class OdataReadClient extends BaseOdataClient {
 		OEntity point = comment.getLink(Points.TABLE_NAME, ORelatedEntityLinkInline.class).getRelatedEntity();
 		if (point == null) {
 			// TODO: thwo ex here
-			Log.e(TAG, "Related topic link was null for comment: " + getAsInt(comment, Comments.Columns.ID));
+			Log.e(TAG, "Related point link was null for comment: " + getAsInt(comment, Comments.Columns.ID));
 			if (ApplicationConstants.ODATA_SANITIZE) {
 				Log.w(TAG, "Try to delete comment: " + getAsInt(comment, Comments.Columns.ID));
 				mConsumer.deleteEntity(Comments.TABLE_NAME, getAsInt(comment, Comments.Columns.ID)).execute();
@@ -696,6 +700,22 @@ public class OdataReadClient extends BaseOdataClient {
 		}
 	}
 
+	private Uri insertOrDelete(final Uri contentUri, final ContentValues cv, final String idColumnName) {
+
+		try {
+			return mContentResolver.insert(contentUri, cv);
+		} catch (DataIoException e) {
+			MyLog.e(TAG, "Failed insert into: " + contentUri + ", values: " + cv.toString(), e);
+			// delete row in case of local db has one with same id
+			int id = cv.getAsInteger(idColumnName);
+			String where = idColumnName + "=?";
+			String[] args = new String[] { String.valueOf(id) };
+			mContentResolver.delete(contentUri, where, args);
+			// TODO: delete row from server too to stop this
+			return null;
+		}
+	}
+
 	private void insertPersonsTopics(final OEntity topic) {
 
 		// get topic id
@@ -741,9 +761,7 @@ public class OdataReadClient extends BaseOdataClient {
 			return null;
 		}
 		cv.put(Points.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
-		// TODO no sync cloumn needed
-		cv.put(Points.Columns.SYNC, false);
-		return mContentResolver.insert(Points.CONTENT_URI, cv);
+		return insertOrDelete(Points.CONTENT_URI, cv, Points.Columns.ID);
 	}
 
 	private Uri insertSource(final OEntity source) {
@@ -834,8 +852,6 @@ public class OdataReadClient extends BaseOdataClient {
 			return null;
 		}
 		cv.put(Points.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
-		// TODO no sync cloumn needed
-		cv.put(Points.Columns.SYNC, false);
 		Uri uri = mContentResolver.insert(Points.CONTENT_URI, cv);
 		// description update
 		OEntity description = point.getLink("Description", ORelatedEntityLinkInline.class).getRelatedEntity();

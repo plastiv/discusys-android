@@ -72,11 +72,11 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
-	public void downloadAll() {
+	public void downloadAll(final ResultReceiver receiver) {
 
 		final Intent intent = new Intent(IntentAction.DOWNLOAD);
 		intent.putExtra(DownloadService.EXTRA_TYPE_ID, DownloadService.TYPE_ALL);
-		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, receiver);
 		mContext.startService(intent);
 	}
 

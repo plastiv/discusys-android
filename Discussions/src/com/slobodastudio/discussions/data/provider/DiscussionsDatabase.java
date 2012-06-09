@@ -10,7 +10,6 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.SyncColumns;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 
 import android.content.Context;
@@ -111,7 +110,6 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Points.Columns.SIDE_CODE + " INTEGER NOT NULL,"
 				+ Points.Columns.RECENTLY_ENTERED_MEDIA_URL + " TEXT,"
 				+ Points.Columns.RECENTLY_ENTERED_SOURCE + " TEXT,"
-				+ SyncColumns.SYNC + " INTEGER DEFAULT 1,"
 				+ " UNIQUE (" + Points.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		db.execSQL("CREATE TABLE " + Attachments.TABLE_NAME + " (" 
