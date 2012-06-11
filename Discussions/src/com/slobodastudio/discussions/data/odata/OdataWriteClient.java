@@ -198,6 +198,20 @@ public class OdataWriteClient extends BaseOdataClient {
 		// @formatter:on
 	}
 
+	public boolean updateAttachment(final Attachment attachment, final int attachmentId) {
+
+		// @formatter:off
+		return mConsumer.mergeEntity(Attachments.TABLE_NAME, attachmentId)
+				.link(Attachments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(attachment.getPersonId())))
+				.properties(OProperties.string(Attachments.Columns.NAME, attachment.getName()))
+				.link(Attachments.Columns.POINT_ID, OEntityKey.parse(String.valueOf(attachment.getPointId())))
+				.properties(OProperties.int32(Attachments.Columns.FORMAT, attachment.getFormat()))
+				.properties(OProperties.string(Attachments.Columns.TITLE, attachment.getTitle()))
+				.properties(OProperties.string(Attachments.Columns.LINK, attachment.getLink()))
+				.execute();
+		// @formatter:on
+	}
+
 	public boolean updateDescription(final Description description) {
 
 		// @formatter:off

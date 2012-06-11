@@ -2,11 +2,14 @@ package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.model.Source;
+import com.slobodastudio.discussions.data.odata.HttpUtil;
 import com.slobodastudio.discussions.data.odata.OdataWriteClient;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -211,30 +214,32 @@ public class UploadService extends IntentService {
 
 	private void insertAttachment(final Intent intent) {
 
-		throw new UnsupportedOperationException();
-		// Attachment attachment = intent.getParcelableExtra(EXTRA_VALUE);
-		// logd("[insertAttachment] " + attachment.getTitle());
-		// if (intent.hasExtra(EXTRA_URI)) {
-		// Uri imageUri = intent.getParcelableExtra(EXTRA_URI);
-		// byte[] imageArray = getByteArray(imageUri);
-		// //attachment.setData(imageArray);
-		// }
-		// OdataWriteClient odataWrite = new OdataWriteClient(this);
-		// OEntity entity = odataWrite.insertAttachment(attachment);
-		// int attachmentId = (Integer) entity.getProperty(Attachments.Columns.ID).getValue();
-		// logd("[insertAttachment] new attachment id: " + attachmentId);
-		// attachment.setAttachmentId(attachmentId);
-		// ContentValues cv = attachment.toContentValues();
-		// getContentResolver().insert(Attachments.CONTENT_URI, cv);
-		// if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
-		// throw new IllegalArgumentException("[insertSource] called without required selected point");
-		// }
-		// SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
-		// notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-		// selectedPoint.getPointId());
-		// notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-		// selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
-		// StatsType.BADGE_EDITED);
+		if (!intent.hasExtra(EXTRA_URI)) {
+			throw new IllegalArgumentException(
+					"[insertAttachment] was called without required attachment uri");
+		}
+		Attachment attachment = intent.getParcelableExtra(EXTRA_VALUE);
+		logd("[insertAttachment] " + attachment.getTitle());
+		Uri attachmentUri = intent.getParcelableExtra(EXTRA_URI);
+		int attachmentId = HttpUtil.insertAttachment(this, attachmentUri);
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		boolean updated = odataWrite.updateAttachment(attachment, attachmentId);
+		if (updated) {
+			attachment.setAttachmentId(attachmentId);
+			ContentValues cv = attachment.toContentValues();
+			getContentResolver().insert(Attachments.CONTENT_URI, cv);
+			if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
+				throw new IllegalArgumentException("[insertSource] called without required selected point");
+			}
+			SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
+			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+					selectedPoint.getPointId());
+			notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+					selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
+					StatsType.BADGE_EDITED);
+		} else {
+			// TODO: fire an error here
+		}
 	}
 
 	private void insertComment(final Intent intent) {

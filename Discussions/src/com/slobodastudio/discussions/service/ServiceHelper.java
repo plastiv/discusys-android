@@ -140,8 +140,6 @@ public class ServiceHelper {
 		intent.putExtra(UploadService.EXTRA_VALUE, attachment);
 		intent.putExtra(UploadService.EXTRA_URI, uri);
 		intent.putExtra(UploadService.EXTRA_SELECTED_POINT, selectedPoint);
-		Log.d(TAG, "Syncing: " + isSyncing());
-		Log.d(TAG, "Odata listener: " + (mOdataResultReceiver != null));
 		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
 		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);

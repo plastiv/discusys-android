@@ -149,7 +149,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		Log.d(TAG, "[onActivityresult]");
 		switch (requestCode) {
 			case PICK_CAMERA_PHOTO:
-				if (resultCode == Activity.RESULT_OK) {
+				if ((resultCode == Activity.RESULT_OK) && (data.getData() != null)) {
 					newAttachment = new NewAttachment(PICK_CAMERA_PHOTO, data.getData());
 				} else {
 					newAttachment = null;
@@ -157,7 +157,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 				getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 				break;
 			case PICK_IMAGE_REQUEST:
-				if (resultCode == Activity.RESULT_OK) {
+				if ((resultCode == Activity.RESULT_OK) && (data.getData() != null)) {
 					newAttachment = new NewAttachment(PICK_IMAGE_REQUEST, data.getData());
 				} else {
 					newAttachment = null;

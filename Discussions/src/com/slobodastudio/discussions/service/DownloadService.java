@@ -21,6 +21,7 @@ import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
 import com.slobodastudio.discussions.utils.fragmentasynctask.ResultCodes;
+import com.slobodastudio.discussions.utils.lazylist.ImageLoader;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -29,6 +30,11 @@ import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.sun.jersey.api.client.ClientHandlerException;
+
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+
+import java.io.IOException;
 
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class DownloadService extends IntentService {
@@ -156,6 +162,14 @@ public class DownloadService extends IntentService {
 	private void downloadAll() {
 
 		logd("[downloadAll]");
+		if (!testConnection()) {
+			return;
+		}
+		// TODO: delete all rows in all tables, clean cache here
+		// TODO: only download new (without delete in odata service)
+		// TODO: progress download sessions
+		publishProgress(getString(R.string.progress_calculate_count), 0);
+		new ImageLoader(getApplicationContext()).clearCache();
 		int downloadedCount = 0;
 		//
 		int sessionCount = getTableCount(Sessions.TABLE_NAME);
@@ -295,6 +309,23 @@ public class DownloadService extends IntentService {
 			bundle.putInt("EXTRA_RESULT_PROGRESS", progress);
 			receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, bundle);
 		}
+	}
+
+	private boolean testConnection() {
+
+		String odataUrl = PreferenceHelper.getOdataUrl(this);
+		HttpGet httpGet = new HttpGet(odataUrl);
+		try {
+			HttpUtil.getHttpClient().execute(httpGet);
+			return true;
+		} catch (ClientProtocolException e) {
+			Log.e(TAG, "Couldnt make a connection to: " + odataUrl, e);
+			publishError(getString(R.string.text_error_client_handler));
+		} catch (IOException e) {
+			Log.e(TAG, "Couldnt make a connection to: " + odataUrl, e);
+			publishError(getString(R.string.text_error_client_handler));
+		}
+		return false;
 	}
 
 	private void updatePoint(final Intent intent) {
