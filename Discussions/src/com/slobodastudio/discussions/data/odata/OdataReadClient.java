@@ -102,31 +102,12 @@ public class OdataReadClient extends BaseOdataClient {
 
 		logd("[refreshComments]");
 		Enumerable<OEntity> comments = getCommentsEntities();
-		logd("[refreshComments] comment entities count: " + comments.count());
-		List<Integer> serversIds = new ArrayList<Integer>(comments.count());
+		int deletedCount = mContentResolver.delete(Comments.CONTENT_URI, "1", null);
+		logd("[refreshComments] comments was deleted: " + deletedCount);
 		for (OEntity comment : comments) {
-			serversIds.add(getAsInt(comment, Comments.Columns.ID));
 			insertComment(comment);
 		}
-		logd("[refreshComments] all comments was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Comments.CONTENT_URI, new String[] { Comments.Columns.ID, },
-				null, null, null);
-		logd("[refreshComments] db comments count: " + cur.getCount());
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Comments.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int commentId = cur.getInt(idIndex);
-				if (!serversIds.contains(commentId)) {
-					// delete this row
-					logd("[refreshComments] delete point: " + commentId);
-					Uri uri = Comments.buildTableUri(commentId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		logd("[refreshComments] comments was inserted: " + comments.count());
 	}
 
 	public void refreshDescription(final int pointId) {
@@ -145,93 +126,38 @@ public class OdataReadClient extends BaseOdataClient {
 
 		logd("[refreshDescriptions]");
 		Enumerable<OEntity> descriptions = getDescriptionsEntities();
-		logd("[refreshDescriptions] descriptions entities count: " + descriptions.count());
-		List<Integer> serversIds = new ArrayList<Integer>(descriptions.count());
+		int deletedCount = mContentResolver.delete(Descriptions.CONTENT_URI, "1", null);
+		logd("[refreshDescriptions] descriptions was deleted: " + deletedCount);
 		for (OEntity description : descriptions) {
-			serversIds.add(getAsInt(description, Descriptions.Columns.ID));
 			insertDescription(description);
 		}
-		logd("[refreshDescriptions] all descriptions was inserted");
-		// check if server has a deleted descriptions
-		Cursor cur = mContentResolver.query(Descriptions.CONTENT_URI,
-				new String[] { Descriptions.Columns.ID }, null, null, null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Descriptions.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int descriptionId = cur.getInt(idIndex);
-				if (!serversIds.contains(descriptionId)) {
-					// delete this row
-					logd("[refreshDescriptions] delete discussion: " + descriptionId);
-					Uri uri = Descriptions.buildTableUri(descriptionId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		logd("[refreshDescriptions] descriptions was inserted: " + descriptions.count());
 	}
 
 	public void refreshDiscussions() {
 
 		logd("[refreshDiscussions]");
 		Enumerable<OEntity> discussions = mConsumer.getEntities(Discussions.TABLE_NAME).execute();
-		logd("[refreshDiscussions] discussions entities count: " + discussions.count());
-		List<Integer> serversIds = new ArrayList<Integer>(discussions.count());
+		int deletedCount = mContentResolver.delete(Discussions.CONTENT_URI, "1", null);
+		logd("[refreshDiscussions] discussions was deleted: " + deletedCount);
 		for (OEntity discussion : discussions) {
-			serversIds.add(getAsInt(discussion, Discussions.Columns.ID));
 			ContentValues cv = OEntityToContentValue(discussion);
 			mContentResolver.insert(Discussions.CONTENT_URI, cv);
 		}
-		logd("[refreshDiscussions] all discussions was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Discussions.CONTENT_URI, new String[] { Discussions.Columns.ID },
-				null, null, null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Discussions.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int discussionId = cur.getInt(idIndex);
-				if (!serversIds.contains(discussionId)) {
-					// delete this row
-					logd("[refreshDiscussions] delete discussion: " + discussionId);
-					Uri uri = Discussions.buildTableUri(discussionId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		logd("[refreshDiscussions] discussions was inserted: " + discussions.count());
 	}
 
 	public void refreshPersons() {
 
-		logd("[refreshPersons] ");
+		logd("[refreshPersons]");
 		Enumerable<OEntity> persons = mConsumer.getEntities(Persons.TABLE_NAME).execute();
-		logd("[refreshPersons] topics entities count: " + persons.count());
-		List<Integer> serversIds = new ArrayList<Integer>(persons.count());
+		int deletedCount = mContentResolver.delete(Persons.CONTENT_URI, "1", null);
+		logd("[refreshPersons] persons was deleted: " + deletedCount);
 		for (OEntity person : persons) {
-			serversIds.add(getAsInt(person, Points.Columns.ID));
 			ContentValues cv = OEntityToContentValue(person);
 			mContentResolver.insert(Persons.CONTENT_URI, cv);
 		}
-		logd("[refreshPersons] all persons was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Persons.CONTENT_URI, new String[] { Persons.Columns.ID }, null,
-				null, null);
-		logd("[refreshPersons] db persons count: " + cur.getCount());
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Points.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int personId = cur.getInt(idIndex);
-				if (!serversIds.contains(personId)) {
-					// delete this row
-					logd("[refreshPersons] delete person: " + personId);
-					Uri uri = Persons.buildTableUri(personId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		logd("[refreshPersons] persons was inserted: " + persons.count());
 	}
 
 	public void refreshPoint(final int pointId) {
@@ -243,31 +169,14 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void refreshPoints() {
 
+		logd("[refreshPoints]");
 		Enumerable<OEntity> points = getPointsEntities();
-		List<Integer> serversIds = new ArrayList<Integer>(points.count());
-		logd("[refreshPoints] points entities count: " + points.count());
+		int deletedCount = mContentResolver.delete(Points.CONTENT_URI, "1", null);
+		logd("[refreshPoints] points was deleted: " + deletedCount);
 		for (OEntity point : points) {
-			serversIds.add(getAsInt(point, Points.Columns.ID));
 			insertPoint(point);
 		}
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Points.CONTENT_URI, new String[] { Points.Columns.ID,
-				BaseColumns._ID }, null, null, null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Points.Columns.ID);
-			int localIdIndex = cur.getColumnIndexOrThrow(BaseColumns._ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int pointId = cur.getInt(idIndex);
-				if (!serversIds.contains(pointId)) {
-					// delete this row
-					int rowId = cur.getInt(localIdIndex);
-					Uri uri = Points.buildTableUri(rowId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		logd("[refreshPoints] points was inserted: " + points.count());
 	}
 
 	public void refreshPoints(final int topicId) {
@@ -308,62 +217,26 @@ public class OdataReadClient extends BaseOdataClient {
 
 		logd("[refreshSeats]");
 		Enumerable<OEntity> seats = mConsumer.getEntities(Seats.TABLE_NAME).execute();
-		logd("[refreshSeats] entities count: " + seats.count());
-		List<Integer> serversIds = new ArrayList<Integer>(seats.count());
+		int deletedCount = mContentResolver.delete(Seats.CONTENT_URI, "1", null);
+		logd("[refreshSeats] seats was deleted: " + deletedCount);
 		for (OEntity seat : seats) {
-			serversIds.add(getAsInt(seat, Seats.Columns.ID));
 			ContentValues cv = OEntityToContentValue(seat);
 			mContentResolver.insert(Seats.CONTENT_URI, cv);
 		}
-		logd("[refreshSeats] all seats was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Seats.CONTENT_URI, new String[] { Seats.Columns.ID }, null, null,
-				null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Seats.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int seatId = cur.getInt(idIndex);
-				if (!serversIds.contains(seatId)) {
-					// delete this row
-					logd("[refreshSeats] delete seat: " + seatId);
-					Uri uri = Seats.buildTableUri(seatId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		logd("[refreshSeats] seats was inserted: " + seats.count());
 	}
 
 	public void refreshSessions() {
 
 		logd("[refreshSessions]");
 		Enumerable<OEntity> sessions = mConsumer.getEntities(Sessions.TABLE_NAME).execute();
-		logd("[refreshSessions] entities count: " + sessions.count());
-		List<Integer> serversIds = new ArrayList<Integer>(sessions.count());
+		int deletedCount = mContentResolver.delete(Sessions.CONTENT_URI, "1", null);
+		logd("[refreshSessions] sessions was deleted: " + deletedCount);
 		for (OEntity session : sessions) {
-			serversIds.add(getAsInt(session, Sessions.Columns.ID));
 			ContentValues cv = OEntityToContentValue(session);
 			mContentResolver.insert(Sessions.CONTENT_URI, cv);
 		}
-		logd("[refreshSessions] all sessions was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Sessions.CONTENT_URI, new String[] { Sessions.Columns.ID }, null,
-				null, null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Sessions.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int sessionId = cur.getInt(idIndex);
-				if (!serversIds.contains(sessionId)) {
-					// delete this row
-					logd("[refreshSessions] delete session: " + sessionId);
-					Uri uri = Sessions.buildTableUri(sessionId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		logd("[refreshSessions] sessions was inserted: " + sessions.count());
 	}
 
 	public void refreshSources() {
@@ -376,32 +249,16 @@ public class OdataReadClient extends BaseOdataClient {
 
 		logd("[refreshTopics] ");
 		Enumerable<OEntity> topics = getTopicsEntities();
-		// logd("[refreshTopics] topics entities count: " + topics.count());
-		List<Integer> serversIds = new ArrayList<Integer>(/* topics.count() */);
+		int deletedTopicCount = mContentResolver.delete(Topics.CONTENT_URI, "1", null);
+		// TODO: how to delete related person-topics table
+		logd("[refreshTopics] topics was deleted: " + deletedTopicCount);
+		int insertedTopicsCount = 0;
 		for (OEntity topic : topics) {
-			serversIds.add(getAsInt(topic, Topics.Columns.ID));
 			insertTopic(topic);
 			insertPersonsTopics(topic);
+			insertedTopicsCount++;
 		}
-		logd("[refreshTopics] all topics was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Topics.CONTENT_URI, new String[] { Topics.Columns.ID }, null,
-				null, null);
-		logd("[refreshTopics] db topics count: " + cur.getCount());
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Topics.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int topicId = cur.getInt(idIndex);
-				if (!serversIds.contains(topicId)) {
-					// delete this row
-					logd("[refreshTopics] delete topic: " + topicId);
-					Uri uri = Topics.buildTableUri(topicId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
+		logd("[refreshTopics] topics was inserted: " + insertedTopicsCount);
 	}
 
 	public void updateAttachments(final int pointId) {
