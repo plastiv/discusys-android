@@ -171,6 +171,10 @@ public class HttpUtil {
 
 	private static String getHttpResonseAsString(final HttpResponse httpResponse) {
 
+		if (httpResponse == null) {
+			Log.e(TAG, "HttpResponse was null");
+			return null;
+		}
 		if (httpResponse.getEntity() == null) {
 			Log.e(TAG, "HttpResponse.getEntity was null");
 			return null;

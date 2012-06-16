@@ -136,7 +136,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		initFromArguments();
 		addAttachmentsHeader();
 		if (footerButtonsEnabled) {
-			// addAttachmentsFooter();
+			addAttachmentsFooter();
 		}
 		mediaList = new MediaList(getActivity(), getListView());
 		mediaList.setPositionOffset(1);

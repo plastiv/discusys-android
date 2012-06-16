@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+<resources>
 
-    <string name="local_server_url">10.32.194.179</string>
-    <string name="public_server_url">123.108.5.30</string>
+    <string name="local_server_address">10.32.194.179</string>
+    <string name="public_server_address">123.108.5.30</string>
+    <string name="development_server_address">192.168.1.122</string>
+    <string name="local_database_address">tcp:10.32.194.179,8080</string>
+    <string name="public_database_address">tcp:123.108.5.30,8080</string>
+    <string name="development_database_address">MININT-P59UCPK\\SQLEXPRESS</string>
 
 </resources>

@@ -185,6 +185,7 @@ public class DownloadService extends IntentService {
 		int totalCount = sessionCount + seatsCount + personsCount + discussionsCount + pointsCount
 				+ topicsCount + attachmentsCount + sourcesCount + descriptionCount + commentsCount;
 		publishMaxCount(totalCount);
+		publishProgress(getString(R.string.progress_downloading_sessions), downloadedCount);
 		OdataReadClient odataClient = new OdataReadClient(this);
 		//
 		odataClient.refreshSessions();

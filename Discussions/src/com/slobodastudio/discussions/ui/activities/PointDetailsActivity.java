@@ -1,7 +1,7 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.photon.constants.PhotonConstants;
+import com.slobodastudio.discussions.data.PreferenceHelper;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
@@ -199,8 +199,8 @@ public class PointDetailsActivity extends BaseActivity {
 	private void connectPhoton() {
 
 		if (mBound && !mService.getPhotonController().isConnected()) {
-			mService.getPhotonController().connect(this, discussionId, PhotonConstants.DB_SERVER_ADDRESS,
-					personName, personId);
+			mService.getPhotonController().connect(this, discussionId,
+					PreferenceHelper.getPhotonDbAddress(this), personName, personId);
 			// mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
 		}
 	}

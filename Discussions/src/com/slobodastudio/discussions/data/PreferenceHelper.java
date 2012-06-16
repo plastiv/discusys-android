@@ -1,6 +1,5 @@
 package com.slobodastudio.discussions.data;
 
-import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 
 import android.content.Context;
@@ -11,23 +10,33 @@ public class PreferenceHelper {
 
 	public static String getOdataUrl(final Context context) {
 
-		if (ApplicationConstants.ODATA_LOCAL) {
-			return "http://192.168.1.122/DiscSvc/discsvc.svc/";
-		}
 		return "http://" + getServerAddress(context) + "/DiscSvc/discsvc.svc/";
+	}
+
+	public static String getPhotonDbAddress(final Context context) {
+
+		String serverAddress = getServerAddress(context);
+		String localServer = context.getString(R.string.local_server_address);
+		if (serverAddress.equals(localServer)) {
+			return context.getString(R.string.local_database_address);
+		}
+		String developmentServer = context.getString(R.string.development_server_address);
+		if (serverAddress.equals(developmentServer)) {
+			return context.getString(R.string.development_database_address);
+		}
+		// default case
+		return context.getString(R.string.public_database_address);
 	}
 
 	public static String getPhotonUrl(final Context context) {
 
-		if (ApplicationConstants.PHOTON_LOCAL) {
-			return "192.168.1.122:5555";
-		}
 		return getServerAddress(context) + ":5055";
 	}
 
 	public static String getServerAddress(final Context context) {
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		return prefs.getString(PreferenceKey.SERVER_ADDRESS, context.getString(R.string.public_server_url));
+		return prefs.getString(PreferenceKey.SERVER_ADDRESS, context
+				.getString(R.string.public_server_address));
 	}
 }

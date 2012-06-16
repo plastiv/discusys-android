@@ -2,11 +2,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <ListPreference
-        android:defaultValue="@string/public_server_url"
+        android:defaultValue="@string/public_server_address"
         android:dialogTitle="@string/dialog_title_settings_server"
         android:entries="@array/server_names"
-        android:entryValues="@array/server_url"
-        android:key="PREFERENCE_SERVER_URL"
+        android:entryValues="@array/server_addresses"
+        android:key="PREFERENCE_SERVER_ADDRESS"
         android:summary="@string/summary_server_settings"
         android:title="@string/title_settings_server" />
 

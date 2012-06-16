@@ -1,13 +1,10 @@
 package com.slobodastudio.discussions.photon.constants;
 
-import com.slobodastudio.discussions.ApplicationConstants;
 
 public class PhotonConstants {
 
 	/** Name of the Photon server application to which one connect. */
 	public static final String APPLICATION_NAME = "DiscussionsRT";
-	public static final String DB_SERVER_ADDRESS = ApplicationConstants.PHOTON_LOCAL ? "MININT-P59UCPK\\SQLEXPRESS"
-			: "tcp:123.108.5.30,8080";
 	/** Time to dispatch all incoming commands to the application. Dispatching will empty the queue of incoming
 	 * messages and will fire the related callbacks. */
 	public static final int DISPATCH_INTERVAL = 10;

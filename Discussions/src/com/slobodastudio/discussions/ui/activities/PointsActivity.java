@@ -1,10 +1,10 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.PreferenceHelper;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.photon.DiscussionUser;
 import com.slobodastudio.discussions.photon.PhotonServiceCallback;
-import com.slobodastudio.discussions.photon.constants.PhotonConstants;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.fragments.PointsFragment;
 
@@ -145,8 +145,8 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	private void connectPhoton() {
 
 		if (mBound && !mService.getPhotonController().isConnected()) {
-			mService.getPhotonController().connect(this, mDiscussionId, PhotonConstants.DB_SERVER_ADDRESS,
-					mPersonName, mPersonId);
+			mService.getPhotonController().connect(this, mDiscussionId,
+					PreferenceHelper.getPhotonDbAddress(this), mPersonName, mPersonId);
 			mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
 		}
 	}

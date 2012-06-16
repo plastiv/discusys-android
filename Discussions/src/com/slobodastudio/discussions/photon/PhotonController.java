@@ -84,6 +84,7 @@ public class PhotonController implements IPhotonPeerListener {
 		mLocalUser.setUserId(usrDbId);
 		mPeer = new LitePeer(this, PhotonConstants.USE_TCP);
 		mPeer.setSentCountAllowance(5);
+		Log.d(TAG, "[connect] url: " + PreferenceHelper.getPhotonUrl(context));
 		if (!mPeer.connect(PreferenceHelper.getPhotonUrl(context), PhotonConstants.APPLICATION_NAME)) {
 			throw new IllegalArgumentException("Can't connect to the server. Server address: "
 					+ PreferenceHelper.getPhotonUrl(context) + " ; Application name: "

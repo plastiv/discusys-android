@@ -24,7 +24,7 @@ public class BaseOdataClient {
 		mContext = context;
 		mConsumer = ODataJerseyConsumer.newBuilder(getOdataServerUrl()).setFormatType(FormatType.JSON)
 				.build();
-		if (ApplicationConstants.ODATA_LOCAL) {
+		if (ApplicationConstants.ODATA_DUMP_LOG) {
 			ODataConsumer.dump.all(true);
 		}
 		mContentResolver = context.getContentResolver();
