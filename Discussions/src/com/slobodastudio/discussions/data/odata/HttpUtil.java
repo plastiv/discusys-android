@@ -4,11 +4,10 @@
 package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.data.PreferenceHelper;
+import com.slobodastudio.discussions.utils.MediaStoreHelper;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
-import android.provider.MediaStore.MediaColumns;
 import android.util.Log;
 
 import org.apache.http.Header;
@@ -87,13 +86,17 @@ public class HttpUtil {
 	}
 
 	/** @return id of the inserted file in Attachment table */
-	public static int insertAttachment(final Context context, final Uri attachmentUri) {
+	public static int insertImageAttachment(final Context context, final Uri attachmentUri) {
 
-		FileEntity attachmentEntity = createAttachmentFileEntity(context, attachmentUri);
-		HttpPost httpPost = createPostRequest(context, attachmentEntity);
-		HttpResponse httpResponse = executeRequest(httpPost);
-		String responseString = getHttpResonseAsString(httpResponse);
-		return parseIdFromJson(responseString);
+		FileEntity attachmentEntity = createImageFileEntity(context, attachmentUri);
+		return uploadAttachmentEntity(context, attachmentEntity);
+	}
+
+	public static int insertPdfAttachment(final Context context, final Uri attachmentUri) {
+
+		Log.d(TAG, "[insertPdfAttachment] path: " + attachmentUri.getPath());
+		FileEntity attachmentEntity = createPdfFileEntity(context, attachmentUri);
+		return uploadAttachmentEntity(context, attachmentEntity);
 	}
 
 	public static void insertPersonTopic(final Context context, final int personId, final int topicId) {
@@ -121,27 +124,32 @@ public class HttpUtil {
 		}
 	}
 
-	private static FileEntity createAttachmentFileEntity(final Context context, final Uri imageUri) {
+	private static Header[] createHeaders() {
 
-		String attachmentPath = getPathFromMediaStoreUri(context, imageUri);
+		return new Header[] {
+				new BasicHeader("Accept-Charset", "UTF-8"),
+				new BasicHeader("DataServiceVersion", "1.0;NetFx"),
+				new BasicHeader("MaxDataServiceVersion", "2.0;NetFx"),
+				new BasicHeader("Accept", "application/json;odata=verbose"),
+				new BasicHeader("Host", "localhost"),
+				new BasicHeader("Expect", "100-continue"),
+				new BasicHeader("User-Agent",
+						"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2") };
+	}
+
+	private static FileEntity createImageFileEntity(final Context context, final Uri imageUri) {
+
+		String attachmentPath = MediaStoreHelper.getPathFromUri(context, imageUri);
 		FileEntity entity = new FileEntity(new File(attachmentPath), "image/jpeg");
 		entity.setContentType("image/jpeg");
 		return entity;
 	}
 
-	private static Header[] createHeaders() {
+	private static FileEntity createPdfFileEntity(final Context context, final Uri pdfUri) {
 
-		return new Header[] {
-				new BasicHeader("Content-type", "image/jpeg"),
-				new BasicHeader("Accept-Charset", "UTF-8"),
-				new BasicHeader("DataServiceVersion", "1.0;NetFx"),
-				new BasicHeader("MaxDataServiceVersion", "2.0;NetFx"),
-				new BasicHeader("Accept", "application/json;odata=verbose"),
-				new BasicHeader("Slug", "android.jpg"),
-				new BasicHeader("Host", "localhost"),
-				new BasicHeader("Expect", "100-continue"),
-				new BasicHeader("User-Agent",
-						"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2") };
+		FileEntity entity = new FileEntity(new File(pdfUri.getPath()), "application/pdf");
+		entity.setContentType("application/pdf");
+		return entity;
 	}
 
 	private static HttpPost createPostRequest(final Context context, final HttpEntity httpEntity) {
@@ -189,21 +197,6 @@ public class HttpUtil {
 		return null;
 	}
 
-	private static String getPathFromMediaStoreUri(final Context context, final Uri attachmentUri) {
-
-		String[] filePathColumn = { MediaColumns.DATA };
-		Cursor cursor = context.getContentResolver().query(attachmentUri, filePathColumn, null, null, null);
-		String filePath;
-		if (cursor.moveToFirst()) {
-			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-			filePath = cursor.getString(columnIndex);
-		} else {
-			filePath = null;
-		}
-		cursor.close();
-		return filePath;
-	}
-
 	private static int parseIdFromJson(final String jsonString) {
 
 		try {
@@ -213,6 +206,14 @@ public class HttpUtil {
 			Log.e(TAG, "Failed to parse Id from json: " + jsonString, e);
 		}
 		return -1;
+	}
+
+	private static int uploadAttachmentEntity(final Context context, final HttpEntity attachmentEntity) {
+
+		HttpPost httpPost = createPostRequest(context, attachmentEntity);
+		HttpResponse httpResponse = executeRequest(httpPost);
+		String responseString = getHttpResonseAsString(httpResponse);
+		return parseIdFromJson(responseString);
 	}
 
 	@Override

@@ -19,6 +19,7 @@ import com.slobodastudio.discussions.photon.constants.StatsType;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
+import com.slobodastudio.discussions.utils.MediaStoreHelper;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.IntentService;
@@ -221,7 +222,22 @@ public class UploadService extends IntentService {
 		Attachment attachment = intent.getParcelableExtra(EXTRA_VALUE);
 		logd("[insertAttachment] " + attachment.getTitle());
 		Uri attachmentUri = intent.getParcelableExtra(EXTRA_URI);
-		int attachmentId = HttpUtil.insertAttachment(this, attachmentUri);
+		int attachmentId;
+		switch (attachment.getFormat()) {
+			case Attachments.AttachmentType.JPG:
+				attachment.setTitle(MediaStoreHelper.getTitleFromUri(this, attachmentUri));
+				attachmentId = HttpUtil.insertImageAttachment(this, attachmentUri);
+				break;
+			case Attachments.AttachmentType.PDF:
+				attachment.setTitle(attachmentUri.getLastPathSegment());
+				attachmentId = HttpUtil.insertPdfAttachment(this, attachmentUri);
+				break;
+			default:
+				throw new UnsupportedOperationException(
+						"[insertAttachment] was called with unknown attachment type: "
+								+ attachment.getFormat());
+		}
+		attachment.setName(attachment.getTitle());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
 		boolean updated = odataWrite.updateAttachment(attachment, attachmentId);
 		if (updated) {

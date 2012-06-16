@@ -12,14 +12,19 @@ import com.slobodastudio.discussions.ui.activities.BaseActivity;
 import com.slobodastudio.discussions.ui.view.MediaList;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Images.ImageColumns;
+import android.provider.MediaStore.Images.Media;
+import android.provider.MediaStore.MediaColumns;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -36,12 +41,18 @@ import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockListFragment;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class PointMediaTabFragment extends SherlockListFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int PICK_CAMERA_PHOTO = 0x03;
 	private static final int PICK_IMAGE_REQUEST = 0x02;
+	private static final int PICK_PDF_REQUEST = 0x04;
 	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
+	Uri tempCameraFileUri;
 	private boolean footerButtonsEnabled;
 	private final AttachmentsCursorLoader mAttachmentsCursorLoader;
 	private MediaList mediaList;
@@ -91,13 +102,6 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		return arguments;
 	}
 
-	public static void requestCameraPhoto(final Activity activity) {
-
-		Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
-		activity.startActivityForResult(cameraIntent, PICK_CAMERA_PHOTO);
-	}
-
 	public static void requestImageAttachment(final Activity activity) {
 
 		Intent intent = new Intent();
@@ -108,12 +112,10 @@ public class PointMediaTabFragment extends SherlockListFragment {
 
 	public static void requestPdfAttachment(final Activity activity) {
 
-		// Intent intent = new Intent();
-		// intent.setType("application/pdf");
-		// intent.setAction(Intent.ACTION_GET_CONTENT);
-		// startActivityForResult(intent, PICK_IMAGE_REQUEST);
-		// FIXME: load pdf as a file here
-		// http://stackoverflow.com/questions/8646246/uri-from-intent-action-get-content-into-file
+		Intent intent = new Intent();
+		intent.setType("application/pdf");
+		intent.setAction(Intent.ACTION_GET_CONTENT);
+		activity.startActivityForResult(intent, PICK_PDF_REQUEST);
 	}
 
 	private static AdapterContextMenuInfo castAdapterContextMenuInfo(final ContextMenuInfo contextMenuInfo) {
@@ -147,25 +149,30 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
 		Log.d(TAG, "[onActivityresult]");
-		switch (requestCode) {
-			case PICK_CAMERA_PHOTO:
-				if ((resultCode == Activity.RESULT_OK) && (data.getData() != null)) {
-					newAttachment = new NewAttachment(PICK_CAMERA_PHOTO, data.getData());
-				} else {
-					newAttachment = null;
-				}
-				getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-				break;
-			case PICK_IMAGE_REQUEST:
-				if ((resultCode == Activity.RESULT_OK) && (data.getData() != null)) {
-					newAttachment = new NewAttachment(PICK_IMAGE_REQUEST, data.getData());
-				} else {
-					newAttachment = null;
-				}
-				break;
-			default:
-				break;
+		if (Activity.RESULT_OK == resultCode) {
+			switch (requestCode) {
+				case PICK_CAMERA_PHOTO:
+					handleCameraResult(data);
+					break;
+				case PICK_IMAGE_REQUEST:
+					if ((data.getData() != null)) {
+						newAttachment = new NewAttachment(PICK_IMAGE_REQUEST, data.getData());
+					} else {
+						newAttachment = null;
+					}
+					break;
+				case PICK_PDF_REQUEST:
+					if ((data.getData() != null)) {
+						newAttachment = new NewAttachment(PICK_PDF_REQUEST, data.getData());
+					} else {
+						newAttachment = null;
+					}
+					break;
+				default:
+					break;
+			}
 		}
+		getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 	}
 
 	@Override
@@ -197,12 +204,13 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		if (newAttachment != null) {
 			switch (newAttachment.type) {
 				case PICK_CAMERA_PHOTO:
-					onAttachSourceAdded(newAttachment.uri, "Image, taken from android camera",
-							Attachments.AttachmentType.JPG);
+					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.JPG);
 					break;
 				case PICK_IMAGE_REQUEST:
-					onAttachSourceAdded(newAttachment.uri, "Image, loaded from android sdcard",
-							Attachments.AttachmentType.JPG);
+					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.JPG);
+					break;
+				case PICK_PDF_REQUEST:
+					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.PDF);
 					break;
 				default:
 					break;
@@ -218,6 +226,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
 		setAttachPhotoListener(footerView);
 		setAttachImageListener(footerView);
+		setAttachPdfListener(footerView);
 		getListView().addFooterView(footerView);
 	}
 
@@ -228,6 +237,17 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
 		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
 		getListView().addHeaderView(headerView);
+	}
+
+	private void handleCameraResult(final Intent data) {
+
+		if (data == null) {
+			newAttachment = new NewAttachment(PICK_CAMERA_PHOTO, tempCameraFileUri);
+		} else if (data.getData() != null) {
+			newAttachment = new NewAttachment(PICK_CAMERA_PHOTO, data.getData());
+		} else {
+			newAttachment = null;
+		}
 	}
 
 	private void initAttachmentsLoader() {
@@ -263,16 +283,33 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		((BaseActivity) getActivity()).getServiceHelper().deleteAttachment(attachmentId, mSelectedPoint);
 	}
 
-	private void onAttachSourceAdded(final Uri uri, final String attachmentDescription,
-			final int attachmentType) {
+	private void onAttachSourceAdded(final Uri uri, final int attachmentType) {
 
 		Attachment attachment = new Attachment();
-		attachment.setName(attachmentDescription);
-		attachment.setTitle(attachmentDescription);
 		attachment.setPersonId(mSelectedPoint.getPersonId());
 		attachment.setPointId(mSelectedPoint.getPointId());
 		attachment.setFormat(attachmentType);
 		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mSelectedPoint, uri);
+	}
+
+	private void requestCameraPhoto(final Activity activity) {
+
+		File imageDirectory = Environment.getExternalStorageDirectory();
+		String path = imageDirectory.toString().toLowerCase();
+		String name = imageDirectory.getName().toLowerCase();
+		ContentValues values = new ContentValues();
+		values.put(MediaColumns.TITLE, "Camera " + new SimpleDateFormat().format(new Date()));
+		values.put(ImageColumns.BUCKET_ID, path.hashCode());
+		values.put(ImageColumns.BUCKET_DISPLAY_NAME, name);
+		values.put(MediaColumns.MIME_TYPE, "image/jpeg");
+		values.put(ImageColumns.DESCRIPTION, "Image capture by camera");
+		String filePathString = new File(imageDirectory, "test.jpg").getAbsolutePath();
+		values.put("_data", filePathString);
+		tempCameraFileUri = activity.getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, values);
+		Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, tempCameraFileUri);
+		activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+		activity.startActivityForResult(cameraIntent, PICK_CAMERA_PHOTO);
 	}
 
 	private void setAttachImageListener(final View container) {
@@ -284,6 +321,19 @@ public class PointMediaTabFragment extends SherlockListFragment {
 			public void onClick(final View v) {
 
 				requestImageAttachment(getActivity());
+			}
+		});
+	}
+
+	private void setAttachPdfListener(final View container) {
+
+		Button attachPdfButton = (Button) container.findViewById(R.id.btn_attach_pdf);
+		attachPdfButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(final View v) {
+
+				requestPdfAttachment(getActivity());
 			}
 		});
 	}
