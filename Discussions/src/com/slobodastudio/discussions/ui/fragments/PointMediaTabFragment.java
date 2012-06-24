@@ -9,13 +9,18 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
+import com.slobodastudio.discussions.ui.activities.YoutubeActivity;
 import com.slobodastudio.discussions.ui.view.MediaList;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -44,6 +49,7 @@ import com.actionbarsherlock.app.SherlockListFragment;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class PointMediaTabFragment extends SherlockListFragment {
 
@@ -51,14 +57,15 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	private static final int PICK_CAMERA_PHOTO = 0x03;
 	private static final int PICK_IMAGE_REQUEST = 0x02;
 	private static final int PICK_PDF_REQUEST = 0x04;
+	private static final int PICK_YOUTUBE_REQUEST = 0x05;
 	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
-	Uri tempCameraFileUri;
 	private boolean footerButtonsEnabled;
 	private final AttachmentsCursorLoader mAttachmentsCursorLoader;
 	private MediaList mediaList;
 	private TextView mPointNameTextView;
 	private SelectedPoint mSelectedPoint;
 	private NewAttachment newAttachment;
+	private Uri tempCameraFileUri;
 
 	public PointMediaTabFragment() {
 
@@ -102,20 +109,24 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		return arguments;
 	}
 
+	public static boolean isIntentAvailable(final Context context, final Intent intent) {
+
+		final PackageManager packageManager = context.getPackageManager();
+		List<ResolveInfo> list = packageManager.queryIntentActivities(intent, 0);
+		return list.size() > 0;
+	}
+
 	public static void requestImageAttachment(final Activity activity) {
 
-		Intent intent = new Intent();
+		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("image/jpeg");
-		intent.setAction(Intent.ACTION_GET_CONTENT);
 		activity.startActivityForResult(intent, PICK_IMAGE_REQUEST);
 	}
 
-	public static void requestPdfAttachment(final Activity activity) {
+	public static void requestYoutubeAttachment(final Activity activity) {
 
-		Intent intent = new Intent();
-		intent.setType("application/pdf");
-		intent.setAction(Intent.ACTION_GET_CONTENT);
-		activity.startActivityForResult(intent, PICK_PDF_REQUEST);
+		Intent intent = new Intent(activity, YoutubeActivity.class);
+		activity.startActivityForResult(intent, PICK_YOUTUBE_REQUEST);
 	}
 
 	private static AdapterContextMenuInfo castAdapterContextMenuInfo(final ContextMenuInfo contextMenuInfo) {
@@ -148,7 +159,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	@Override
 	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
-		Log.d(TAG, "[onActivityresult]");
+		Log.d(TAG, "[onActivityresult] requestCode: " + requestCode);
 		if (Activity.RESULT_OK == resultCode) {
 			switch (requestCode) {
 				case PICK_CAMERA_PHOTO:
@@ -164,6 +175,13 @@ public class PointMediaTabFragment extends SherlockListFragment {
 				case PICK_PDF_REQUEST:
 					if ((data.getData() != null)) {
 						newAttachment = new NewAttachment(PICK_PDF_REQUEST, data.getData());
+					} else {
+						newAttachment = null;
+					}
+					break;
+				case PICK_YOUTUBE_REQUEST:
+					if ((data.getData() != null)) {
+						newAttachment = new NewAttachment(PICK_YOUTUBE_REQUEST, data.getData());
 					} else {
 						newAttachment = null;
 					}
@@ -212,10 +230,24 @@ public class PointMediaTabFragment extends SherlockListFragment {
 				case PICK_PDF_REQUEST:
 					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.PDF);
 					break;
+				case PICK_YOUTUBE_REQUEST:
+					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.YOUTUBE);
+					break;
 				default:
 					break;
 			}
 			newAttachment = null;
+		}
+	}
+
+	public void requestPdfAttachment(final Activity activity) {
+
+		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+		intent.setType("application/pdf");
+		if (isIntentAvailable(activity, intent)) {
+			activity.startActivityForResult(intent, PICK_PDF_REQUEST);
+		} else {
+			showFileExplorerNeedToBeInstalledDialog();
 		}
 	}
 
@@ -224,9 +256,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
 				Context.LAYOUT_INFLATER_SERVICE);
 		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
-		setAttachPhotoListener(footerView);
-		setAttachImageListener(footerView);
-		setAttachPdfListener(footerView);
+		setSelectAttachClickListener(footerView);
 		getListView().addFooterView(footerView);
 	}
 
@@ -312,43 +342,74 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		activity.startActivityForResult(cameraIntent, PICK_CAMERA_PHOTO);
 	}
 
-	private void setAttachImageListener(final View container) {
+	private void setSelectAttachClickListener(final View container) {
 
-		Button attachImageButton = (Button) container.findViewById(R.id.btn_attach_image);
-		attachImageButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(final View v) {
-
-				requestImageAttachment(getActivity());
-			}
-		});
-	}
-
-	private void setAttachPdfListener(final View container) {
-
-		Button attachPdfButton = (Button) container.findViewById(R.id.btn_attach_pdf);
+		Button attachPdfButton = (Button) container.findViewById(R.id.btn_select_attach);
 		attachPdfButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(final View v) {
 
-				requestPdfAttachment(getActivity());
+				showAddAttachmentSelection();
 			}
 		});
 	}
 
-	private void setAttachPhotoListener(final View container) {
+	private void showAddAttachmentSelection() {
 
-		Button attachPhotoButton = (Button) container.findViewById(R.id.btn_attach_photo);
-		attachPhotoButton.setOnClickListener(new OnClickListener() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.dialog_title_attach);
+		builder.setItems(R.array.add_attachemt_types, new DialogInterface.OnClickListener() {
 
 			@Override
-			public void onClick(final View v) {
+			public void onClick(final DialogInterface dialog, final int item) {
 
-				requestCameraPhoto(getActivity());
+				switch (item) {
+					case 0:
+						requestImageAttachment(getActivity());
+						break;
+					case 1:
+						requestCameraPhoto(getActivity());
+						break;
+					case 2:
+						requestPdfAttachment(getActivity());
+						break;
+					case 3:
+						requestYoutubeAttachment(getActivity());
+						break;
+					default:
+						break;
+				}
 			}
 		});
+		AlertDialog alert = builder.create();
+		alert.show();
+	}
+
+	private void showFileExplorerNeedToBeInstalledDialog() {
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setMessage(R.string.dialog_text_file_explorer_need_install_first).setCancelable(true)
+				.setPositiveButton(R.string.button_title_go_to_market, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(final DialogInterface dialog, final int id) {
+
+						String marketUrl = "market://search?q=file+explorer&c=apps";
+						Intent market = new Intent(Intent.ACTION_VIEW, Uri.parse(marketUrl));
+						market.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+						getActivity().startActivity(market);
+					}
+				}).setNegativeButton(R.string.button_title_cancel, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(final DialogInterface dialog, final int id) {
+
+						dialog.cancel();
+					}
+				});
+		AlertDialog alert = builder.create();
+		alert.show();
 	}
 
 	private class AttachmentsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {

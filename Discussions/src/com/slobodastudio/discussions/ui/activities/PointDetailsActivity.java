@@ -117,6 +117,9 @@ public class PointDetailsActivity extends BaseActivity {
 		} else {
 			setupActionBarTabs(savedInstanceState);
 		}
+		if ((savedInstanceState == null) && Intent.ACTION_VIEW.equals(action)) {
+			getSupportActionBar().setSelectedNavigationItem(1);
+		}
 	}
 
 	@Override
@@ -124,12 +127,6 @@ public class PointDetailsActivity extends BaseActivity {
 
 		super.onSaveInstanceState(outState);
 		outState.putInt(EXTRA_KEY_TAB_INDEX, getSupportActionBar().getSelectedNavigationIndex());
-	}
-
-	@Override
-	protected void onStop() {
-
-		super.onStop();
 	}
 
 	private void addCommentsTab() {
@@ -201,7 +198,6 @@ public class PointDetailsActivity extends BaseActivity {
 		if (mBound && !mService.getPhotonController().isConnected()) {
 			mService.getPhotonController().connect(this, discussionId,
 					PreferenceHelper.getPhotonDbAddress(this), personName, personId);
-			// mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
 		}
 	}
 
@@ -224,7 +220,6 @@ public class PointDetailsActivity extends BaseActivity {
 	private void setupActionBarTabs(final Bundle savedInstanceState) {
 
 		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		// getSupportActionBar().setDisplayShowTitleEnabled(false);
 		getSupportActionBar().setDisplayShowHomeEnabled(false);
 		addDescriptionTab();
 		addCommentsTab();

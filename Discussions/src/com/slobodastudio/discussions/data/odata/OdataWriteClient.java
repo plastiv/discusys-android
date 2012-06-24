@@ -208,6 +208,9 @@ public class OdataWriteClient extends BaseOdataClient {
 				.properties(OProperties.int32(Attachments.Columns.FORMAT, attachment.getFormat()))
 				.properties(OProperties.string(Attachments.Columns.TITLE, attachment.getTitle()))
 				.properties(OProperties.string(Attachments.Columns.LINK, attachment.getLink()))
+				.properties(OProperties.string(Attachments.Columns.VIDEO_LINK_URL, attachment.getVideoLinkURL()))
+				.properties(OProperties.string(Attachments.Columns.VIDEO_THUMB_URL, attachment.getVideoThumbURL()))
+				.properties(OProperties.string(Attachments.Columns.VIDEO_EMBED_URL, attachment.getVideoEmbedURL()))
 				.execute();
 		// @formatter:on
 	}

@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
@@ -21,22 +22,17 @@ import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MediaStoreHelper;
 import com.slobodastudio.discussions.utils.MyLog;
+import com.slobodastudio.discussions.utils.YoutubeHelper;
 
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.util.Log;
 
 import org.odata4j.core.OEntity;
-
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class UploadService extends IntentService {
@@ -61,14 +57,6 @@ public class UploadService extends IntentService {
 	public UploadService() {
 
 		super(TAG);
-	}
-
-	private static byte[] getBitmapAsByteArray(final Bitmap bitmap) {
-
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		// Middle value is quality, but PNG is lossless, so it's ignored.
-		bitmap.compress(CompressFormat.JPEG, 90, outputStream);
-		return outputStream.toByteArray();
 	}
 
 	private static void logd(final String message) {
@@ -192,27 +180,6 @@ public class UploadService extends IntentService {
 		}
 	}
 
-	private byte[] getByteArray(final Uri imageUri) {
-
-		try {
-			BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inTempStorage = new byte[16 * 1024];
-			options.inDither = false;
-			options.inPurgeable = true;
-			options.inInputShareable = true;
-			Bitmap galleryImage = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri),
-					null, options);
-			if (galleryImage != null) {
-				byte[] bitmapArray = getBitmapAsByteArray(galleryImage);
-				galleryImage.recycle();
-				return bitmapArray;
-			}
-		} catch (FileNotFoundException e) {
-			Log.e(TAG, "Cant read image" + imageUri);
-		}
-		return null;
-	}
-
 	private void insertAttachment(final Intent intent) {
 
 		if (!intent.hasExtra(EXTRA_URI)) {
@@ -220,6 +187,7 @@ public class UploadService extends IntentService {
 					"[insertAttachment] was called without required attachment uri");
 		}
 		Attachment attachment = intent.getParcelableExtra(EXTRA_VALUE);
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
 		logd("[insertAttachment] " + attachment.getTitle());
 		Uri attachmentUri = intent.getParcelableExtra(EXTRA_URI);
 		int attachmentId;
@@ -232,13 +200,22 @@ public class UploadService extends IntentService {
 				attachment.setTitle(attachmentUri.getLastPathSegment());
 				attachmentId = HttpUtil.insertPdfAttachment(this, attachmentUri);
 				break;
+			case Attachments.AttachmentType.YOUTUBE:
+				OEntity entity = odataWrite.insertAttachment(attachment);
+				attachmentId = (Integer) entity.getProperty(Attachments.Columns.ID).getValue();
+				attachment.setTitle(YoutubeHelper.getVideoTitle(attachmentUri.toString()));
+				attachment.setLink(attachmentUri.toString());
+				attachment.setVideoLinkURL(attachmentUri.toString());
+				String vid = attachmentUri.getQueryParameter("v");
+				attachment.setVideoEmbedURL("http://www.youtube.com/embed/" + vid);
+				attachment.setVideoThumbURL(YoutubeHelper.getThumbImageUrl(attachmentUri.toString()));
+				break;
 			default:
 				throw new UnsupportedOperationException(
 						"[insertAttachment] was called with unknown attachment type: "
 								+ attachment.getFormat());
 		}
 		attachment.setName(attachment.getTitle());
-		OdataWriteClient odataWrite = new OdataWriteClient(this);
 		boolean updated = odataWrite.updateAttachment(attachment, attachmentId);
 		if (updated) {
 			attachment.setAttachmentId(attachmentId);
@@ -254,7 +231,7 @@ public class UploadService extends IntentService {
 					selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
 					StatsType.BADGE_EDITED);
 		} else {
-			// TODO: fire an error here
+			throw new DataIoException("Failed to update newly inserted attachment with id: " + attachmentId);
 		}
 	}
 

@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
     android:installLocation="auto"
-    android:versionCode="23"
-    android:versionName="0.1.36" >
+    android:versionCode="24"
+    android:versionName="0.1.37" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -170,6 +170,17 @@
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:mimeType="text/url" />
+            </intent-filter>
+        </activity>
+
+        <!-- YoutubeView -->
+        <activity
+            android:name=".ui.activities.YoutubeActivity"
+            android:label="@string/activity_title_youtube" >
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 

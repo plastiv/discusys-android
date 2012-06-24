@@ -78,6 +78,31 @@ public class HttpUtil {
 		return customHttpClient;
 	}
 
+	public static String getRequestToString(final String url) {
+
+		HttpClient httpClient = getHttpClient();
+		HttpGet httpGetRequest = new HttpGet(url);
+		HttpResponse response;
+		try {
+			response = httpClient.execute(httpGetRequest);
+		} catch (ClientProtocolException e) {
+			Log.e(TAG, "Failed execute http get request for url: " + url, e);
+			return "";
+		} catch (IOException e) {
+			Log.e(TAG, "Failed execute http get request for url: " + url, e);
+			return "";
+		}
+		try {
+			return EntityUtils.toString(response.getEntity());
+		} catch (ParseException e) {
+			Log.e(TAG, "Failed read response for url: " + url, e);
+			return "";
+		} catch (IOException e) {
+			Log.e(TAG, "Failed read response for url: " + url, e);
+			return "";
+		}
+	}
+
 	public static String getString(final String uri) {
 
 		HttpGet httpGet = new HttpGet(uri);

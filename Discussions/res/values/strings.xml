@@ -15,6 +15,7 @@
     <string name="activity_title_sessions">Sessions</string>
     <string name="activity_title_seats">Seats</string>
     <string name="activity_title_webview">Select url</string>
+    <string name="activity_title_youtube">Select youtube video</string>
     <string name="activity_title_preferences">Preferences</string>
     <string name="action_mode_title_points">Edit point</string>
     <string name="action_mode_title_view_points">View point</string>
@@ -23,6 +24,9 @@
     <string name="dialog_title_downloading_database">Downloading database...</string>
     <string name="dialog_title_comment">Type your comment</string>
     <string name="dialog_title_settings_server">Server url</string>
+    <string name="dialog_title_attach">Attach</string>
+    <string name="dialog_text_file_explorer_need_install_first">Install file explorer application first to use attachment function. </string>
+    <string name="dialog_text_youtube_select_video_first">Open video first to use attachment function. </string>
     <string name="tab_title_comments">Comments</string>
     <string name="tab_title_description">Description</string>
     <string name="tab_title_media">Media</string>
@@ -34,6 +38,10 @@
     <string name="button_title_attach_image">Attach image</string>
     <string name="button_title_attach_pdf">Attach pdf</string>
     <string name="button_title_attach_photo">Attach photo</string>
+    <string name="button_title_select_attach">Add attachment</string>
+    <string name="button_title_go_to_market">Go to market</string>
+    <string name="button_title_cancel">Cancel</string>
+    <string name="button_title_ok">Ok</string>
     <!-- menus -->
     <string name="menu_action_refresh">Refresh</string>
     <string name="menu_action_delete">Delete</string>

@@ -6,33 +6,13 @@
     android:orientation="horizontal" >
 
     <Button
-        android:id="@+id/btn_attach_photo"
+        android:id="@+id/btn_select_attach"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/button_title_attach_photo" />
-
-    <Button
-        android:id="@+id/btn_attach_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@id/btn_attach_photo"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/button_title_attach_image" />
-
-    <Button
-        android:id="@+id/btn_attach_pdf"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@id/btn_attach_photo"
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
-        android:text="@string/button_title_attach_pdf" />
+        android:text="@string/button_title_select_attach" />
 
 </LinearLayout>
