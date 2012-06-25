@@ -333,78 +333,6 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		}
 	}
 
-	void onActionEdit(final int position) {
-
-		int pointId;
-		if ((mUserPointsAdapter.getCursor() != null)
-				&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
-			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
-			pointId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
-		} else {
-			pointId = PointDescriptionTabFragment.INVALID_POINT_ID;
-			return;
-		}
-		if (mDualPane) {
-			// We can display everything in-place with fragments
-			// Check what fragment is currently shown, replace if needed.
-			PointDescriptionTabFragment details = (PointDescriptionTabFragment) getFragmentManager()
-					.findFragmentById(R.id.frame_layout_details);
-			if ((details == null) || (details.getPointId() != pointId)) {
-				// Make new fragment to show this selection.
-				details = new PointDescriptionTabFragment();
-				Intent intent = createEditPointIntent(pointId);
-				details.setArguments(PointDescriptionTabFragment.intentToFragmentArguments(intent));
-				// Execute a transaction, replacing any existing fragment
-				// with this one inside the frame.
-				FragmentTransaction ft = getFragmentManager().beginTransaction();
-				ft.replace(R.id.frame_layout_details, details);
-				ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-				ft.commit();
-			}
-			mActionMode = getSherlockActivity().startActionMode(new EditDetailsActionMode(true));
-		} else {
-			// Otherwise we need to launch a new activity to display details
-			Intent intent = createEditPointIntent(pointId);
-			startActivity(intent);
-		}
-	}
-
-	void onActionView(final int position) {
-
-		int valueId;
-		if ((mOtherPointsAdapter.getCursor() != null)
-				&& mOtherPointsAdapter.getCursor().moveToPosition(position)) {
-			int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
-			valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
-		} else {
-			valueId = PointDescriptionTabFragment.INVALID_POINT_ID;
-			return;
-		}
-		if (mDualPane) {
-			// We can display everything in-place with fragments
-			// Check what fragment is currently shown, replace if needed.
-			PointDescriptionTabFragment details = (PointDescriptionTabFragment) getFragmentManager()
-					.findFragmentById(R.id.frame_layout_details);
-			if ((details == null) || (details.getPointId() != valueId)) {
-				// Make new fragment to show this selection.
-				details = new PointDescriptionTabFragment();
-				Intent intent = createViewPointIntent(valueId);
-				details.setArguments(PointDescriptionTabFragment.intentToFragmentArguments(intent));
-				// Execute a transaction, replacing any existing fragment
-				// with this one inside the frame.
-				FragmentTransaction ft = getFragmentManager().beginTransaction();
-				ft.replace(R.id.frame_layout_details, details);
-				ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-				ft.commit();
-			}
-			mActionMode = getSherlockActivity().startActionMode(new ViewDetailsActionMode());
-		} else {
-			// Otherwise we need to launch a new activity to display details
-			Intent intent = createViewPointIntent(valueId);
-			startActivity(intent);
-		}
-	}
-
 	protected int getItemId(final android.view.MenuItem item) {
 
 		AdapterView.AdapterContextMenuInfo info;
@@ -471,6 +399,78 @@ public class PointsFragment extends SherlockFragment implements LoaderManager.Lo
 		mTopicId = getActivity().getIntent().getExtras().getInt(ExtraKey.TOPIC_ID);
 		if (DEBUG) {
 			Log.d(TAG, "[initFromIntentExtras] personId: " + mPersonId + ", topicId: " + mTopicId);
+		}
+	}
+
+	private void onActionEdit(final int position) {
+
+		int pointId;
+		if ((mUserPointsAdapter.getCursor() != null)
+				&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
+			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
+			pointId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
+		} else {
+			pointId = PointDescriptionTabFragment.INVALID_POINT_ID;
+			return;
+		}
+		if (mDualPane) {
+			// We can display everything in-place with fragments
+			// Check what fragment is currently shown, replace if needed.
+			PointDescriptionTabFragment details = (PointDescriptionTabFragment) getFragmentManager()
+					.findFragmentById(R.id.frame_layout_details);
+			if ((details == null) || (details.getPointId() != pointId)) {
+				// Make new fragment to show this selection.
+				details = new PointDescriptionTabFragment();
+				Intent intent = createEditPointIntent(pointId);
+				details.setArguments(PointDescriptionTabFragment.intentToFragmentArguments(intent));
+				// Execute a transaction, replacing any existing fragment
+				// with this one inside the frame.
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.frame_layout_details, details);
+				ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+				ft.commit();
+			}
+			mActionMode = getSherlockActivity().startActionMode(new EditDetailsActionMode(true));
+		} else {
+			// Otherwise we need to launch a new activity to display details
+			Intent intent = createEditPointIntent(pointId);
+			startActivity(intent);
+		}
+	}
+
+	private void onActionView(final int position) {
+
+		int valueId;
+		if ((mOtherPointsAdapter.getCursor() != null)
+				&& mOtherPointsAdapter.getCursor().moveToPosition(position)) {
+			int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
+			valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
+		} else {
+			valueId = PointDescriptionTabFragment.INVALID_POINT_ID;
+			return;
+		}
+		if (mDualPane) {
+			// We can display everything in-place with fragments
+			// Check what fragment is currently shown, replace if needed.
+			PointDescriptionTabFragment details = (PointDescriptionTabFragment) getFragmentManager()
+					.findFragmentById(R.id.frame_layout_details);
+			if ((details == null) || (details.getPointId() != valueId)) {
+				// Make new fragment to show this selection.
+				details = new PointDescriptionTabFragment();
+				Intent intent = createViewPointIntent(valueId);
+				details.setArguments(PointDescriptionTabFragment.intentToFragmentArguments(intent));
+				// Execute a transaction, replacing any existing fragment
+				// with this one inside the frame.
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.frame_layout_details, details);
+				ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+				ft.commit();
+			}
+			mActionMode = getSherlockActivity().startActionMode(new ViewDetailsActionMode());
+		} else {
+			// Otherwise we need to launch a new activity to display details
+			Intent intent = createViewPointIntent(valueId);
+			startActivity(intent);
 		}
 	}
 
