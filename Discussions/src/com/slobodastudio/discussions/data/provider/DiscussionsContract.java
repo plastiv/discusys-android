@@ -629,12 +629,8 @@ public final class DiscussionsContract {
 		/** List of columns names. */
 		public static final class Columns implements BaseColumns {
 
-			/** Type Int32. 0-not agreed */
-			public static final String AGREEMENT_CODE = "AgreementCode";
-			/** Type Binary. */
-			public static final String DRAWING = "Drawing";
 			/** Type Boolean. */
-			public static final String EXPANDED = "Expanded";
+			public static final String CHANGES_PENDING = "ChangesPending";
 			/** Type Int32. Special value, because sqlite word Group is reserved. */
 			public static final String GROUP_ID = "Group_id";
 			/** Type Int32. */
@@ -643,8 +639,6 @@ public final class DiscussionsContract {
 			public static final String ID = "Id";
 			/** Type String. */
 			public static final String NAME = "Point";
-			/** Type String. */
-			public static final String NUMBERED_POINT = "NumberedPoint";
 			/** Type Int32. */
 			public static final String PERSON_ID = "Person";
 			/** Type String. */

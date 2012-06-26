@@ -45,6 +45,7 @@
     <!-- menus -->
     <string name="menu_action_refresh">Refresh</string>
     <string name="menu_action_delete">Delete</string>
+    <string name="menu_action_change_topic">Change topic</string>
     <string name="menu_action_new">New</string>
     <string name="menu_action_save">Save</string>
     <string name="menu_action_cancel">Cancel</string>

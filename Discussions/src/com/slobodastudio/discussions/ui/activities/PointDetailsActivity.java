@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.PreferenceHelper;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
@@ -10,7 +11,11 @@ import com.slobodastudio.discussions.ui.fragments.PointMediaTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointSourcesTabFragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -66,6 +71,11 @@ public class PointDetailsActivity extends BaseActivity {
 			case R.id.menu_delete:
 				descriptionTabFragment.onActionDelete();
 				finish();
+				return true;
+			case R.id.menu_change_topic:
+				showChangeTopicDialog();
+				// descriptionTabFragment.onActionSave();
+				// finish();
 				return true;
 			case android.R.id.home:
 				finish();
@@ -132,7 +142,7 @@ public class PointDetailsActivity extends BaseActivity {
 	private void addCommentsTab() {
 
 		Tab commentsTab = getSupportActionBar().newTab();
-		commentsTab.setText(R.string.tab_title_comments);
+		// commentsTab.setText(R.string.tab_title_comments);
 		Bundle fragmentArguments = PointCommentsTabFragment.intentToFragmentArguments(getIntent());
 		TabListener<PointCommentsTabFragment> commentsTabListener = new TabListener<PointCommentsTabFragment>(
 				this, FragmentTag.POINT_COMMENTS, PointCommentsTabFragment.class, fragmentArguments);
@@ -160,7 +170,7 @@ public class PointDetailsActivity extends BaseActivity {
 	private void addDescriptionTab() {
 
 		Tab desctiptionTab = getSupportActionBar().newTab();
-		desctiptionTab.setText(R.string.tab_title_description);
+		// desctiptionTab.setText(R.string.tab_title_description);
 		Bundle fragmentArguments = PointDescriptionTabFragment.intentToFragmentArguments(getIntent());
 		TabListener<PointDescriptionTabFragment> commentsTabListener = new TabListener<PointDescriptionTabFragment>(
 				this, FragmentTag.POINT_DESCRIPTION, PointDescriptionTabFragment.class, fragmentArguments);
@@ -172,7 +182,7 @@ public class PointDetailsActivity extends BaseActivity {
 	private void addMediaTab() {
 
 		Tab mediaTab = getSupportActionBar().newTab();
-		mediaTab.setText(R.string.tab_title_media);
+		// mediaTab.setText(R.string.tab_title_media);
 		Bundle fragmentArguments = PointMediaTabFragment.intentToFragmentArguments(getIntent());
 		TabListener<PointMediaTabFragment> mediaTabListener = new TabListener<PointMediaTabFragment>(this,
 				FragmentTag.POINT_MEDIA, PointMediaTabFragment.class, fragmentArguments);
@@ -184,7 +194,7 @@ public class PointDetailsActivity extends BaseActivity {
 	private void addSourceTab() {
 
 		Tab mediaTab = getSupportActionBar().newTab();
-		mediaTab.setText(R.string.tab_title_source);
+		// mediaTab.setText(R.string.tab_title_source);
 		Bundle fragmentArguments = PointSourcesTabFragment.intentToFragmentArguments(getIntent());
 		TabListener<PointSourcesTabFragment> mediaTabListener = new TabListener<PointSourcesTabFragment>(
 				this, FragmentTag.POINT_SOURCE, PointSourcesTabFragment.class, fragmentArguments);
@@ -229,6 +239,27 @@ public class PointDetailsActivity extends BaseActivity {
 			getSupportActionBar()
 					.setSelectedNavigationItem(savedInstanceState.getInt(EXTRA_KEY_TAB_INDEX, 0));
 		}
+	}
+
+	private void showChangeTopicDialog() {
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.dialog_title_attach);
+		final Cursor cursor = getContentResolver().query(Topics.CONTENT_URI, null, null, null, null);
+		builder.setCursor(cursor, new OnClickListener() {
+
+			@Override
+			public void onClick(final DialogInterface dialog, final int which) {
+
+				int nameColumeIndex = cursor.getColumnIndexOrThrow(Topics.Columns.NAME);
+				int idColumeIndex = cursor.getColumnIndexOrThrow(Topics.Columns.ID);
+				if (cursor.moveToPosition(which)) {
+					Log.d(TAG, "Selected topic name: " + cursor.getString(nameColumeIndex) + " , id: "
+							+ cursor.getInt(idColumeIndex));
+				}
+			}
+		}, Topics.Columns.NAME);
+		builder.create().show();
 	}
 
 	private final class FragmentTag {

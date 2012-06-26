@@ -3,26 +3,34 @@ package com.slobodastudio.discussions.ui.activities;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.PreferenceHelper;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.DiscussionUser;
 import com.slobodastudio.discussions.photon.PhotonServiceCallback;
 import com.slobodastudio.discussions.ui.ExtraKey;
-import com.slobodastudio.discussions.ui.fragments.PointsFragment;
+import com.slobodastudio.discussions.ui.IntentAction;
+import com.slobodastudio.discussions.ui.PointsListPagerAdaptor;
+import com.slobodastudio.discussions.ui.fragments.OtherUserPointListFragment;
+import com.slobodastudio.discussions.ui.fragments.UserPointListFragment;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
+import java.util.List;
+import java.util.Vector;
+
 public class PointsActivity extends BaseActivity implements PhotonServiceCallback {
 
 	private static final String TAG = PointsActivity.class.getSimpleName();
-	PointsFragment mFragment;
 	private int mDiscussionId;
+	private PagerAdapter mPagerAdapter;
 	private int mPersonId;
 	private String mPersonName;
 	private int mTopicId;
@@ -31,9 +39,8 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	public void onArgPointChanged(final int pointId) {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onArgPointChanged] point id: " + pointId);
+			Log.d(TAG, "[onArgPointChanged] Empty point id: " + pointId);
 		}
-		mFragment.showEmtyDetails();
 	}
 
 	@Override
@@ -84,11 +91,8 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		}
 		switch (item.getItemId()) {
 			case R.id.menu_new:
-				if (mFragment != null) {
-					mFragment.onActionNew();
-				} else {
-					Toast.makeText(this, "New button press was skipped", Toast.LENGTH_SHORT).show();
-				}
+				Intent intent = createNewPointIntent();
+				startActivity(intent);
 				return true;
 			case R.id.menu_refresh:
 				onRefreshCurrentTopic();
@@ -119,14 +123,6 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	}
 
 	@Override
-	protected void onActivityResult(final int arg0, final int arg1, final Intent arg2) {
-
-		Log.d(TAG, "[onActivityResult] ");
-		// TODO need to call super for a fragment handled
-		super.onActivityResult(arg0, arg1, arg2);
-	}
-
-	@Override
 	protected void onControlServiceConnected() {
 
 		connectPhoton();
@@ -137,9 +133,9 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 
 		super.onCreate(savedInstanceState);
 		initFromIntentExtra();
-		setContentView(R.layout.activity_points);
-		FragmentManager fm = getSupportFragmentManager();
-		mFragment = (PointsFragment) fm.findFragmentById(R.id.fragment_points);
+		setContentView(R.layout.activity_new_points);
+		// initialsie the pager
+		initialisePaging();
 	}
 
 	private void connectPhoton() {
@@ -149,6 +145,16 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 					PreferenceHelper.getPhotonDbAddress(this), mPersonName, mPersonId);
 			mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
 		}
+	}
+
+	private Intent createNewPointIntent() {
+
+		Intent intent = new Intent(IntentAction.NEW, Points.CONTENT_URI);
+		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
+		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
+		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
+		intent.putExtra(ExtraKey.POINT_ID, Integer.MIN_VALUE);
+		return intent;
 	}
 
 	private void initFromIntentExtra() {
@@ -176,6 +182,16 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 			Log.d(TAG, "[initFromIntentExtras] personId: " + mPersonId + ", topicId: " + mTopicId
 					+ ", discussionId: " + mDiscussionId + ", personName: " + mPersonName);
 		}
+	}
+
+	private void initialisePaging() {
+
+		List<Fragment> fragments = new Vector<Fragment>();
+		fragments.add(Fragment.instantiate(this, UserPointListFragment.class.getName()));
+		fragments.add(Fragment.instantiate(this, OtherUserPointListFragment.class.getName()));
+		mPagerAdapter = new PointsListPagerAdaptor(getSupportFragmentManager(), fragments);
+		ViewPager pager = (ViewPager) super.findViewById(R.id.viewpager);
+		pager.setAdapter(mPagerAdapter);
 	}
 
 	private void startDiscussionInfoActivity() {

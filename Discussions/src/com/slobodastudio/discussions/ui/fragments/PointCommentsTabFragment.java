@@ -333,6 +333,7 @@ public class PointCommentsTabFragment extends SherlockFragment {
 						int nameColumnIndex = data.getColumnIndexOrThrow(Points.Columns.NAME);
 						String name = data.getString(nameColumnIndex);
 						mPointNameTextView.setText(name);
+						getSherlockActivity().getSupportActionBar().setTitle(name);
 					}
 					break;
 				default:

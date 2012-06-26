@@ -154,25 +154,17 @@ public class OdataWriteClient extends BaseOdataClient {
 
 		// @formatter:off
 		OCreateRequest<OEntity> request = mConsumer.createEntity(Points.TABLE_NAME)
-				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, point.getAgreementCode()))
-				.properties(OProperties.boolean_(Points.Columns.EXPANDED, point.isExpanded()))
-				.properties(OProperties.string(Points.Columns.NUMBERED_POINT, point.getNumberedPoint()))
-				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(point.getPersonId())))
+				.properties(OProperties.boolean_(Points.Columns.CHANGES_PENDING, point.isChangesPending()))
 				.properties(OProperties.string(Points.Columns.NAME, point.getName()))
-				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(point.isSharedToPublic())))
-				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))	
+				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(point.getPersonId())))
 				.properties(OProperties.string(Points.Columns.RECENTLY_ENTERED_MEDIA_URL, point.getRecentlyEnteredMediaUrl()))
 				.properties(OProperties.string(Points.Columns.RECENTLY_ENTERED_SOURCE, point.getRecentlyEnteredSource()))
+				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(point.isSharedToPublic())))
+				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))	
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())));
 		// @formatter:on
-		if (point.getDrawing() != null) {
-			request.properties(OProperties.binary(Points.Columns.DRAWING, point.getDrawing()));
-		}
-		if (point.getGroupId() != null) {
+		if (point.getGroupId() != Integer.MIN_VALUE) {
 			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())));
-		}
-		if (point.getNumberedPoint() != null) {
-			request.properties(OProperties.string(Points.Columns.NUMBERED_POINT, point.getNumberedPoint()));
 		}
 		return request.execute();
 	}
@@ -241,19 +233,20 @@ public class OdataWriteClient extends BaseOdataClient {
 	public boolean updatePoint(final Point point) {
 
 		// @formatter:off
-		return mConsumer.mergeEntity(Points.TABLE_NAME, point.getId())
-				.properties(OProperties.int32(Points.Columns.AGREEMENT_CODE, point.getAgreementCode()))
-				.properties(OProperties.binary(Points.Columns.DRAWING, point.getDrawing()))
-				.properties(OProperties.boolean_(Points.Columns.EXPANDED, point.isExpanded()))
-				//.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())))
-				.properties(OProperties.string(Points.Columns.NUMBERED_POINT, point.getNumberedPoint()))
-				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(point.getPersonId())))
+		OModifyRequest<OEntity> request = mConsumer.mergeEntity(Points.TABLE_NAME, point.getId())
+				.properties(OProperties.boolean_(Points.Columns.CHANGES_PENDING, point.isChangesPending()))
 				.properties(OProperties.string(Points.Columns.NAME, point.getName()))
+				.link(Points.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(point.getPersonId())))
+				.properties(OProperties.string(Points.Columns.RECENTLY_ENTERED_MEDIA_URL, point.getRecentlyEnteredMediaUrl()))
+				.properties(OProperties.string(Points.Columns.RECENTLY_ENTERED_SOURCE, point.getRecentlyEnteredSource()))
 				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(point.isSharedToPublic())))
-				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))		
-				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())))
-				.execute();
+				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))	
+				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())));
 		// @formatter:on
+		if (point.getGroupId() != Integer.MIN_VALUE) {
+			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())));
+		}
+		return request.execute();
 	}
 
 	private void deleteAttachmentsByPointId(final int pointId) {

@@ -125,6 +125,11 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 
 	public void onActionSave() {
 
+		onActionSave(mTopicId);
+	}
+
+	public void onActionSave(final int topicId) {
+
 		// description is first because notify server by point change
 		if (mDescriptionId != Integer.MIN_VALUE) {
 			// update description
@@ -133,19 +138,12 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			((BaseActivity) getActivity()).getServiceHelper().updateDescription(description.toBundle());
 		}
 		Point point = new Point();
-		point.setAgreementCode(Points.ArgreementCode.UNSOLVED);
-		point.setDrawing(null);
-		point.setExpanded(false);
-		point.setGroupId(null);
-		point.setNumberedPoint(null);
-		point.setRecentlyEnteredMediaUrl("");
-		point.setRecentlyEnteredSource("");
 		//
 		point.setPersonId(mPersonId);
 		point.setName(mNameEditText.getText().toString());
 		point.setSharedToPublic(mSharedToPublicCheckBox.isChecked());
 		point.setSideCode(getSelectedSideCodeId());
-		point.setTopicId(mTopicId);
+		point.setTopicId(topicId);
 		if (mPointId != INVALID_POINT_ID) {
 			// update point
 			point.setId(mPointId);
@@ -413,7 +411,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			}
 			switch (loader.getId()) {
 				case POINT_ID: {
-					if (data.getCount() == 1) {
+					if (data.moveToFirst()) {
 						mPointCursor = data;
 						Point value = new Point(mPointCursor);
 						mPointId = value.getId();
@@ -427,7 +425,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 						args.putInt(ExtraKey.POINT_ID, mPointId);
 						getLoaderManager().initLoader(DESCRIPTION_ID, args, this);
 					} else {
-						Log.w(TAG, "[onLoadFinished] LOADER_POINT_ID count was: " + data.getCount());
+						Log.w(TAG, "[onLoadFinished] Cant move to first item. LOADER_POINT_ID count was: "
+								+ data.getCount());
 					}
 					break;
 				}

@@ -24,7 +24,7 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "discussions.db";
 	// NOTE: carefully update onUpgrade() when bumping database versions to make
 	// sure user data is saved.
-	private static final int DATABASE_VERSION = 47;
+	private static final int DATABASE_VERSION = 48;
 	private static final String TAG = DiscussionsDatabase.class.getSimpleName();
 
 	/** @param context
@@ -101,15 +101,12 @@ public class DiscussionsDatabase extends SQLiteOpenHelper {
 				+ Points.Columns.PERSON_ID + " INTEGER NOT NULL " + References.PERSON_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 				+ Points.Columns.TOPIC_ID + " INTEGER NOT NULL " + References.TOPIC_ID + " ON UPDATE CASCADE ON DELETE CASCADE,"
 			    + Points.Columns.GROUP_ID + " INTEGER,"
-				+ Points.Columns.AGREEMENT_CODE + " INTEGER NOT NULL,"
-				+ Points.Columns.DRAWING + " TEXT,"
-				+ Points.Columns.EXPANDED + " INTEGER NOT NULL,"
-				+ Points.Columns.NUMBERED_POINT + " TEXT,"
 				+ Points.Columns.NAME + " TEXT NOT NULL,"
 				+ Points.Columns.SHARED_TO_PUBLIC + " INTEGER NOT NULL,"
+				+ Points.Columns.CHANGES_PENDING + " INTEGER NOT NULL,"
 				+ Points.Columns.SIDE_CODE + " INTEGER NOT NULL,"
-				+ Points.Columns.RECENTLY_ENTERED_MEDIA_URL + " TEXT,"
-				+ Points.Columns.RECENTLY_ENTERED_SOURCE + " TEXT,"
+				+ Points.Columns.RECENTLY_ENTERED_MEDIA_URL + " TEXT NOT NULL,"
+				+ Points.Columns.RECENTLY_ENTERED_SOURCE + " TEXT NOT NULL,"
 				+ " UNIQUE (" + Points.Columns.ID + ") ON CONFLICT REPLACE)");
 		
 		db.execSQL("CREATE TABLE " + Attachments.TABLE_NAME + " (" 

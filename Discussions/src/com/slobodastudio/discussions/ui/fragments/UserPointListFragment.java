@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -34,6 +37,8 @@ public class UserPointListFragment extends SherlockListFragment {
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
+		initFromIntentExtra();
+		addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
 		mUserPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null,
 				new String[] { Points.Columns.NAME, Points.Columns.ID }, new int[] { R.id.list_item_text,
@@ -72,6 +77,16 @@ public class UserPointListFragment extends SherlockListFragment {
 		onActionEdit(position);
 	}
 
+	private void addListHeader() {
+
+		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
+				Context.LAYOUT_INFLATER_SERVICE);
+		View headerView = layoutInflater.inflate(R.layout.view_point_list_header, null, false);
+		TextView mPointListTitleTextView = (TextView) headerView.findViewById(R.id.points_listview_header);
+		mPointListTitleTextView.setText(R.string.text_current_user_points);
+		getListView().addHeaderView(headerView);
+	}
+
 	private Intent createEditPointIntent(final int pointId) {
 
 		Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(pointId));
@@ -82,10 +97,30 @@ public class UserPointListFragment extends SherlockListFragment {
 		return intent;
 	}
 
+	private void initFromIntentExtra() {
+
+		if (!getActivity().getIntent().hasExtra(ExtraKey.PERSON_ID)) {
+			throw new IllegalStateException("Activity intent was without person id");
+		}
+		if (!getActivity().getIntent().hasExtra(ExtraKey.TOPIC_ID)) {
+			throw new IllegalStateException("Activity intent was without topic id");
+		}
+		if (!getActivity().getIntent().hasExtra(ExtraKey.DISCUSSION_ID)) {
+			throw new IllegalStateException("Activity intent was without discussion id");
+		}
+		mDiscussionId = getActivity().getIntent().getExtras().getInt(ExtraKey.DISCUSSION_ID);
+		mPersonId = getActivity().getIntent().getExtras().getInt(ExtraKey.PERSON_ID);
+		mTopicId = getActivity().getIntent().getExtras().getInt(ExtraKey.TOPIC_ID);
+		if (DEBUG) {
+			Log.d(TAG, "[initFromIntentExtras] personId: " + mPersonId + ", topicId: " + mTopicId);
+		}
+	}
+
 	private void onActionEdit(final int position) {
 
+		// position - 1 because of header
 		if ((mUserPointsAdapter.getCursor() != null)
-				&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
+				&& mUserPointsAdapter.getCursor().moveToPosition(position - 1)) {
 			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
 			int pointId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
 			Intent intent = createEditPointIntent(pointId);
