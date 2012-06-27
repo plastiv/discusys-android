@@ -73,9 +73,7 @@ public class PointDetailsActivity extends BaseActivity {
 				finish();
 				return true;
 			case R.id.menu_change_topic:
-				showChangeTopicDialog();
-				// descriptionTabFragment.onActionSave();
-				// finish();
+				showChangeTopicDialog(descriptionTabFragment);
 				return true;
 			case android.R.id.home:
 				finish();
@@ -142,7 +140,6 @@ public class PointDetailsActivity extends BaseActivity {
 	private void addCommentsTab() {
 
 		Tab commentsTab = getSupportActionBar().newTab();
-		// commentsTab.setText(R.string.tab_title_comments);
 		Bundle fragmentArguments = PointCommentsTabFragment.intentToFragmentArguments(getIntent());
 		TabListener<PointCommentsTabFragment> commentsTabListener = new TabListener<PointCommentsTabFragment>(
 				this, FragmentTag.POINT_COMMENTS, PointCommentsTabFragment.class, fragmentArguments);
@@ -170,7 +167,6 @@ public class PointDetailsActivity extends BaseActivity {
 	private void addDescriptionTab() {
 
 		Tab desctiptionTab = getSupportActionBar().newTab();
-		// desctiptionTab.setText(R.string.tab_title_description);
 		Bundle fragmentArguments = PointDescriptionTabFragment.intentToFragmentArguments(getIntent());
 		TabListener<PointDescriptionTabFragment> commentsTabListener = new TabListener<PointDescriptionTabFragment>(
 				this, FragmentTag.POINT_DESCRIPTION, PointDescriptionTabFragment.class, fragmentArguments);
@@ -182,7 +178,6 @@ public class PointDetailsActivity extends BaseActivity {
 	private void addMediaTab() {
 
 		Tab mediaTab = getSupportActionBar().newTab();
-		// mediaTab.setText(R.string.tab_title_media);
 		Bundle fragmentArguments = PointMediaTabFragment.intentToFragmentArguments(getIntent());
 		TabListener<PointMediaTabFragment> mediaTabListener = new TabListener<PointMediaTabFragment>(this,
 				FragmentTag.POINT_MEDIA, PointMediaTabFragment.class, fragmentArguments);
@@ -194,7 +189,6 @@ public class PointDetailsActivity extends BaseActivity {
 	private void addSourceTab() {
 
 		Tab mediaTab = getSupportActionBar().newTab();
-		// mediaTab.setText(R.string.tab_title_source);
 		Bundle fragmentArguments = PointSourcesTabFragment.intentToFragmentArguments(getIntent());
 		TabListener<PointSourcesTabFragment> mediaTabListener = new TabListener<PointSourcesTabFragment>(
 				this, FragmentTag.POINT_SOURCE, PointSourcesTabFragment.class, fragmentArguments);
@@ -241,7 +235,7 @@ public class PointDetailsActivity extends BaseActivity {
 		}
 	}
 
-	private void showChangeTopicDialog() {
+	private void showChangeTopicDialog(final PointDescriptionTabFragment descriptionTabFragment) {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.dialog_title_attach);
@@ -256,6 +250,7 @@ public class PointDetailsActivity extends BaseActivity {
 				if (cursor.moveToPosition(which)) {
 					Log.d(TAG, "Selected topic name: " + cursor.getString(nameColumeIndex) + " , id: "
 							+ cursor.getInt(idColumeIndex));
+					descriptionTabFragment.onActionSave(cursor.getInt(idColumeIndex));
 				}
 			}
 		}, Topics.Columns.NAME);
