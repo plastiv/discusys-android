@@ -1,6 +1,6 @@
 package com.slobodastudio.discussions.photon.constants;
 
-import de.exitgames.client.photon.LiteOpCode;
+import de.exitgames.client.photon.enums.LiteOpCode;
 
 public class DiscussionOperationCode {
 

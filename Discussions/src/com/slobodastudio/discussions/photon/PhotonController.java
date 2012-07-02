@@ -21,14 +21,14 @@ import android.util.Log;
 
 import de.exitgames.client.photon.EventData;
 import de.exitgames.client.photon.IPhotonPeerListener;
-import de.exitgames.client.photon.LiteEventKey;
-import de.exitgames.client.photon.LiteOpCode;
-import de.exitgames.client.photon.LiteOpKey;
 import de.exitgames.client.photon.LitePeer;
 import de.exitgames.client.photon.OperationResponse;
 import de.exitgames.client.photon.StatusCode;
 import de.exitgames.client.photon.TypedHashMap;
 import de.exitgames.client.photon.enums.DebugLevel;
+import de.exitgames.client.photon.enums.LiteEventKey;
+import de.exitgames.client.photon.enums.LiteOpCode;
+import de.exitgames.client.photon.enums.LiteOpKey;
 import de.exitgames.client.photon.enums.PeerStateValue;
 
 import java.util.ArrayList;
@@ -153,7 +153,7 @@ public class PhotonController implements IPhotonPeerListener {
 				// This event provides the current list of actors and a actorNumber of the player who is new.
 				// get the list of current players and check it against local list - create any that's not yet
 				// there
-				Integer[] actorsInGame = (Integer[]) event.Parameters.get(LiteEventKey.ActorList.value());
+				Integer[] actorsInGame = (Integer[]) event.Parameters.get(LiteEventKey.ActorList);
 				ArrayList<Integer> unknownActors = new ArrayList<Integer>();
 				for (Integer i : actorsInGame) {
 					if (i.intValue() != mLocalUser.getActorNumber()) {
@@ -168,7 +168,7 @@ public class PhotonController implements IPhotonPeerListener {
 				break;
 			case DiscussionEventCode.LEAVE:
 				// Event is defined by Lite. Someone left the room.
-				Integer leftActorNumber = (Integer) event.Parameters.get(LiteEventKey.ActorNr.value());
+				Integer leftActorNumber = (Integer) event.Parameters.get(LiteEventKey.ActorNr);
 				mCallbackHandler.onEventLeave(mOnlineUsers.get(leftActorNumber));
 				mOnlineUsers.remove(leftActorNumber);
 				logUsersOnline();
@@ -241,16 +241,16 @@ public class PhotonController implements IPhotonPeerListener {
 				// ignore it, just for tests
 				break;
 			case DiscussionOperationCode.JOIN:
-				if (operationResponse.Parameters.containsKey(LiteOpKey.ActorNr.value())) {
-					mLocalUser.setActorNumber(((Integer) operationResponse.Parameters.get(LiteOpKey.ActorNr
-							.value())).intValue());
+				if (operationResponse.Parameters.containsKey(LiteOpKey.ActorNr)) {
+					mLocalUser.setActorNumber(((Integer) operationResponse.Parameters.get(LiteOpKey.ActorNr))
+							.intValue());
 				} else {
 					throw new IllegalStateException(
 							"Expected an actor number here to update local user number");
 				}
-				if (operationResponse.Parameters.containsKey(LiteOpKey.ActorProperties.value())) {
+				if (operationResponse.Parameters.containsKey(LiteOpKey.ActorProperties)) {
 					HashMap<Integer, Object> resp = (HashMap<Integer, Object>) operationResponse.Parameters
-							.get(LiteOpKey.ActorProperties.value());
+							.get(LiteOpKey.ActorProperties);
 					updateOnlineUsers(resp);
 				} else {
 					// no users online, we are first
@@ -267,7 +267,7 @@ public class PhotonController implements IPhotonPeerListener {
 				break;
 			case DiscussionOperationCode.GET_PROPERTIES:
 				HashMap<Integer, Object> resp = (HashMap<Integer, Object>) operationResponse.Parameters
-						.get(LiteOpKey.ActorProperties.value());
+						.get(LiteOpKey.ActorProperties);
 				updateOnlineUsers(resp);
 				logUsersOnline();
 				break;
@@ -428,8 +428,8 @@ public class PhotonController implements IPhotonPeerListener {
 		TypedHashMap<Byte, Object> joinParameters = new TypedHashMap<Byte, Object>(Byte.class, Object.class);
 		joinParameters.put(LiteLobbyOpKey.RoomName, gameName);
 		joinParameters.put(LiteLobbyOpKey.LobbyName, lobbyName);
-		joinParameters.put(LiteOpKey.ActorProperties.value(), actorProperties);
-		joinParameters.put(LiteOpKey.Broadcast.value(), broadcastActorProperties);
+		joinParameters.put(LiteOpKey.ActorProperties, actorProperties);
+		joinParameters.put(LiteOpKey.Broadcast, broadcastActorProperties);
 		return mPeer.opCustom(LiteOpCode.Join, joinParameters, true);
 	}
 

@@ -1,6 +1,6 @@
 package com.slobodastudio.discussions.photon.constants;
 
-import de.exitgames.client.photon.LiteEventCode;
+import de.exitgames.client.photon.enums.LiteEventCode;
 
 public class DiscussionEventCode {
 
