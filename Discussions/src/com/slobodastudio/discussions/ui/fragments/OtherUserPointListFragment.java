@@ -29,6 +29,7 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = OtherUserPointListFragment.class.getSimpleName();
 	private int mDiscussionId;
+	private int mOriginPersonId;
 	private SimpleCursorAdapter mOtherPointsAdapter;
 	private int mPersonId;
 	private TextView mPointListTitleTextView;
@@ -94,7 +95,7 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 
 		Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(pointId));
 		intent.putExtra(ExtraKey.POINT_ID, pointId);
-		intent.putExtra(ExtraKey.ORIGIN_PERSON_ID, mPersonId);
+		intent.putExtra(ExtraKey.ORIGIN_PERSON_ID, mOriginPersonId);
 		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
 		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
 		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
@@ -115,8 +116,12 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 		if (!getArguments().containsKey(ExtraKey.PERSON_ID)) {
 			throw new IllegalStateException("Arguments was without person id");
 		}
+		if (!getArguments().containsKey(ExtraKey.ORIGIN_PERSON_ID)) {
+			throw new IllegalStateException("Arguments was without origin person id");
+		}
 		mDiscussionId = getActivity().getIntent().getExtras().getInt(ExtraKey.DISCUSSION_ID);
 		mPersonId = getArguments().getInt(ExtraKey.PERSON_ID);
+		mOriginPersonId = getArguments().getInt(ExtraKey.ORIGIN_PERSON_ID);
 		mTopicId = getActivity().getIntent().getExtras().getInt(ExtraKey.TOPIC_ID);
 		if (DEBUG) {
 			Log.d(TAG, "[initFromIntentExtras] personId: " + mPersonId + ", topicId: " + mTopicId);

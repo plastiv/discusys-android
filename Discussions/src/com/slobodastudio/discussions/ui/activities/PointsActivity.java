@@ -129,6 +129,23 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		}
 	}
 
+	@Override
+	protected void onControlServiceConnected() {
+
+		connectPhoton();
+	}
+
+	@Override
+	protected void onCreate(final Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+		initFromIntentExtra();
+		setContentView(R.layout.activity_new_points);
+		pager = (ViewPager) super.findViewById(R.id.viewpager);
+		getSupportLoaderManager().initLoader(PersonsCursorLoader.LOADER_TOPIC_PERSONS, null,
+				new PersonsCursorLoader());
+	}
+
 	private void connectPhoton() {
 
 		if (mBound && !mService.getPhotonController().isConnected()) {
@@ -184,23 +201,6 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		startActivity(discussionInfoIntent);
 	}
 
-	@Override
-	protected void onControlServiceConnected() {
-
-		connectPhoton();
-	}
-
-	@Override
-	protected void onCreate(final Bundle savedInstanceState) {
-
-		super.onCreate(savedInstanceState);
-		initFromIntentExtra();
-		setContentView(R.layout.activity_new_points);
-		pager = (ViewPager) super.findViewById(R.id.viewpager);
-		getSupportLoaderManager().initLoader(PersonsCursorLoader.LOADER_TOPIC_PERSONS, null,
-				new PersonsCursorLoader());
-	}
-
 	private class PersonsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
 		private static final int LOADER_TOPIC_PERSONS = 1;
@@ -241,7 +241,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 			}
 		}
 
-		private void initializePaging(Cursor cursor) {
+		private void initializePaging(final Cursor cursor) {
 
 			Log.d(TAG, "[initializePaging]");
 			List<Fragment> fragments = new Vector<Fragment>();
@@ -252,6 +252,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 				if (personId != mPersonId) {
 					Bundle arguments = new Bundle(1);
 					arguments.putInt(ExtraKey.PERSON_ID, personId);
+					arguments.putInt(ExtraKey.ORIGIN_PERSON_ID, mPersonId);
 					fragments.add(Fragment.instantiate(PointsActivity.this, OtherUserPointListFragment.class
 							.getName(), arguments));
 				}

@@ -138,7 +138,6 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			((BaseActivity) getActivity()).getServiceHelper().updateDescription(description.toBundle());
 		}
 		Point point = new Point();
-		//
 		point.setPersonId(mPersonId);
 		point.setName(mNameEditText.getText().toString());
 		point.setSharedToPublic(mSharedToPublicCheckBox.isChecked());
@@ -193,9 +192,6 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			text.setText(getActivity().getString(R.string.text_select_point));
 			return text;
 		}
-		// if (savedInstanceState != null) {
-		// return super.onCreateView(inflater, container, savedInstanceState);
-		// }
 		mFragmentState = getCurrentState(getArguments());
 		// setup layout
 		RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.tab_fragment_point_description,

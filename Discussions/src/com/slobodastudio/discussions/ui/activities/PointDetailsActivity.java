@@ -20,6 +20,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -67,8 +68,8 @@ public class PointDetailsActivity extends BaseActivity {
 	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
-		PointDescriptionTabFragment descriptionTabFragment = (PointDescriptionTabFragment) getSupportFragmentManager()
-				.findFragmentByTag(FragmentTag.POINT_DESCRIPTION);
+		PointDescriptionTabFragment descriptionTabFragment = (PointDescriptionTabFragment) mTabsAdapter
+				.getActiveFragment(0);
 		switch (item.getItemId()) {
 			case R.id.menu_save:
 				descriptionTabFragment.onActionSave();
@@ -90,6 +91,60 @@ public class PointDetailsActivity extends BaseActivity {
 			default:
 				return super.onOptionsItemSelected(item);
 		}
+	}
+
+	@Override
+	protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+
+		super.onActivityResult(requestCode, resultCode, data);
+		if (resultCode == Activity.RESULT_OK) {
+			Fragment sourceTabFragment = getSupportFragmentManager().findFragmentByTag(
+					FragmentTag.POINT_SOURCE);
+			if ((sourceTabFragment != null)) {
+				sourceTabFragment.onActivityResult(requestCode, resultCode, data);
+			}
+			Fragment mediaTabFragment = getSupportFragmentManager()
+					.findFragmentByTag(FragmentTag.POINT_MEDIA);
+			if ((mediaTabFragment != null)) {
+				mediaTabFragment.onActivityResult(requestCode, resultCode, data);
+			}
+		}
+	}
+
+	@Override
+	protected void onControlServiceConnected() {
+
+		connectPhoton();
+		PointMediaTabFragment mediaTabFragment = (PointMediaTabFragment) getSupportFragmentManager()
+				.findFragmentByTag(FragmentTag.POINT_MEDIA);
+		if ((mediaTabFragment != null)) {
+			mediaTabFragment.onServiceConnected();
+		}
+	}
+
+	@Override
+	protected void onCreate(final Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_point_details);
+		initFromIntentExtra(getIntent());
+		mTabHost = (TabHost) findViewById(android.R.id.tabhost);
+		mTabHost.setup();
+		mViewPager = (ViewPager) findViewById(R.id.pager);
+		mTabsAdapter = new TabsAdapter(this, mTabHost, mViewPager);
+		setubTabs();
+		if (savedInstanceState != null) {
+			mTabHost.setCurrentTabByTag(savedInstanceState.getString(EXTRA_KEY_TAB));
+		} else if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
+			mTabHost.setCurrentTabByTag(FragmentTag.POINT_COMMENTS);
+		}
+	}
+
+	@Override
+	protected void onSaveInstanceState(final Bundle outState) {
+
+		super.onSaveInstanceState(outState);
+		outState.putString(EXTRA_KEY_TAB, mTabHost.getCurrentTabTag());
 	}
 
 	private void connectPhoton() {
@@ -156,61 +211,6 @@ public class PointDetailsActivity extends BaseActivity {
 		builder.create().show();
 	}
 
-	@Override
-	protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-
-		Log.d(TAG, "[onActivityResult]");
-		super.onActivityResult(requestCode, resultCode, data);
-		if (resultCode == Activity.RESULT_OK) {
-			Fragment sourceTabFragment = getSupportFragmentManager().findFragmentByTag(
-					FragmentTag.POINT_SOURCE);
-			if ((sourceTabFragment != null)) {
-				sourceTabFragment.onActivityResult(requestCode, resultCode, data);
-			}
-			Fragment mediaTabFragment = getSupportFragmentManager()
-					.findFragmentByTag(FragmentTag.POINT_MEDIA);
-			if ((mediaTabFragment != null)) {
-				mediaTabFragment.onActivityResult(requestCode, resultCode, data);
-			}
-		}
-	}
-
-	@Override
-	protected void onControlServiceConnected() {
-
-		connectPhoton();
-		PointMediaTabFragment mediaTabFragment = (PointMediaTabFragment) getSupportFragmentManager()
-				.findFragmentByTag(FragmentTag.POINT_MEDIA);
-		if ((mediaTabFragment != null)) {
-			mediaTabFragment.onServiceConnected();
-		}
-	}
-
-	@Override
-	protected void onCreate(final Bundle savedInstanceState) {
-
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_point_details);
-		initFromIntentExtra(getIntent());
-		mTabHost = (TabHost) findViewById(android.R.id.tabhost);
-		mTabHost.setup();
-		mViewPager = (ViewPager) findViewById(R.id.pager);
-		mTabsAdapter = new TabsAdapter(this, mTabHost, mViewPager);
-		setubTabs();
-		if (savedInstanceState != null) {
-			mTabHost.setCurrentTabByTag(savedInstanceState.getString(EXTRA_KEY_TAB));
-		} else if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
-			mTabHost.setCurrentTabByTag(FragmentTag.POINT_COMMENTS);
-		}
-	}
-
-	@Override
-	protected void onSaveInstanceState(final Bundle outState) {
-
-		super.onSaveInstanceState(outState);
-		outState.putString(EXTRA_KEY_TAB, mTabHost.getCurrentTabTag());
-	}
-
 	/** This is a helper class that implements the management of tabs and all details of connecting a ViewPager
 	 * with associated TabHost. It relies on a trick. Normally a tab host has a simple API for supplying a
 	 * View or Intent that each tab will show. This is not sufficient for switching between pages. So instead
@@ -221,6 +221,7 @@ public class PointDetailsActivity extends BaseActivity {
 			ViewPager.OnPageChangeListener {
 
 		private final Context mContext;
+		private final FragmentManager mFragmentManager;
 		private final TabHost mTabHost;
 		private final ArrayList<TabInfo> mTabs = new ArrayList<TabInfo>();
 		private final ViewPager mViewPager;
@@ -228,12 +229,18 @@ public class PointDetailsActivity extends BaseActivity {
 		public TabsAdapter(final FragmentActivity activity, final TabHost tabHost, final ViewPager pager) {
 
 			super(activity.getSupportFragmentManager());
+			mFragmentManager = activity.getSupportFragmentManager();
 			mContext = activity;
 			mTabHost = tabHost;
 			mViewPager = pager;
 			mTabHost.setOnTabChangedListener(this);
 			mViewPager.setAdapter(this);
 			mViewPager.setOnPageChangeListener(this);
+		}
+
+		private static String makeFragmentName(final int viewId, final int index) {
+
+			return "android:switcher:" + viewId + ":" + index;
 		}
 
 		public void addTab(final TabHost.TabSpec tabSpec, final Class<?> clss, final Bundle args) {
@@ -244,6 +251,12 @@ public class PointDetailsActivity extends BaseActivity {
 			mTabs.add(info);
 			mTabHost.addTab(tabSpec);
 			notifyDataSetChanged();
+		}
+
+		public Fragment getActiveFragment(final int position) {
+
+			String name = makeFragmentName(mViewPager.getId(), position);
+			return mFragmentManager.findFragmentByTag(name);
 		}
 
 		@Override
@@ -273,7 +286,6 @@ public class PointDetailsActivity extends BaseActivity {
 		@Override
 		public void onPageSelected(final int position) {
 
-			Log.d(TAG, "[onPageSelected] position: " + position);
 			// Unfortunately when TabHost changes the current tab, it kindly
 			// also takes care of putting focus on it when not in touch mode.
 			// The jerk.
@@ -290,7 +302,6 @@ public class PointDetailsActivity extends BaseActivity {
 		public void onTabChanged(final String tabId) {
 
 			int position = mTabHost.getCurrentTab();
-			Log.d(TAG, "[onTabChanged] position: " + position);
 			mViewPager.setCurrentItem(position);
 		}
 
