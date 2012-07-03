@@ -44,17 +44,17 @@ import java.util.TimerTask;
 
 public class PhotonController implements IPhotonPeerListener {
 
-	static final String TAG = PhotonController.class.getSimpleName();
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int INVALID_POINT_ID = -1;
 	private static final int INVALID_TOPIC_ID = -1;
-	LitePeer mPeer;
-	Timer mTimer;
+	static final String TAG = PhotonController.class.getSimpleName();
 	private final PhotonServiceCallbackHandler mCallbackHandler;
 	private String mGameLobbyName;
 	private DiscussionUser mLocalUser;
 	private final Hashtable<Integer, DiscussionUser> mOnlineUsers;
 	private final SyncResultReceiver mSyncResultReceiver;
+	LitePeer mPeer;
+	Timer mTimer;
 
 	public PhotonController() {
 
@@ -206,18 +206,9 @@ public class PhotonController implements IPhotonPeerListener {
 				mCallbackHandler.onArgPointChanged(pointId);
 				break;
 			}
-			case DiscussionEventCode.INSTANT_USER_PLUS_MINUS:
-			case DiscussionEventCode.BADGE_GEOMETRY_CHANGED:
-			case DiscussionEventCode.BADGE_EXPANSION_CHANGED:
-			case DiscussionEventCode.USER_CURSOR_CHANGED:
-			case DiscussionEventCode.ANNOTATION_CHANGED:
-			case DiscussionEventCode.USER_ACC_PLUS_MINUS:
-			case DiscussionEventCode.STATS_EVENT:
-				break;
-			// throw new UnsupportedOperationException("Event " + DiscussionEventCode.asString(event.Code)
-			// + " not implemented yet");
 			default:
-				throw new IllegalArgumentException("Unknown event code: " + event.Code);
+				Log.e(TAG, "[onEvent] unsupported event: "
+						+ DiscussionEventCode.asString(event.Code.byteValue()));
 		}
 	}
 
@@ -271,22 +262,8 @@ public class PhotonController implements IPhotonPeerListener {
 				updateOnlineUsers(resp);
 				logUsersOnline();
 				break;
-			case DiscussionOperationCode.NOTIFY_STRUCTURE_CHANGED:
-			case DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED:
-			case DiscussionOperationCode.NOTIFY_ANNOTATION_UPDATED:
-			case DiscussionOperationCode.NOTIFY_BADGE_EXPANSION_CHANGED:
-			case DiscussionOperationCode.NOTIFY_LEAVE_USER:
-			case DiscussionOperationCode.NOTIFY_BADGE_GEOMETRY_CHANGED:
-			case DiscussionOperationCode.NOTIFY_USER_ACC_PLUS_MINUS:
-			case DiscussionOperationCode.NOTIFY_USER_CURSOR_STATE:
-			case DiscussionOperationCode.REQUEST_BADGE_GEOMETRY:
-			case DiscussionOperationCode.REQUEST_SYNC_POINTS:
-			case DiscussionOperationCode.STATS_EVENT:
-				break;
-			// throw new UnsupportedOperationException("Operation: "
-			// + DiscussionOperationCode.asString(opCode) + " not implemented yet");
 			default:
-				throw new IllegalArgumentException("Unknown operation code: " + opCode);
+				Log.e(TAG, "[onEvent] unsupported operation: " + DiscussionOperationCode.asString(opCode));
 		}
 	}
 
@@ -379,27 +356,6 @@ public class PhotonController implements IPhotonPeerListener {
 		structureChangedParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
 		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_STRUCTURE_CHANGED, structureChangedParameters,
 				true);
-	}
-
-	boolean opSendStatsEvent(final int discussionId, final int userId, final int changedTopicId,
-			final int statsEventId) {
-
-		if (!isConnected()) {
-			throw new IllegalStateException(
-					"Cant perfom operation \"opSendStatsEvent\" in disconnected state");
-		}
-		if (DEBUG) {
-			Log.d(TAG, "[opSendStatsEvent] topic id: " + changedTopicId + ", userId: " + userId
-					+ ", discussionId: " + discussionId);
-		}
-		TypedHashMap<Byte, Object> eventStatsParameters = new TypedHashMap<Byte, Object>(Byte.class,
-				Object.class);
-		eventStatsParameters.put(DiscussionParameterKey.DISCUSSION_ID, discussionId);
-		eventStatsParameters.put(DiscussionParameterKey.USER_ID, userId);
-		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, changedTopicId);
-		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEventId);
-		eventStatsParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
-		return mPeer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
 	}
 
 	private void logUsersOnline() {
@@ -505,6 +461,27 @@ public class PhotonController implements IPhotonPeerListener {
 			it.remove(); // avoids a ConcurrentModificationException
 			mCallbackHandler.onEventJoin(newUser);
 		}
+	}
+
+	boolean opSendStatsEvent(final int discussionId, final int userId, final int changedTopicId,
+			final int statsEventId) {
+
+		if (!isConnected()) {
+			throw new IllegalStateException(
+					"Cant perfom operation \"opSendStatsEvent\" in disconnected state");
+		}
+		if (DEBUG) {
+			Log.d(TAG, "[opSendStatsEvent] topic id: " + changedTopicId + ", userId: " + userId
+					+ ", discussionId: " + discussionId);
+		}
+		TypedHashMap<Byte, Object> eventStatsParameters = new TypedHashMap<Byte, Object>(Byte.class,
+				Object.class);
+		eventStatsParameters.put(DiscussionParameterKey.DISCUSSION_ID, discussionId);
+		eventStatsParameters.put(DiscussionParameterKey.USER_ID, userId);
+		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, changedTopicId);
+		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEventId);
+		eventStatsParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
+		return mPeer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
 	}
 
 	public class SyncResultReceiver extends ResultReceiver {
