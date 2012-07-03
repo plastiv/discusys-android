@@ -64,6 +64,7 @@ public class DiscussionsProvider extends ContentProvider {
 	private static final String TAG = DiscussionsProvider.class.getSimpleName();
 	private static final int TOPICS_DIR = 401;
 	private static final int TOPICS_ITEM = 400;
+	private static final int TOPICS_ITEM_PERSONS_DIR = 403;
 	private static final int TOPICS_ITEM_POINTS_DIR = 402;
 	private DiscussionsDatabase mOpenHelper;
 
@@ -169,6 +170,8 @@ public class DiscussionsProvider extends ContentProvider {
 		matcher.addURI(authority, Topics.A_TABLE_PREFIX + "/*", TOPICS_ITEM);
 		matcher.addURI(authority, Topics.A_TABLE_PREFIX + "/*/" + Points.A_TABLE_PREFIX,
 				TOPICS_ITEM_POINTS_DIR);
+		matcher.addURI(authority, Topics.A_TABLE_PREFIX + "/*/" + Persons.A_TABLE_PREFIX,
+				TOPICS_ITEM_PERSONS_DIR);
 		// comment
 		matcher.addURI(authority, Comments.A_TABLE_PREFIX, COMMENTS_DIR);
 		matcher.addURI(authority, Comments.A_TABLE_PREFIX + "/*", COMMENTS_ITEM);
@@ -257,6 +260,8 @@ public class DiscussionsProvider extends ContentProvider {
 				return Topics.CONTENT_ITEM_TYPE;
 			case TOPICS_ITEM_POINTS_DIR:
 				return Points.CONTENT_DIR_TYPE;
+			case TOPICS_ITEM_PERSONS_DIR:
+				return Persons.CONTENT_DIR_TYPE;
 			case COMMENTS_DIR:
 				return Comments.CONTENT_DIR_TYPE;
 			case COMMENTS_ITEM:
@@ -446,6 +451,19 @@ public class DiscussionsProvider extends ContentProvider {
 				builder.table(Points.TABLE_NAME).where(Points.Columns.TOPIC_ID + "=?", valueId);
 				notificationUri = Points.CONTENT_URI;
 				break;
+			}
+			case TOPICS_ITEM_PERSONS_DIR: {
+				final String valueId = Topics.getValueId(uri);
+				builder.table(PersonsTopics.TABLE_NAME + "," + Persons.TABLE_NAME).mapToTable(
+						BaseColumns._ID, Persons.TABLE_NAME).mapToTable(Persons.Columns.ID,
+						Persons.TABLE_NAME).where(
+						PersonsTopics.Columns.TOPIC_ID + "=? AND " + PersonsTopics.Columns.PERSON_ID + "="
+								+ Persons.Columns.ID, valueId);
+				notificationUri = Persons.CONTENT_URI;
+				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Persons.Columns.ID,
+						Persons.Columns.NAME, Persons.Columns.COLOR }, sortOrder);
+				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+				return c;
 			}
 			case COMMENTS_DIR: {
 				builder.table(Comments.TABLE_NAME + "," + Persons.TABLE_NAME);

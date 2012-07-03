@@ -916,6 +916,19 @@ public final class DiscussionsContract {
 			throw new UnsupportedOperationException("Class is prevented from instantiation");
 		}
 
+		/** Build {@link Uri} that references any {@link Persons} associated with the requested {@link Topics}.
+		 * 
+		 * @param valueId
+		 *            foreign key value (from server, not primary key from database!) to fetch associated
+		 *            table
+		 * 
+		 * @return a Uri for the given id */
+		public static Uri buildPersonsUri(final long valueId) {
+
+			return CONTENT_URI.buildUpon().appendPath(String.valueOf(valueId)).appendPath(
+					Persons.A_TABLE_PREFIX).build();
+		}
+
 		/** Build {@link Uri} that references any {@link Points} associated with the requested
 		 * {@link Points.Columns#TOPIC_ID}.
 		 * 
