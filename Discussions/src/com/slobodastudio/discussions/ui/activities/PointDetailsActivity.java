@@ -12,26 +12,35 @@ import com.slobodastudio.discussions.ui.fragments.PointSourcesTabFragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TabHost;
+import android.widget.TabWidget;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.ActionBar.Tab;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
+import java.util.ArrayList;
+
 public class PointDetailsActivity extends BaseActivity {
 
-	private static final String EXTRA_KEY_TAB_INDEX = "extra_key_tab_index";
+	private static final String EXTRA_KEY_TAB = "extra_key_tab";
 	private static final String TAG = PointDetailsActivity.class.getSimpleName();
 	private int discussionId;
+	private TabHost mTabHost;
+	private TabsAdapter mTabsAdapter;
+	private ViewPager mViewPager;
 	private int personId;
 	private String personName;
 
@@ -119,14 +128,15 @@ public class PointDetailsActivity extends BaseActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_point_details);
 		initFromIntentExtra(getIntent());
-		String action = getIntent().getAction();
-		if (IntentAction.NEW.equals(action)) {
-			addDescripitionFragmentOnly();
-		} else {
-			setupActionBarTabs(savedInstanceState);
-		}
-		if ((savedInstanceState == null) && Intent.ACTION_VIEW.equals(action)) {
-			getSupportActionBar().setSelectedNavigationItem(1);
+		mTabHost = (TabHost) findViewById(android.R.id.tabhost);
+		mTabHost.setup();
+		mViewPager = (ViewPager) findViewById(R.id.pager);
+		mTabsAdapter = new TabsAdapter(this, mTabHost, mViewPager);
+		setubTabs();
+		if (savedInstanceState != null) {
+			mTabHost.setCurrentTabByTag(savedInstanceState.getString(EXTRA_KEY_TAB));
+		} else if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
+			mTabHost.setCurrentTabByTag(FragmentTag.POINT_COMMENTS);
 		}
 	}
 
@@ -134,67 +144,7 @@ public class PointDetailsActivity extends BaseActivity {
 	protected void onSaveInstanceState(final Bundle outState) {
 
 		super.onSaveInstanceState(outState);
-		outState.putInt(EXTRA_KEY_TAB_INDEX, getSupportActionBar().getSelectedNavigationIndex());
-	}
-
-	private void addCommentsTab() {
-
-		Tab commentsTab = getSupportActionBar().newTab();
-		Bundle fragmentArguments = PointCommentsTabFragment.intentToFragmentArguments(getIntent());
-		TabListener<PointCommentsTabFragment> commentsTabListener = new TabListener<PointCommentsTabFragment>(
-				this, FragmentTag.POINT_COMMENTS, PointCommentsTabFragment.class, fragmentArguments);
-		commentsTab.setTabListener(commentsTabListener);
-		commentsTab.setIcon(R.drawable.ic_tab_comments);
-		getSupportActionBar().addTab(commentsTab);
-	}
-
-	private void addDescripitionFragmentOnly() {
-
-		Fragment descriptionTabFragment = getSupportFragmentManager().findFragmentByTag(
-				FragmentTag.POINT_DESCRIPTION);
-		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-		if (descriptionTabFragment == null) {
-			Bundle fragmentArguments = PointDescriptionTabFragment.intentToFragmentArguments(getIntent());
-			descriptionTabFragment = Fragment.instantiate(this, PointDescriptionTabFragment.class.getName(),
-					fragmentArguments);
-			ft.add(android.R.id.content, descriptionTabFragment, FragmentTag.POINT_DESCRIPTION);
-		} else {
-			ft.attach(descriptionTabFragment);
-		}
-		ft.commit();
-	}
-
-	private void addDescriptionTab() {
-
-		Tab desctiptionTab = getSupportActionBar().newTab();
-		Bundle fragmentArguments = PointDescriptionTabFragment.intentToFragmentArguments(getIntent());
-		TabListener<PointDescriptionTabFragment> commentsTabListener = new TabListener<PointDescriptionTabFragment>(
-				this, FragmentTag.POINT_DESCRIPTION, PointDescriptionTabFragment.class, fragmentArguments);
-		desctiptionTab.setTabListener(commentsTabListener);
-		desctiptionTab.setIcon(R.drawable.ic_tab_description);
-		getSupportActionBar().addTab(desctiptionTab);
-	}
-
-	private void addMediaTab() {
-
-		Tab mediaTab = getSupportActionBar().newTab();
-		Bundle fragmentArguments = PointMediaTabFragment.intentToFragmentArguments(getIntent());
-		TabListener<PointMediaTabFragment> mediaTabListener = new TabListener<PointMediaTabFragment>(this,
-				FragmentTag.POINT_MEDIA, PointMediaTabFragment.class, fragmentArguments);
-		mediaTab.setTabListener(mediaTabListener);
-		mediaTab.setIcon(R.drawable.ic_tab_attachments);
-		getSupportActionBar().addTab(mediaTab);
-	}
-
-	private void addSourceTab() {
-
-		Tab mediaTab = getSupportActionBar().newTab();
-		Bundle fragmentArguments = PointSourcesTabFragment.intentToFragmentArguments(getIntent());
-		TabListener<PointSourcesTabFragment> mediaTabListener = new TabListener<PointSourcesTabFragment>(
-				this, FragmentTag.POINT_SOURCE, PointSourcesTabFragment.class, fragmentArguments);
-		mediaTab.setTabListener(mediaTabListener);
-		mediaTab.setIcon(R.drawable.ic_tab_sources);
-		getSupportActionBar().addTab(mediaTab);
+		outState.putString(EXTRA_KEY_TAB, mTabHost.getCurrentTabTag());
 	}
 
 	private void connectPhoton() {
@@ -221,17 +171,21 @@ public class PointDetailsActivity extends BaseActivity {
 		personId = intent.getIntExtra(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 	}
 
-	private void setupActionBarTabs(final Bundle savedInstanceState) {
+	private void setubTabs() {
 
-		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		getSupportActionBar().setDisplayShowHomeEnabled(false);
-		addDescriptionTab();
-		addCommentsTab();
-		addMediaTab();
-		addSourceTab();
-		if (savedInstanceState != null) {
-			getSupportActionBar()
-					.setSelectedNavigationItem(savedInstanceState.getInt(EXTRA_KEY_TAB_INDEX, 0));
+		Bundle arguments = PointDescriptionTabFragment.intentToFragmentArguments(getIntent());
+		mTabsAdapter.addTab(mTabHost.newTabSpec(FragmentTag.POINT_DESCRIPTION).setIndicator(
+				getString(R.string.tab_title_description)), PointDescriptionTabFragment.class, arguments);
+		if (!IntentAction.NEW.equals(getIntent().getAction())) {
+			arguments = PointCommentsTabFragment.intentToFragmentArguments(getIntent());
+			mTabsAdapter.addTab(mTabHost.newTabSpec(FragmentTag.POINT_COMMENTS).setIndicator(
+					getString(R.string.tab_title_comments)), PointCommentsTabFragment.class, arguments);
+			arguments = PointMediaTabFragment.intentToFragmentArguments(getIntent());
+			mTabsAdapter.addTab(mTabHost.newTabSpec(FragmentTag.POINT_MEDIA).setIndicator(
+					getString(R.string.tab_title_media)), PointMediaTabFragment.class, arguments);
+			arguments = PointSourcesTabFragment.intentToFragmentArguments(getIntent());
+			mTabsAdapter.addTab(mTabHost.newTabSpec(FragmentTag.POINT_SOURCE).setIndicator(
+					getString(R.string.tab_title_source)), PointSourcesTabFragment.class, arguments);
 		}
 	}
 
@@ -257,67 +211,126 @@ public class PointDetailsActivity extends BaseActivity {
 		builder.create().show();
 	}
 
+	/** This is a helper class that implements the management of tabs and all details of connecting a ViewPager
+	 * with associated TabHost. It relies on a trick. Normally a tab host has a simple API for supplying a
+	 * View or Intent that each tab will show. This is not sufficient for switching between pages. So instead
+	 * we make the content part of the tab host 0dp high (it is not shown) and the TabsAdapter supplies its
+	 * own dummy view to show as the tab content. It listens to changes in tabs, and takes care of switch to
+	 * the correct paged in the ViewPager whenever the selected tab changes. */
+	public static class TabsAdapter extends FragmentPagerAdapter implements TabHost.OnTabChangeListener,
+			ViewPager.OnPageChangeListener {
+
+		private final Context mContext;
+		private final TabHost mTabHost;
+		private final ArrayList<TabInfo> mTabs = new ArrayList<TabInfo>();
+		private final ViewPager mViewPager;
+
+		public TabsAdapter(final FragmentActivity activity, final TabHost tabHost, final ViewPager pager) {
+
+			super(activity.getSupportFragmentManager());
+			mContext = activity;
+			mTabHost = tabHost;
+			mViewPager = pager;
+			mTabHost.setOnTabChangedListener(this);
+			mViewPager.setAdapter(this);
+			mViewPager.setOnPageChangeListener(this);
+		}
+
+		public void addTab(final TabHost.TabSpec tabSpec, final Class<?> clss, final Bundle args) {
+
+			tabSpec.setContent(new DummyTabFactory(mContext));
+			String tag = tabSpec.getTag();
+			TabInfo info = new TabInfo(tag, clss, args);
+			mTabs.add(info);
+			mTabHost.addTab(tabSpec);
+			notifyDataSetChanged();
+		}
+
+		@Override
+		public int getCount() {
+
+			return mTabs.size();
+		}
+
+		@Override
+		public Fragment getItem(final int position) {
+
+			TabInfo info = mTabs.get(position);
+			return Fragment.instantiate(mContext, info.clss.getName(), info.args);
+		}
+
+		@Override
+		public void onPageScrolled(final int position, final float positionOffset,
+				final int positionOffsetPixels) {
+
+		}
+
+		@Override
+		public void onPageScrollStateChanged(final int state) {
+
+		}
+
+		@Override
+		public void onPageSelected(final int position) {
+
+			// Unfortunately when TabHost changes the current tab, it kindly
+			// also takes care of putting focus on it when not in touch mode.
+			// The jerk.
+			// This hack tries to prevent this from pulling focus out of our
+			// ViewPager.
+			TabWidget widget = mTabHost.getTabWidget();
+			int oldFocusability = widget.getDescendantFocusability();
+			widget.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+			mTabHost.setCurrentTab(position);
+			widget.setDescendantFocusability(oldFocusability);
+		}
+
+		@Override
+		public void onTabChanged(final String tabId) {
+
+			int position = mTabHost.getCurrentTab();
+			mViewPager.setCurrentItem(position);
+		}
+
+		static class DummyTabFactory implements TabHost.TabContentFactory {
+
+			private final Context mContext;
+
+			public DummyTabFactory(final Context context) {
+
+				mContext = context;
+			}
+
+			@Override
+			public View createTabContent(final String tag) {
+
+				View v = new View(mContext);
+				v.setMinimumWidth(0);
+				v.setMinimumHeight(0);
+				return v;
+			}
+		}
+
+		static final class TabInfo {
+
+			private final Bundle args;
+			private final Class<?> clss;
+			private final String tag;
+
+			TabInfo(final String _tag, final Class<?> _class, final Bundle _args) {
+
+				tag = _tag;
+				clss = _class;
+				args = _args;
+			}
+		}
+	}
+
 	private final class FragmentTag {
 
 		private static final String POINT_COMMENTS = "point_comments_tag";
 		private static final String POINT_DESCRIPTION = "point_description_tag";
 		private static final String POINT_MEDIA = "point_media_tag";
 		private static final String POINT_SOURCE = "point_source_tag";
-	}
-
-	private class TabListener<T extends Fragment> implements ActionBar.TabListener {
-
-		private final SherlockFragmentActivity mActivity;
-		private final Bundle mArgs;
-		private final Class<T> mClass;
-		private Fragment mFragment;
-		private final String mTag;
-
-		public TabListener(final SherlockFragmentActivity activity, final String tag, final Class<T> clz,
-				final Bundle args) {
-
-			mActivity = activity;
-			mTag = tag;
-			mClass = clz;
-			mArgs = args;
-			// Check to see if we already have a fragment for this tab, probably
-			// from a previously saved state. If so, deactivate it, because our
-			// initial state is that a tab isn't shown.
-			mFragment = mActivity.getSupportFragmentManager().findFragmentByTag(mTag);
-			if ((mFragment != null) && !mFragment.isDetached()) {
-				Log.d(TAG, "[TabListener] detach fragment " + mTag);
-				FragmentTransaction ft = mActivity.getSupportFragmentManager().beginTransaction();
-				ft.detach(mFragment);
-				ft.commit();
-			}
-		}
-
-		@Override
-		public void onTabReselected(final Tab tab, final FragmentTransaction ft) {
-
-			// do nothing. Tab already present
-		}
-
-		@Override
-		public void onTabSelected(final Tab tab, final FragmentTransaction ft) {
-
-			if (mFragment == null) {
-				Log.d(TAG, "[TabListener] create fragment " + mTag);
-				mFragment = Fragment.instantiate(mActivity, mClass.getName(), mArgs);
-				ft.add(android.R.id.content, mFragment, mTag);
-			} else {
-				Log.d(TAG, "[TabListener] attach fragment " + mTag);
-				ft.attach(mFragment);
-			}
-		}
-
-		@Override
-		public void onTabUnselected(final Tab tab, final FragmentTransaction ft) {
-
-			if (mFragment != null) {
-				Log.d(TAG, "[onTabUnselected] detach fragment " + mTag);
-				ft.detach(mFragment);
-			}
-		}
 	}
 }

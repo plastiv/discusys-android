@@ -15,6 +15,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager;
@@ -26,6 +27,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -194,6 +197,17 @@ public class PointSourcesTabFragment extends SherlockFragment {
 		mSourcesAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_source, null,
 				new String[] { Sources.Columns.LINK }, new int[] { R.id.text_source_link }, 0);
 		mSourcesList.setAdapter(mSourcesAdapter);
+		mSourcesList.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(final AdapterView<?> parent, final View view, final int position,
+					final long id) {
+
+				TextView linkTextView = (TextView) view.findViewById(R.id.text_source_link);
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkTextView.getText().toString()));
+				startActivity(intent);
+			}
+		});
 	}
 
 	private class SourcesCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {

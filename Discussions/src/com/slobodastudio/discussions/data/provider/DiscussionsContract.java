@@ -963,6 +963,7 @@ public final class DiscussionsContract {
 		/** List of columns names. */
 		public static final class Columns implements BaseColumns {
 
+			public static final String ANNOTATION = "Annotation";
 			/** Type Int32. Foreign key. */
 			public static final String DISCUSSION_ID = "Discussion";
 			/** Type Int32. */
