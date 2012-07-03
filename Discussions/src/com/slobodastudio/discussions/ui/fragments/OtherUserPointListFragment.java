@@ -31,6 +31,7 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 	private int mDiscussionId;
 	private SimpleCursorAdapter mOtherPointsAdapter;
 	private int mPersonId;
+	private TextView mPointListTitleTextView;
 	private int mTopicId;
 
 	@Override
@@ -38,6 +39,7 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 
 		super.onActivityCreated(savedInstanceState);
 		initFromIntentExtra();
+		setListAdapter(null);
 		addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
 		mOtherPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null,
@@ -67,6 +69,8 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 		// Prepare the loader. Either re-connect with an existing one, or start a new one.
 		getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_OTHER_POINTS_ID, null,
 				new OtherUserPointsCursorLoader());
+		getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_PERSON_ID, null,
+				new OtherUserPointsCursorLoader());
 	}
 
 	@Override
@@ -81,7 +85,7 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
 				Context.LAYOUT_INFLATER_SERVICE);
 		View headerView = layoutInflater.inflate(R.layout.view_point_list_header, null, false);
-		TextView mPointListTitleTextView = (TextView) headerView.findViewById(R.id.points_listview_header);
+		mPointListTitleTextView = (TextView) headerView.findViewById(R.id.points_listview_header);
 		mPointListTitleTextView.setText(R.string.text_other_users_points);
 		getListView().addHeaderView(headerView);
 	}
@@ -108,8 +112,11 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 		if (!getActivity().getIntent().hasExtra(ExtraKey.DISCUSSION_ID)) {
 			throw new IllegalStateException("Activity intent was without discussion id");
 		}
+		if (!getArguments().containsKey(ExtraKey.PERSON_ID)) {
+			throw new IllegalStateException("Arguments was without person id");
+		}
 		mDiscussionId = getActivity().getIntent().getExtras().getInt(ExtraKey.DISCUSSION_ID);
-		mPersonId = getActivity().getIntent().getExtras().getInt(ExtraKey.PERSON_ID);
+		mPersonId = getArguments().getInt(ExtraKey.PERSON_ID);
 		mTopicId = getActivity().getIntent().getExtras().getInt(ExtraKey.TOPIC_ID);
 		if (DEBUG) {
 			Log.d(TAG, "[initFromIntentExtras] personId: " + mPersonId + ", topicId: " + mTopicId);
@@ -132,18 +139,20 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 	private class OtherUserPointsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
 		private static final int LOADER_OTHER_POINTS_ID = 1;
+		private static final int LOADER_PERSON_ID = 2;
 
 		@Override
 		public Loader<Cursor> onCreateLoader(final int id, final Bundle arguments) {
 
 			switch (id) {
 				case LOADER_OTHER_POINTS_ID: {
-					// String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "!=? ";
 					String[] args = { String.valueOf(mTopicId), String.valueOf(mPersonId) };
-					// String sortOrder = Points.TABLE_NAME + "." + BaseColumns._ID + " DESC";
-					String sortOrder = Persons.TABLE_NAME + "." + Persons.Columns.ID + " ASC";
 					return new CursorLoader(getActivity(), Points.CONTENT_AND_PERSON_URI, null, null, args,
-							sortOrder);
+							null);
+				}
+				case LOADER_PERSON_ID: {
+					return new CursorLoader(getActivity(), Persons.buildTableUri(mPersonId), null, null,
+							null, null);
 				}
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + id);
@@ -157,6 +166,9 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 				case LOADER_OTHER_POINTS_ID:
 					mOtherPointsAdapter.swapCursor(null);
 					break;
+				case LOADER_PERSON_ID:
+					mPointListTitleTextView.setText(R.string.text_other_users_points);
+					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
 			}
@@ -168,6 +180,14 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 			switch (loader.getId()) {
 				case LOADER_OTHER_POINTS_ID:
 					mOtherPointsAdapter.swapCursor(data);
+					break;
+				case LOADER_PERSON_ID:
+					if (data.moveToFirst()) {
+						int nameIndex = data.getColumnIndexOrThrow(Persons.Columns.NAME);
+						String name = data.getString(nameIndex);
+						mPointListTitleTextView.setText(getString(R.string.text_other_users_points_format,
+								name));
+					}
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());

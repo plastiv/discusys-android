@@ -28,6 +28,7 @@ public class UserPointListFragment extends SherlockListFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = UserPointListFragment.class.getSimpleName();
+	private View headerView;
 	private int mDiscussionId;
 	private int mPersonId;
 	private int mTopicId;
@@ -38,6 +39,7 @@ public class UserPointListFragment extends SherlockListFragment {
 
 		super.onActivityCreated(savedInstanceState);
 		initFromIntentExtra();
+		setListAdapter(null);
 		addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
 		mUserPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null,
@@ -81,7 +83,7 @@ public class UserPointListFragment extends SherlockListFragment {
 
 		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
 				Context.LAYOUT_INFLATER_SERVICE);
-		View headerView = layoutInflater.inflate(R.layout.view_point_list_header, null, false);
+		headerView = layoutInflater.inflate(R.layout.view_point_list_header, null, false);
 		TextView mPointListTitleTextView = (TextView) headerView.findViewById(R.id.points_listview_header);
 		mPointListTitleTextView.setText(R.string.text_current_user_points);
 		getListView().addHeaderView(headerView);

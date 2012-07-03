@@ -65,7 +65,8 @@
     <string name="text_empty_discussion_info">Disscussion info is empty</string>
     <string name="text_select_point">Select point to see details</string>
     <string name="text_other_users_points">Other points</string>
-    <string name="text_current_user_points">User\'s points</string>
+    <string name="text_other_users_points_format">%s points</string>
+    <string name="text_current_user_points">Your points</string>
     <string name="text_point_shoose_a_side_code">Agreement side: </string>
     <string name="text_point_name">Description</string>
     <string name="text_point_description">Description</string>

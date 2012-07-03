@@ -408,7 +408,7 @@ public class DiscussionsProvider extends ContentProvider {
 				builder.table(Points.TABLE_NAME + "," + Persons.TABLE_NAME);
 				builder.mapToTable(BaseColumns._ID, Points.TABLE_NAME).mapToTable(Points.Columns.ID,
 						Points.TABLE_NAME);
-				builder.where(Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "!=? AND "
+				builder.where(Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "=? AND "
 						+ Points.Columns.PERSON_ID + "=" + Persons.Qualified.PERSON_ID, selectionArgs);
 				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Points.Columns.ID,
 						Points.Columns.NAME, Persons.Columns.COLOR }, Points.Qualified.POINT_ID, null,

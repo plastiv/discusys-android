@@ -3,7 +3,9 @@ package com.slobodastudio.discussions.ui.activities;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.PreferenceHelper;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.photon.DiscussionUser;
 import com.slobodastudio.discussions.photon.PhotonServiceCallback;
 import com.slobodastudio.discussions.ui.ExtraKey;
@@ -13,9 +15,13 @@ import com.slobodastudio.discussions.ui.fragments.OtherUserPointListFragment;
 import com.slobodastudio.discussions.ui.fragments.UserPointListFragment;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -34,6 +40,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	private int mPersonId;
 	private String mPersonName;
 	private int mTopicId;
+	private ViewPager pager;
 
 	@Override
 	public void onArgPointChanged(final int pointId) {
@@ -122,22 +129,6 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		}
 	}
 
-	@Override
-	protected void onControlServiceConnected() {
-
-		connectPhoton();
-	}
-
-	@Override
-	protected void onCreate(final Bundle savedInstanceState) {
-
-		super.onCreate(savedInstanceState);
-		initFromIntentExtra();
-		setContentView(R.layout.activity_new_points);
-		// initialsie the pager
-		initialisePaging();
-	}
-
 	private void connectPhoton() {
 
 		if (mBound && !mService.getPhotonController().isConnected()) {
@@ -184,16 +175,6 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		}
 	}
 
-	private void initialisePaging() {
-
-		List<Fragment> fragments = new Vector<Fragment>();
-		fragments.add(Fragment.instantiate(this, UserPointListFragment.class.getName()));
-		fragments.add(Fragment.instantiate(this, OtherUserPointListFragment.class.getName()));
-		mPagerAdapter = new PointsListPagerAdaptor(getSupportFragmentManager(), fragments);
-		ViewPager pager = (ViewPager) super.findViewById(R.id.viewpager);
-		pager.setAdapter(mPagerAdapter);
-	}
-
 	private void startDiscussionInfoActivity() {
 
 		int discussionId = getIntent().getExtras().getInt(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
@@ -201,5 +182,82 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		Intent discussionInfoIntent = new Intent(Intent.ACTION_VIEW, discussionUri, this,
 				DiscussionInfoActivity.class);
 		startActivity(discussionInfoIntent);
+	}
+
+	@Override
+	protected void onControlServiceConnected() {
+
+		connectPhoton();
+	}
+
+	@Override
+	protected void onCreate(final Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+		initFromIntentExtra();
+		setContentView(R.layout.activity_new_points);
+		pager = (ViewPager) super.findViewById(R.id.viewpager);
+		getSupportLoaderManager().initLoader(PersonsCursorLoader.LOADER_TOPIC_PERSONS, null,
+				new PersonsCursorLoader());
+	}
+
+	private class PersonsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
+
+		private static final int LOADER_TOPIC_PERSONS = 1;
+
+		@Override
+		public Loader<Cursor> onCreateLoader(final int id, final Bundle arguments) {
+
+			switch (id) {
+				case LOADER_TOPIC_PERSONS:
+					return new CursorLoader(PointsActivity.this, Topics.buildPersonsUri(mTopicId), null,
+							null, null, null);
+				default:
+					throw new IllegalArgumentException("Unknown loader id: " + id);
+			}
+		}
+
+		@Override
+		public void onLoaderReset(final Loader<Cursor> loader) {
+
+			switch (loader.getId()) {
+				case LOADER_TOPIC_PERSONS:
+					// pager.setAdapter(null);
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
+			}
+		}
+
+		@Override
+		public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
+
+			switch (loader.getId()) {
+				case LOADER_TOPIC_PERSONS:
+					initializePaging(data);
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
+			}
+		}
+
+		private void initializePaging(Cursor cursor) {
+
+			Log.d(TAG, "[initializePaging]");
+			List<Fragment> fragments = new Vector<Fragment>();
+			fragments.add(Fragment.instantiate(PointsActivity.this, UserPointListFragment.class.getName()));
+			int personIdIndex = cursor.getColumnIndexOrThrow(Persons.Columns.ID);
+			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+				int personId = cursor.getInt(personIdIndex);
+				if (personId != mPersonId) {
+					Bundle arguments = new Bundle(1);
+					arguments.putInt(ExtraKey.PERSON_ID, personId);
+					fragments.add(Fragment.instantiate(PointsActivity.this, OtherUserPointListFragment.class
+							.getName(), arguments));
+				}
+			}
+			mPagerAdapter = new PointsListPagerAdaptor(getSupportFragmentManager(), fragments);
+			pager.setAdapter(mPagerAdapter);
+		}
 	}
 }
