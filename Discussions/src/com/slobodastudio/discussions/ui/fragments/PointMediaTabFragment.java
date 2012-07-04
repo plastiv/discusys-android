@@ -109,20 +109,6 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		return arguments;
 	}
 
-	public static boolean isIntentAvailable(final Context context, final Intent intent) {
-
-		final PackageManager packageManager = context.getPackageManager();
-		List<ResolveInfo> list = packageManager.queryIntentActivities(intent, 0);
-		return list.size() > 0;
-	}
-
-	public static void requestImageAttachment(final Activity activity) {
-
-		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-		intent.setType("image/jpeg");
-		activity.startActivityForResult(intent, PICK_IMAGE_REQUEST);
-	}
-
 	public static void requestYoutubeAttachment(final Activity activity) {
 
 		Intent intent = new Intent(activity, YoutubeActivity.class);
@@ -138,6 +124,11 @@ public class PointMediaTabFragment extends SherlockListFragment {
 			// If the menu object can't be cast, logs an error.
 			throw new RuntimeException("bad menuInfo: " + contextMenuInfo, e);
 		}
+	}
+
+	private static boolean isSdCardMounted() {
+
+		return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
 	}
 
 	@Override
@@ -240,17 +231,6 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		}
 	}
 
-	public void requestPdfAttachment(final Activity activity) {
-
-		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-		intent.setType("application/pdf");
-		if (isIntentAvailable(activity, intent)) {
-			activity.startActivityForResult(intent, PICK_PDF_REQUEST);
-		} else {
-			showFileExplorerNeedToBeInstalledDialog();
-		}
-	}
-
 	private void addAttachmentsFooter() {
 
 		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
@@ -304,6 +284,14 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		footerButtonsEnabled = arguments.getBoolean(ExtraKey.VIEW_ENABLED);
 	}
 
+	private boolean isIntentAvailable(final Intent intent) {
+
+		final PackageManager packageManager = getActivity().getPackageManager();
+		List<ResolveInfo> list = packageManager.queryIntentActivities(intent,
+				PackageManager.MATCH_DEFAULT_ONLY);
+		return list.size() > 0;
+	}
+
 	private void onActionDeleteAttachment(final MenuItem item) {
 
 		AdapterContextMenuInfo info = castAdapterContextMenuInfo(item.getMenuInfo());
@@ -324,6 +312,15 @@ public class PointMediaTabFragment extends SherlockListFragment {
 
 	private void requestCameraPhoto(final Activity activity) {
 
+		Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		if (!isIntentAvailable(cameraIntent)) {
+			showCameraNeedToBeInstalledDialog();
+			return;
+		}
+		if (!isSdCardMounted()) {
+			showSdCardUnmountedDialog();
+			return;
+		}
 		File imageDirectory = Environment.getExternalStorageDirectory();
 		String path = imageDirectory.toString().toLowerCase();
 		String name = imageDirectory.getName().toLowerCase();
@@ -336,10 +333,33 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		String filePathString = new File(imageDirectory, "test.jpg").getAbsolutePath();
 		values.put("_data", filePathString);
 		tempCameraFileUri = activity.getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, values);
-		Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, tempCameraFileUri);
 		activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 		activity.startActivityForResult(cameraIntent, PICK_CAMERA_PHOTO);
+	}
+
+	private void requestImageAttachment(final Activity activity) {
+
+		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+		intent.setType("image/jpeg");
+		if (isIntentAvailable(intent)) {
+			if (isSdCardMounted()) {
+				activity.startActivityForResult(intent, PICK_IMAGE_REQUEST);
+			} else {
+				showSdCardUnmountedDialog();
+			}
+		} else {}
+	}
+
+	private void requestPdfAttachment(final Activity activity) {
+
+		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+		intent.setType("application/pdf");
+		if (isIntentAvailable(intent)) {
+			activity.startActivityForResult(intent, PICK_PDF_REQUEST);
+		} else {
+			showFileExplorerNeedToBeInstalledDialog();
+		}
 	}
 
 	private void setSelectAttachClickListener(final View container) {
@@ -386,6 +406,21 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		alert.show();
 	}
 
+	private void showCameraNeedToBeInstalledDialog() {
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setMessage(R.string.dialog_text_camera_need_install_first).setCancelable(true)
+				.setPositiveButton(R.string.button_title_ok, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(final DialogInterface dialog, final int id) {
+
+						dialog.cancel();
+					}
+				});
+		builder.create().show();
+	}
+
 	private void showFileExplorerNeedToBeInstalledDialog() {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -408,8 +443,22 @@ public class PointMediaTabFragment extends SherlockListFragment {
 						dialog.cancel();
 					}
 				});
-		AlertDialog alert = builder.create();
-		alert.show();
+		builder.create().show();
+	}
+
+	private void showSdCardUnmountedDialog() {
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setMessage(R.string.dialog_text_sdcard_unmounted).setCancelable(true).setPositiveButton(
+				R.string.button_title_ok, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(final DialogInterface dialog, final int id) {
+
+						dialog.cancel();
+					}
+				});
+		builder.create().show();
 	}
 
 	private class AttachmentsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {

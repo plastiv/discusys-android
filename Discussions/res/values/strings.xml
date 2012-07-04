@@ -26,7 +26,9 @@
     <string name="dialog_title_settings_server">Server url</string>
     <string name="dialog_title_attach">Attach</string>
     <string name="dialog_text_file_explorer_need_install_first">Install file explorer application first to use attachment function. </string>
+    <string name="dialog_text_camera_need_install_first">Install camera application first to use attachment function. </string>
     <string name="dialog_text_youtube_select_video_first">Open video first to use attachment function. </string>
+    <string name="dialog_text_sdcard_unmounted">SD Card is not available. </string>
     <string name="tab_title_comments">Comments</string>
     <string name="tab_title_description">Description</string>
     <string name="tab_title_media">Media</string>
