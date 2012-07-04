@@ -37,6 +37,7 @@ import java.util.List;
 
 public class OdataReadClient extends BaseOdataClient {
 
+	// TODO: get rid of Enumarable.count() because of poor perfomance
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final boolean LOGV = false && ApplicationConstants.DEV_MODE;
 	private static final String TAG = OdataReadClient.class.getSimpleName();
@@ -94,8 +95,14 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void refreshAttachments() {
 
+		logd("[refreshAttachments]");
 		Enumerable<OEntity> attachments = getAttachmentsEntities();
-		insertAttachments(attachments);
+		int deletedCount = mContentResolver.delete(Attachments.CONTENT_URI, "1", null);
+		logd("[refreshAttachments] attachments was deleted: " + deletedCount);
+		for (OEntity attachment : attachments) {
+			insertAttachment(attachment);
+		}
+		logd("[refreshAttachments] attachments was inserted: " + attachments.count());
 	}
 
 	public void refreshComments() {
@@ -241,8 +248,14 @@ public class OdataReadClient extends BaseOdataClient {
 
 	public void refreshSources() {
 
+		logd("[refreshSources]");
 		Enumerable<OEntity> sources = getSourcesEntities();
-		insertSources(sources);
+		int deletedCount = mContentResolver.delete(Sources.CONTENT_URI, "1", null);
+		logd("[refreshSources] sources was deleted: " + deletedCount);
+		for (OEntity source : sources) {
+			insertSource(source);
+		}
+		logd("[refreshSources] sources was inserted: " + sources.count());
 	}
 
 	public void refreshTopics() {
@@ -261,56 +274,17 @@ public class OdataReadClient extends BaseOdataClient {
 		logd("[refreshTopics] topics was inserted: " + insertedTopicsCount);
 	}
 
-	public void updateAttachments(final int pointId) {
-
-		Enumerable<OEntity> attachments = getAttachmentsEntities(pointId);
-		insertAttachments(attachments);
-	}
-
-	public void updateComments(final int pointId) {
-
-		logd("[refreshComments]");
-		Enumerable<OEntity> comments = getCommentsEntities(pointId);
-		logd("[refreshComments] comment entities count: " + comments.count());
-		List<Integer> serversIds = new ArrayList<Integer>(comments.count());
-		for (OEntity comment : comments) {
-			serversIds.add(getAsInt(comment, Comments.Columns.ID));
-			insertComment(comment);
-		}
-		logd("[refreshComments] all comments was inserted");
-		// check if server has a deleted points
-		String where = Comments.Columns.POINT_ID + "=?";
-		String[] args = new String[] { String.valueOf(pointId) };
-		Cursor cur = mContentResolver.query(Comments.CONTENT_URI, new String[] { Comments.Columns.ID, },
-				where, args, null);
-		logd("[refreshComments] db comments count: " + cur.getCount());
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Comments.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int commentId = cur.getInt(idIndex);
-				if (!serversIds.contains(commentId)) {
-					// delete this row
-					logd("[refreshComments] delete point: " + commentId);
-					Uri uri = Comments.buildTableUri(commentId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
-	}
-
 	public void updatePoint(final int pointId) {
 
 		OEntity point = mConsumer.getEntity(Points.TABLE_NAME, pointId).expand(
 				Topics.TABLE_NAME + "," + Persons.TABLE_NAME + "," + "Description").execute();
 		updatePoint(point);
-		updateComments(pointId);
-		updateAttachments(pointId);
-		updateSources(point);
+		updatePointComments(pointId);
+		updatePointAttachments(pointId);
+		updatePointSources(point);
 	}
 
-	public void updatePointsFromTopic(final int topicId) {
+	public void updateTopicPoints(final int topicId) {
 
 		logd("[updatePointsFromTopic] topic id: " + topicId);
 		Enumerable<OEntity> points = mConsumer.getEntities(Points.TABLE_NAME).expand(
@@ -322,9 +296,9 @@ public class OdataReadClient extends BaseOdataClient {
 			int pointId = getAsInt(point, Points.Columns.ID);
 			serversIds.add(pointId);
 			updatePoint(point);
-			updateComments(pointId);
-			updateAttachments(pointId);
-			updateSources(point);
+			updatePointComments(pointId);
+			updatePointAttachments(pointId);
+			updatePointSources(point);
 		}
 		logd("[updatePointsFromTopic] all points was inserted");
 		// check if server has a deleted points
@@ -430,34 +404,6 @@ public class OdataReadClient extends BaseOdataClient {
 		}
 		cv.put(Attachments.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
 		return mContentResolver.insert(Attachments.CONTENT_URI, cv);
-	}
-
-	private void insertAttachments(final Enumerable<OEntity> attachments) {
-
-		logd("[refreshAttachments] entities count: " + attachments.count());
-		List<Integer> serversIds = new ArrayList<Integer>(attachments.count());
-		for (OEntity attachment : attachments) {
-			serversIds.add(getAsInt(attachment, Attachments.Columns.ID));
-			insertAttachment(attachment);
-		}
-		logd("[refreshAttachments] all attachments was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Attachments.CONTENT_URI, new String[] { Attachments.Columns.ID },
-				null, null, null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Attachments.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int attachmentId = cur.getInt(idIndex);
-				if (!serversIds.contains(attachmentId)) {
-					// delete this row
-					logd("[refreshAttachments] delete attachment: " + attachmentId);
-					Uri uri = Attachments.buildTableUri(attachmentId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
 	}
 
 	private Uri insertComment(final OEntity comment) {
@@ -634,34 +580,6 @@ public class OdataReadClient extends BaseOdataClient {
 		return mContentResolver.insert(Sources.CONTENT_URI, cv);
 	}
 
-	private void insertSources(final Enumerable<OEntity> sources) {
-
-		logd("[refreshSources] entities count: " + sources.count());
-		List<Integer> serversIds = new ArrayList<Integer>(sources.count());
-		for (OEntity source : sources) {
-			serversIds.add(getAsInt(source, Attachments.Columns.ID));
-			insertSource(source);
-		}
-		logd("[refreshSources] all sources was inserted");
-		// check if server has a deleted points
-		Cursor cur = mContentResolver.query(Sources.CONTENT_URI, new String[] { Sources.Columns.ID }, null,
-				null, null);
-		if (cur.getCount() > serversIds.size()) {
-			// local storage has deleted data
-			int idIndex = cur.getColumnIndexOrThrow(Sources.Columns.ID);
-			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
-				int sourceId = cur.getInt(idIndex);
-				if (!serversIds.contains(sourceId)) {
-					// delete this row
-					logd("[refreshSources] delete source: " + sourceId);
-					Uri uri = Sources.buildTableUri(sourceId);
-					mContentResolver.delete(uri, null, null);
-				}
-			}
-		}
-		cur.close();
-	}
-
 	private Uri insertTopic(final OEntity entity) {
 
 		// get properties
@@ -723,12 +641,112 @@ public class OdataReadClient extends BaseOdataClient {
 		return uri;
 	}
 
-	private void updateSources(final OEntity point) {
+	private void updatePointAttachments(final int pointId) {
+
+		Enumerable<OEntity> attachments = getAttachmentsEntities(pointId);
+		logd("[updatePointAttachments] entities count: " + attachments.count());
+		if (attachments.count() == 0) {
+			return;
+		}
+		List<Integer> serversIds = new ArrayList<Integer>(attachments.count());
+		for (OEntity attachment : attachments) {
+			serversIds.add(getAsInt(attachment, Attachments.Columns.ID));
+			insertAttachment(attachment);
+		}
+		logd("[updatePointAttachments] all attachments was inserted");
+		// check if server has a deleted points
+		String where = Attachments.Columns.POINT_ID + "=" + pointId;
+		Cursor cur = mContentResolver.query(Attachments.CONTENT_URI, new String[] { Attachments.Columns.ID },
+				where, null, null);
+		logd("[updatePointAttachments] local count: " + cur.getCount());
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Attachments.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int attachmentId = cur.getInt(idIndex);
+				if (!serversIds.contains(attachmentId)) {
+					// delete this row
+					logd("[updatePointAttachments] delete attachment: " + attachmentId);
+					Uri uri = Attachments.buildTableUri(attachmentId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
+	}
+
+	private void updatePointComments(final int pointId) {
+
+		logd("[refreshComments]");
+		Enumerable<OEntity> comments = getCommentsEntities(pointId);
+		logd("[refreshComments] comment entities count: " + comments.count());
+		if (comments.count() == 0) {
+			return;
+		}
+		List<Integer> serversIds = new ArrayList<Integer>(comments.count());
+		for (OEntity comment : comments) {
+			serversIds.add(getAsInt(comment, Comments.Columns.ID));
+			insertComment(comment);
+		}
+		logd("[refreshComments] all comments was inserted");
+		// check if server has a deleted points
+		String where = Comments.Columns.POINT_ID + "=?";
+		String[] args = new String[] { String.valueOf(pointId) };
+		Cursor cur = mContentResolver.query(Comments.CONTENT_URI, new String[] { Comments.Columns.ID, },
+				where, args, null);
+		logd("[refreshComments] db comments count: " + cur.getCount());
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Comments.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int commentId = cur.getInt(idIndex);
+				if (!serversIds.contains(commentId)) {
+					// delete this row
+					logd("[refreshComments] delete point: " + commentId);
+					Uri uri = Comments.buildTableUri(commentId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
+	}
+
+	private void updatePointSources(final OEntity point) {
 
 		OEntity description = point.getLink("Description", ORelatedEntityLinkInline.class).getRelatedEntity();
-		if (description != null) {
-			int descriptionId = getAsInt(description, Descriptions.Columns.ID);
-			insertSources(getSourcesEntities(descriptionId));
+		if (description == null) {
+			return;
 		}
+		int descriptionId = getAsInt(description, Descriptions.Columns.ID);
+		Enumerable<OEntity> sources = getSourcesEntities(descriptionId);
+		logd("[refreshSources] entities count: " + sources.count());
+		if (sources.count() == 0) {
+			return;
+		}
+		List<Integer> serversIds = new ArrayList<Integer>(sources.count());
+		for (OEntity source : sources) {
+			serversIds.add(getAsInt(source, Attachments.Columns.ID));
+			insertSource(source);
+		}
+		logd("[refreshSources] all sources was inserted");
+		// check if server has a deleted points
+		String where = Sources.Columns.DESCRIPTION_ID + "=" + descriptionId;
+		Cursor cur = mContentResolver.query(Sources.CONTENT_URI, new String[] { Sources.Columns.ID }, where,
+				null, null);
+		logd("[refreshSources] local sources count: " + cur.getCount());
+		if (cur.getCount() > serversIds.size()) {
+			// local storage has deleted data
+			int idIndex = cur.getColumnIndexOrThrow(Sources.Columns.ID);
+			for (cur.moveToFirst(); !cur.isAfterLast(); cur.moveToNext()) {
+				int sourceId = cur.getInt(idIndex);
+				if (!serversIds.contains(sourceId)) {
+					// delete this row
+					logd("[refreshSources] delete source: " + sourceId);
+					Uri uri = Sources.buildTableUri(sourceId);
+					mContentResolver.delete(uri, null, null);
+				}
+			}
+		}
+		cur.close();
 	}
 }

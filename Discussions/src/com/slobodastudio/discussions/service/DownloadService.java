@@ -271,7 +271,7 @@ public class DownloadService extends IntentService {
 		}
 		logd("[downloadPointsFromTopic] topic id: " + topicId);
 		OdataReadClient odata = new OdataReadClient(this);
-		odata.updatePointsFromTopic(topicId);
+		odata.updateTopicPoints(topicId);
 	}
 
 	private Integer getTableCount(final String tableName) {
