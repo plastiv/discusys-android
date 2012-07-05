@@ -11,6 +11,7 @@ import com.slobodastudio.discussions.photon.PhotonServiceCallback;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.PointsListPagerAdaptor;
+import com.slobodastudio.discussions.ui.fragments.AllOtherUserPointListFragment;
 import com.slobodastudio.discussions.ui.fragments.OtherUserPointListFragment;
 import com.slobodastudio.discussions.ui.fragments.UserPointListFragment;
 
@@ -235,6 +236,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 			switch (loader.getId()) {
 				case LOADER_TOPIC_PERSONS:
 					initializePaging(data);
+					pager.setCurrentItem(1, true);
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
@@ -243,8 +245,12 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 
 		private void initializePaging(final Cursor cursor) {
 
-			Log.d(TAG, "[initializePaging]");
 			List<Fragment> fragments = new Vector<Fragment>();
+			Bundle otherUsersArguments = new Bundle(1);
+			otherUsersArguments.putInt(ExtraKey.PERSON_ID, mPersonId);
+			otherUsersArguments.putInt(ExtraKey.ORIGIN_PERSON_ID, mPersonId);
+			fragments.add(Fragment.instantiate(PointsActivity.this, AllOtherUserPointListFragment.class
+					.getName(), otherUsersArguments));
 			fragments.add(Fragment.instantiate(PointsActivity.this, UserPointListFragment.class.getName()));
 			int personIdIndex = cursor.getColumnIndexOrThrow(Persons.Columns.ID);
 			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {

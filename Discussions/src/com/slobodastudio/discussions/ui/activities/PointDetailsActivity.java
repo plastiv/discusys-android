@@ -175,17 +175,25 @@ public class PointDetailsActivity extends BaseActivity {
 
 		Bundle arguments = PointDescriptionTabFragment.intentToFragmentArguments(getIntent());
 		mTabsAdapter.addTab(mTabHost.newTabSpec(FragmentTag.POINT_DESCRIPTION).setIndicator(
-				getString(R.string.tab_title_description)), PointDescriptionTabFragment.class, arguments);
+				getString(R.string.tab_title_description),
+				getResources().getDrawable(R.drawable.ic_tab_description)),
+				PointDescriptionTabFragment.class, arguments);
 		if (!IntentAction.NEW.equals(getIntent().getAction())) {
 			arguments = PointCommentsTabFragment.intentToFragmentArguments(getIntent());
 			mTabsAdapter.addTab(mTabHost.newTabSpec(FragmentTag.POINT_COMMENTS).setIndicator(
-					getString(R.string.tab_title_comments)), PointCommentsTabFragment.class, arguments);
+					getString(R.string.tab_title_comments),
+					getResources().getDrawable(R.drawable.ic_tab_comments)), PointCommentsTabFragment.class,
+					arguments);
 			arguments = PointMediaTabFragment.intentToFragmentArguments(getIntent());
 			mTabsAdapter.addTab(mTabHost.newTabSpec(FragmentTag.POINT_MEDIA).setIndicator(
-					getString(R.string.tab_title_media)), PointMediaTabFragment.class, arguments);
+					getString(R.string.tab_title_media),
+					getResources().getDrawable(R.drawable.ic_tab_attachments)), PointMediaTabFragment.class,
+					arguments);
 			arguments = PointSourcesTabFragment.intentToFragmentArguments(getIntent());
 			mTabsAdapter.addTab(mTabHost.newTabSpec(FragmentTag.POINT_SOURCE).setIndicator(
-					getString(R.string.tab_title_source)), PointSourcesTabFragment.class, arguments);
+					getString(R.string.tab_title_source),
+					getResources().getDrawable(R.drawable.ic_tab_sources)), PointSourcesTabFragment.class,
+					arguments);
 		}
 	}
 

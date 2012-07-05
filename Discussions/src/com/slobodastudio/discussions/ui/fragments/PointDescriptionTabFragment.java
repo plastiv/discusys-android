@@ -37,7 +37,6 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	private int mDescriptionId;
 	private EditText mDesctiptionEditText;
 	private int mDiscussionId;
-	private FragmentState mFragmentState;
 	private boolean mIsEmpty;
 	private EditText mNameEditText;
 	private int mPersonId;
@@ -192,7 +191,6 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			text.setText(getActivity().getString(R.string.text_select_point));
 			return text;
 		}
-		mFragmentState = getCurrentState(getArguments());
 		// setup layout
 		RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.tab_fragment_point_description,
 				container, false);

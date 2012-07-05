@@ -522,9 +522,9 @@ public final class DiscussionsContract {
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
 		 * needed to work around SQL ambiguity. */
-		static final class Qualified {
+		public static final class Qualified {
 
-			static final String PERSON_ID = TABLE_NAME + "." + Columns.ID;
+			public static final String PERSON_ID = TABLE_NAME + "." + Columns.ID;
 		}
 	}
 

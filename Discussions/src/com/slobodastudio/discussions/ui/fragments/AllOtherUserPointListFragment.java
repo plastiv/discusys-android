@@ -24,10 +24,10 @@ import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockListFragment;
 
-public class OtherUserPointListFragment extends SherlockListFragment {
+public class AllOtherUserPointListFragment extends SherlockListFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
-	private static final String TAG = OtherUserPointListFragment.class.getSimpleName();
+	private static final String TAG = AllOtherUserPointListFragment.class.getSimpleName();
 	private int mDiscussionId;
 	private int mOriginPersonId;
 	private SimpleCursorAdapter mOtherPointsAdapter;
@@ -69,8 +69,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 		setListAdapter(mOtherPointsAdapter);
 		// Prepare the loader. Either re-connect with an existing one, or start a new one.
 		getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_OTHER_POINTS_ID, null,
-				new OtherUserPointsCursorLoader());
-		getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_PERSON_ID, null,
 				new OtherUserPointsCursorLoader());
 	}
 
@@ -144,22 +142,17 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 	private class OtherUserPointsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
 		private static final int LOADER_OTHER_POINTS_ID = 1;
-		private static final int LOADER_PERSON_ID = 2;
 
 		@Override
 		public Loader<Cursor> onCreateLoader(final int id, final Bundle arguments) {
 
 			switch (id) {
 				case LOADER_OTHER_POINTS_ID: {
-					String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "=? AND "
-							+ Points.Columns.PERSON_ID + "=" + Persons.Qualified.PERSON_ID;
-					String[] args = { String.valueOf(mTopicId), String.valueOf(mPersonId) };
+					String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID
+							+ "!=? AND " + Points.Columns.PERSON_ID + "=" + Persons.Qualified.PERSON_ID;
+					String[] args = { String.valueOf(mTopicId), String.valueOf(mOriginPersonId) };
 					return new CursorLoader(getActivity(), Points.CONTENT_AND_PERSON_URI, null, where, args,
 							null);
-				}
-				case LOADER_PERSON_ID: {
-					return new CursorLoader(getActivity(), Persons.buildTableUri(mPersonId), null, null,
-							null, null);
 				}
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + id);
@@ -173,9 +166,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 				case LOADER_OTHER_POINTS_ID:
 					mOtherPointsAdapter.swapCursor(null);
 					break;
-				case LOADER_PERSON_ID:
-					mPointListTitleTextView.setText(R.string.text_other_users_points);
-					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
 			}
@@ -187,14 +177,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 			switch (loader.getId()) {
 				case LOADER_OTHER_POINTS_ID:
 					mOtherPointsAdapter.swapCursor(data);
-					break;
-				case LOADER_PERSON_ID:
-					if (data.moveToFirst()) {
-						int nameIndex = data.getColumnIndexOrThrow(Persons.Columns.NAME);
-						String name = data.getString(nameIndex);
-						mPointListTitleTextView.setText(getString(R.string.text_other_users_points_format,
-								name));
-					}
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
