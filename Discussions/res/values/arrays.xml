@@ -8,11 +8,13 @@
     </string-array>
     <string-array name="server_addresses">
         <item>@string/public_server_address</item>
+        <item>@string/new_public_server_address</item>
         <item>@string/local_server_address</item>
         <item>@string/development_server_address</item>
     </string-array>
     <string-array name="server_names">
         <item>Public</item>
+        <item>New Public</item>
         <item>Local</item>
         <item>Sergii development</item>
     </string-array>

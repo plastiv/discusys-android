@@ -31,7 +31,7 @@ public class SessionsActivity extends BaseActivity {
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
 
 		MenuInflater menuInflater = getSupportMenuInflater();
-		menuInflater.inflate(R.menu.actionbar_list_refresh, menu);
+		menuInflater.inflate(R.menu.actionbar_refresh, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 
