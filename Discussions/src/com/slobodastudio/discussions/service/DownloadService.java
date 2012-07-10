@@ -27,6 +27,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -278,10 +279,15 @@ public class DownloadService extends IntentService {
 
 		String odataUrl = PreferenceHelper.getOdataUrl(this);
 		String count = HttpUtil.getString(odataUrl + tableName + "/$count");
-		if (count == null) {
+		if (TextUtils.isEmpty(count)) {
 			return 0;
 		}
-		return Integer.valueOf(count);
+		try {
+			return Integer.valueOf(count);
+		} catch (NumberFormatException e) {
+			Log.e(TAG, "Failed to parse string as integer: " + count, e);
+		}
+		return 0;
 	}
 
 	private void publishError(final String errorMessage) {

@@ -640,6 +640,8 @@ public final class DiscussionsContract {
 			/** Type String. */
 			public static final String NAME = "Point";
 			/** Type Int32. */
+			public static final String ORDER_NUMBER = "OrderNumber";
+			/** Type Int32. */
 			public static final String PERSON_ID = "Person";
 			/** Type String. */
 			public static final String RECENTLY_ENTERED_MEDIA_URL = "RecentlyEnteredMediaUrl";
@@ -807,8 +809,6 @@ public final class DiscussionsContract {
 			public static final String ID = "Id";
 			/** Type String. */
 			public static final String NAME = "Name";
-			/** Type Boolean. */
-			public static final String RUNNING = "Running";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
@@ -977,6 +977,8 @@ public final class DiscussionsContract {
 		public static final class Columns implements BaseColumns {
 
 			public static final String ANNOTATION = "Annotation";
+			/** Type Int32. */
+			public static final String CUMULATIVE_DURATION = "CumulativeDuration";
 			/** Type Int32. Foreign key. */
 			public static final String DISCUSSION_ID = "Discussion";
 			/** Type Int32. */
@@ -987,6 +989,8 @@ public final class DiscussionsContract {
 			public static final String PERSON_ID = "Person";
 			/** Type Int32. Should be used only by servers data. */
 			public static final String POINT_ID = "ArgPoint";
+			/** Type Boolean. */
+			public static final String RUNNING = "Running";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when

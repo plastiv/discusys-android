@@ -13,6 +13,7 @@ public class Point implements Value {
 	private int groupId;
 	private int id;
 	private String name;
+	private int orderNumber;
 	private int personId;
 	private String recentlyEnteredMediaUrl;
 	private String recentlyEnteredSource;
@@ -41,6 +42,7 @@ public class Point implements Value {
 		groupId = bundle.getInt(Points.Columns.GROUP_ID);
 		id = bundle.getInt(Points.Columns.ID);
 		name = bundle.getString(Points.Columns.NAME);
+		orderNumber = bundle.getInt(Points.Columns.ORDER_NUMBER, 0);
 		personId = bundle.getInt(Points.Columns.PERSON_ID);
 		recentlyEnteredMediaUrl = bundle.getString(Points.Columns.RECENTLY_ENTERED_MEDIA_URL);
 		recentlyEnteredSource = bundle.getString(Points.Columns.RECENTLY_ENTERED_SOURCE);
@@ -110,6 +112,11 @@ public class Point implements Value {
 		return name;
 	}
 
+	public int getOrderNumber() {
+
+		return orderNumber;
+	}
+
 	public int getPersonId() {
 
 		return personId;
@@ -165,6 +172,11 @@ public class Point implements Value {
 		this.name = name;
 	}
 
+	public void setOrderNumber(final int orderNumber) {
+
+		this.orderNumber = orderNumber;
+	}
+
 	public void setPersonId(final int personId) {
 
 		this.personId = personId;
@@ -202,6 +214,7 @@ public class Point implements Value {
 		bundle.putInt(Points.Columns.GROUP_ID, groupId);
 		bundle.putInt(Points.Columns.ID, id);
 		bundle.putString(Points.Columns.NAME, name);
+		bundle.putInt(Points.Columns.ORDER_NUMBER, orderNumber);
 		bundle.putInt(Points.Columns.PERSON_ID, personId);
 		bundle.putString(Points.Columns.RECENTLY_ENTERED_MEDIA_URL, recentlyEnteredMediaUrl);
 		bundle.putString(Points.Columns.RECENTLY_ENTERED_SOURCE, recentlyEnteredSource);
@@ -219,6 +232,7 @@ public class Point implements Value {
 		cv.put(Points.Columns.GROUP_ID, groupId);
 		cv.put(Points.Columns.ID, id);
 		cv.put(Points.Columns.NAME, name);
+		cv.put(Points.Columns.ORDER_NUMBER, orderNumber);
 		cv.put(Points.Columns.PERSON_ID, personId);
 		cv.put(Points.Columns.RECENTLY_ENTERED_MEDIA_URL, recentlyEnteredMediaUrl);
 		cv.put(Points.Columns.RECENTLY_ENTERED_SOURCE, recentlyEnteredSource);

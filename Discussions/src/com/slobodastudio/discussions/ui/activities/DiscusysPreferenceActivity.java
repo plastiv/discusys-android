@@ -107,6 +107,10 @@ public class DiscusysPreferenceActivity extends SherlockPreferenceActivity imple
 				break;
 			}
 			case ResultCodes.STATUS_FINISHED: {
+				if (mSyncing) {
+					// close preference activity if successfully update
+					finish();
+				}
 				mSyncing = false;
 				break;
 			}

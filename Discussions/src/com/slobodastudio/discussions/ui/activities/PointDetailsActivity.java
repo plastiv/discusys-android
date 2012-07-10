@@ -98,13 +98,15 @@ public class PointDetailsActivity extends BaseActivity {
 
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode == Activity.RESULT_OK) {
-			Fragment sourceTabFragment = getSupportFragmentManager().findFragmentByTag(
-					FragmentTag.POINT_SOURCE);
+			Fragment sourceTabFragment = mTabsAdapter.getActiveFragment(2);
+			// Fragment sourceTabFragment = getSupportFragmentManager().findFragmentByTag(
+			// FragmentTag.POINT_SOURCE);
 			if ((sourceTabFragment != null)) {
 				sourceTabFragment.onActivityResult(requestCode, resultCode, data);
 			}
-			Fragment mediaTabFragment = getSupportFragmentManager()
-					.findFragmentByTag(FragmentTag.POINT_MEDIA);
+			Fragment mediaTabFragment = mTabsAdapter.getActiveFragment(1);
+			// Fragment mediaTabFragment = getSupportFragmentManager()
+			// .findFragmentByTag(FragmentTag.POINT_MEDIA);
 			if ((mediaTabFragment != null)) {
 				mediaTabFragment.onActivityResult(requestCode, resultCode, data);
 			}
@@ -115,8 +117,9 @@ public class PointDetailsActivity extends BaseActivity {
 	protected void onControlServiceConnected() {
 
 		connectPhoton();
-		PointMediaTabFragment mediaTabFragment = (PointMediaTabFragment) getSupportFragmentManager()
-				.findFragmentByTag(FragmentTag.POINT_MEDIA);
+		PointMediaTabFragment mediaTabFragment = (PointMediaTabFragment) mTabsAdapter.getActiveFragment(1);
+		// PointMediaTabFragment mediaTabFragment = (PointMediaTabFragment) getSupportFragmentManager()
+		// .findFragmentByTag(FragmentTag.POINT_MEDIA);
 		if ((mediaTabFragment != null)) {
 			mediaTabFragment.onServiceConnected();
 		}

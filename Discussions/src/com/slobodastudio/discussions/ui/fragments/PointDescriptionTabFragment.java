@@ -34,8 +34,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = PointDescriptionTabFragment.class.getSimpleName();
 	private Cursor mDescriptionCursor;
+	private EditText mDescriptionEditText;
 	private int mDescriptionId;
-	private EditText mDesctiptionEditText;
 	private int mDiscussionId;
 	private boolean mIsEmpty;
 	private EditText mNameEditText;
@@ -132,7 +132,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		// description is first because notify server by point change
 		if (mDescriptionId != Integer.MIN_VALUE) {
 			// update description
-			Description description = new Description(mDescriptionId, mDesctiptionEditText.getText()
+			Description description = new Description(mDescriptionId, mDescriptionEditText.getText()
 					.toString(), null, mPointId);
 			((BaseActivity) getActivity()).getServiceHelper().updateDescription(description.toBundle());
 		}
@@ -149,13 +149,15 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		} else {
 			// new point
 			point.setId(INVALID_POINT_ID);
+			int orderNumber = createPointOrderNumber();
+			point.setOrderNumber(orderNumber);
 			Bundle values = point.toBundle();
 			// with new description
 			if (mDescriptionId != Integer.MIN_VALUE) {
 				throw new IllegalStateException("Cant be new point without new description");
 			}
 			// new description
-			Description description = new Description(mDescriptionId, mDesctiptionEditText.getText()
+			Description description = new Description(mDescriptionId, mDescriptionEditText.getText()
 					.toString(), null, mPointId);
 			values.putAll(description.toBundle());
 			((BaseActivity) getActivity()).getServiceHelper()
@@ -195,7 +197,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.tab_fragment_point_description,
 				container, false);
 		mNameEditText = (EditText) layout.findViewById(R.id.et_point_name);
-		mDesctiptionEditText = (EditText) layout.findViewById(R.id.et_point_description);
+		mDescriptionEditText = (EditText) layout.findViewById(R.id.et_point_description);
 		mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
 		mSharedToPublicCheckBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
 		if (getArguments() == null) {
@@ -215,19 +217,37 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		super.onSaveInstanceState(outState);
 		if (!isEmpty()) {
 			outState.putBoolean(ExtraKey.SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
-			outState.putString(ExtraKey.POINT_NAME, mNameEditText.getText().toString());
+			if (mNameEditText.getText() != null) {
+				outState.putString(ExtraKey.POINT_NAME, mNameEditText.getText().toString());
+			}
 			outState.putInt(ExtraKey.AGREEMENT_CODE, getSelectedSideCodeId());
 			outState.putInt(ExtraKey.PERSON_ID, mPersonId);
 			outState.putInt(ExtraKey.TOPIC_ID, mTopicId);
 			outState.putInt(ExtraKey.POINT_ID, mPointId);
 			outState.putInt(ExtraKey.DESCRIPTION_ID, mDescriptionId);
-			outState.putString(ExtraKey.DESCRIPTION_TEXT, mDesctiptionEditText.getText().toString());
+			if (mDescriptionEditText.getText() != null) {
+				outState.putString(ExtraKey.DESCRIPTION_TEXT, mDescriptionEditText.getText().toString());
+			}
 		}
 	}
 
 	public void setEmpty(final boolean empty) {
 
 		mIsEmpty = empty;
+	}
+
+	private int createPointOrderNumber() {
+
+		String[] columns = new String[] { "MAX(" + Points.Columns.ORDER_NUMBER + ")" };
+		String where = Points.Columns.PERSON_ID + "=" + mPersonId;
+		Cursor cursor = getActivity().getContentResolver().query(Points.CONTENT_URI, columns, where, null,
+				null);
+		int maxOrderNum = 0;
+		if (cursor.moveToFirst()) {
+			maxOrderNum = cursor.getInt(0) + 1;
+		}
+		cursor.close();
+		return maxOrderNum;
 	}
 
 	private int getSelectedSideCodeId() {
@@ -331,7 +351,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		mPersonId = savedInstanceState.getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 		mTopicId = savedInstanceState.getInt(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
 		mNameEditText.setText(savedInstanceState.getString(ExtraKey.POINT_NAME));
-		mDesctiptionEditText.setText(savedInstanceState.getString(ExtraKey.DESCRIPTION_TEXT));
+		mDescriptionEditText.setText(savedInstanceState.getString(ExtraKey.DESCRIPTION_TEXT));
 		mSideCodeSpinner.setSelection(savedInstanceState.getInt(ExtraKey.AGREEMENT_CODE, Integer.MIN_VALUE));
 		mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(ExtraKey.SHARED_TO_PUBLIC));
 	}
@@ -339,9 +359,9 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	private void setViewsEnabled(final boolean enabled) {
 
 		if (!enabled) {
-			mDesctiptionEditText.setEnabled(false);
+			mDescriptionEditText.setEnabled(false);
 			mNameEditText.setEnabled(false);
-			mDesctiptionEditText.setEnabled(false);
+			mDescriptionEditText.setEnabled(false);
 			mSideCodeSpinner.setEnabled(false);
 			mSharedToPublicCheckBox.setEnabled(false);
 		}
@@ -428,7 +448,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 					if (data.getCount() == 1) {
 						mDescriptionCursor = data;
 						Description description = new Description(mDescriptionCursor);
-						mDesctiptionEditText.setText(description.getText());
+						mDescriptionEditText.setText(description.getText());
 						mDescriptionId = description.getId();
 					} else {
 						Log.w(TAG, "[onLoadFinished] LOADER_DESCRIPTION_ID count was: " + data.getCount());

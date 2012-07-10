@@ -22,6 +22,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -204,8 +205,11 @@ public class PointSourcesTabFragment extends SherlockFragment {
 					final long id) {
 
 				TextView linkTextView = (TextView) view.findViewById(R.id.text_source_link);
-				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkTextView.getText().toString()));
-				startActivity(intent);
+				if (!TextUtils.isEmpty(linkTextView.getText())) {
+					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkTextView.getText()
+							.toString()));
+					startActivity(intent);
+				}
 			}
 		});
 	}

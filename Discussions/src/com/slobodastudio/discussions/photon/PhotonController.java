@@ -47,14 +47,14 @@ public class PhotonController implements IPhotonPeerListener {
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int INVALID_POINT_ID = -1;
 	private static final int INVALID_TOPIC_ID = -1;
-	static final String TAG = PhotonController.class.getSimpleName();
+	private static final String TAG = PhotonController.class.getSimpleName();
 	private final PhotonServiceCallbackHandler mCallbackHandler;
 	private String mGameLobbyName;
 	private DiscussionUser mLocalUser;
 	private final Hashtable<Integer, DiscussionUser> mOnlineUsers;
+	private LitePeer mPeer;
 	private final SyncResultReceiver mSyncResultReceiver;
-	LitePeer mPeer;
-	Timer mTimer;
+	private Timer mTimer;
 
 	public PhotonController() {
 
@@ -358,6 +358,27 @@ public class PhotonController implements IPhotonPeerListener {
 				true);
 	}
 
+	boolean opSendStatsEvent(final int discussionId, final int userId, final int changedTopicId,
+			final int statsEventId) {
+
+		if (!isConnected()) {
+			throw new IllegalStateException(
+					"Cant perfom operation \"opSendStatsEvent\" in disconnected state");
+		}
+		if (DEBUG) {
+			Log.d(TAG, "[opSendStatsEvent] topic id: " + changedTopicId + ", userId: " + userId
+					+ ", discussionId: " + discussionId);
+		}
+		TypedHashMap<Byte, Object> eventStatsParameters = new TypedHashMap<Byte, Object>(Byte.class,
+				Object.class);
+		eventStatsParameters.put(DiscussionParameterKey.DISCUSSION_ID, discussionId);
+		eventStatsParameters.put(DiscussionParameterKey.USER_ID, userId);
+		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, changedTopicId);
+		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEventId);
+		eventStatsParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
+		return mPeer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
+	}
+
 	private void logUsersOnline() {
 
 		if (DEBUG) {
@@ -461,27 +482,6 @@ public class PhotonController implements IPhotonPeerListener {
 			it.remove(); // avoids a ConcurrentModificationException
 			mCallbackHandler.onEventJoin(newUser);
 		}
-	}
-
-	boolean opSendStatsEvent(final int discussionId, final int userId, final int changedTopicId,
-			final int statsEventId) {
-
-		if (!isConnected()) {
-			throw new IllegalStateException(
-					"Cant perfom operation \"opSendStatsEvent\" in disconnected state");
-		}
-		if (DEBUG) {
-			Log.d(TAG, "[opSendStatsEvent] topic id: " + changedTopicId + ", userId: " + userId
-					+ ", discussionId: " + discussionId);
-		}
-		TypedHashMap<Byte, Object> eventStatsParameters = new TypedHashMap<Byte, Object>(Byte.class,
-				Object.class);
-		eventStatsParameters.put(DiscussionParameterKey.DISCUSSION_ID, discussionId);
-		eventStatsParameters.put(DiscussionParameterKey.USER_ID, userId);
-		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, changedTopicId);
-		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEventId);
-		eventStatsParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
-		return mPeer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
 	}
 
 	public class SyncResultReceiver extends ResultReceiver {

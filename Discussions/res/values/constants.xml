@@ -3,7 +3,7 @@
 
     <string name="local_server_address">10.32.194.179</string>
     <string name="public_server_address">123.108.5.30</string>
-    <string name="new_public_server_address">10.32.194.106</string>
+    <string name="new_local_server_address">10.32.194.106</string>
     <string name="development_server_address">192.168.1.122</string>
     <string name="local_database_address">tcp:10.32.194.179,8080</string>
     <string name="public_database_address">tcp:123.108.5.30,8080</string>
