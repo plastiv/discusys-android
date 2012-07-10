@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.photon;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.PreferenceHelper;
+import com.slobodastudio.discussions.data.model.ArgPointChanged;
 import com.slobodastudio.discussions.photon.constants.ActorPropertiesKey;
 import com.slobodastudio.discussions.photon.constants.DeviceType;
 import com.slobodastudio.discussions.photon.constants.DiscussionEventCode;
@@ -306,27 +307,6 @@ public class PhotonController implements IPhotonPeerListener {
 		}
 	}
 
-	public boolean opArgPointChanged(final int changedPointId) {
-
-		if (DEBUG) {
-			Log.d(TAG, "[opArgPointChanged] point id: " + changedPointId);
-		}
-		if (!isConnected()) {
-			throw new IllegalStateException(
-					"You trying to send notification while not connected to the server");
-		}
-		if (changedPointId < -1) {
-			throw new IllegalArgumentException("Point id can't be below zero");
-		}
-		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
-				Object.class);
-		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, changedPointId);
-		structureChangedParameters.put(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR, mLocalUser
-				.getActorNumber());
-		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED, structureChangedParameters,
-				true);
-	}
-
 	public void opJoinFromLobby() {
 
 		HashMap<Byte, Object> actorProperties = new HashMap<Byte, Object>();
@@ -334,6 +314,81 @@ public class PhotonController implements IPhotonPeerListener {
 		actorProperties.put(ActorPropertiesKey.DB_ID, mLocalUser.getUserId());
 		actorProperties.put(ActorPropertiesKey.DEVICE_TYPE, DeviceType.ANDROID);
 		opJoinFromLobby(mGameLobbyName, PhotonConstants.LOBBY, actorProperties, true);
+	}
+
+	// public void SendArgPointChanged(int argPointId, int topicId)
+	//
+	// {
+	//
+	// if (peer == null || peer.PeerState != PeerStateValue.Connected)
+	//
+	// return;
+	//
+	//
+	//
+	// var parameter = Serializers.WriteChangedArgPoint(argPointId, topicId, PointChangedType.Modified);
+	//
+	// peer.OpCustom((byte)DiscussionOpCode.NotifyArgPointChanged, parameter, true);
+	//
+	// }
+	//
+	// public void SendArgPointCreated(int argPointId, int topicId)
+	//
+	// {
+	//
+	// if (peer == null || peer.PeerState != PeerStateValue.Connected)
+	//
+	// return;
+	//
+	//
+	//
+	// var parameter = Serializers.WriteChangedArgPoint(argPointId, topicId, PointChangedType.Created);
+	//
+	// peer.OpCustom((byte)DiscussionOpCode.NotifyArgPointChanged, parameter, true);
+	//
+	// }
+	//
+	// public void SendArgPointDeleted(int argPointId, int topicId)
+	//
+	// {
+	//
+	// if (peer == null || peer.PeerState != PeerStateValue.Connected)
+	//
+	// return;
+	//
+	//
+	//
+	// var parameter = Serializers.WriteChangedArgPoint(argPointId, topicId, PointChangedType.Deleted);
+	//
+	// peer.OpCustom((byte)DiscussionOpCode.NotifyArgPointChanged, parameter, true);
+	//
+	// }
+	public boolean opSendArgPointChanged(final ArgPointChanged argPointChanged) {
+
+		if (DEBUG) {
+			Log.d(TAG, "[opSendArgPointChanged] point id: " + argPointChanged.getPointId() + " , topic id: "
+					+ argPointChanged.getTopicId() + " , event type: " + argPointChanged.getEventType());
+		}
+		if (!isConnected()) {
+			throw new IllegalStateException(
+					"You trying to send notification while not connected to the server");
+		}
+		if (argPointChanged.getPointId() < -1) {
+			throw new IllegalArgumentException("[opSendArgPointChanged] Point id can't be below zero");
+		}
+		if (argPointChanged.getTopicId() < 0) {
+			throw new IllegalArgumentException("[opSendArgPointChanged] Topic id can't be below zero");
+		}
+		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
+				Object.class);
+		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, argPointChanged.getPointId());
+		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, argPointChanged.getTopicId());
+		structureChangedParameters.put(DiscussionParameterKey.POINT_CHANGE_TYPE, argPointChanged
+				.getEventType());
+		structureChangedParameters.put(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR, mLocalUser
+				.getActorNumber());
+		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED, structureChangedParameters,
+				true);
 	}
 
 	public boolean opSendNotifyStructureChanged(final int activeTopicId) {
@@ -486,6 +541,7 @@ public class PhotonController implements IPhotonPeerListener {
 
 	public class SyncResultReceiver extends ResultReceiver {
 
+		public static final String EXTRA_ARG_POINT_CHANGED = "intent.extra.key.EXTRA_ARG_POINT_CHANGED";
 		public static final String EXTRA_DISCUSSION_ID = "intent.extra.key.EXTRA_DISCUSSION_ID";
 		public static final String EXTRA_EVENT_TYPE = "intent.extra.key.EXTRA_EVENT_TYPE";
 		public static final String EXTRA_POINT_ID = "intent.extra.key.EXTRA_POINT_ID";
@@ -509,9 +565,9 @@ public class PhotonController implements IPhotonPeerListener {
 			super.onReceiveResult(resultCode, resultData);
 			switch (resultCode) {
 				case STATUS_ARG_POINT_CHANGED:
-					int pointId = resultData.getInt(EXTRA_POINT_ID);
+					ArgPointChanged argPointChanged = resultData.getParcelable(EXTRA_ARG_POINT_CHANGED);
 					if (isConnected()) {
-						opArgPointChanged(pointId);
+						opSendArgPointChanged(argPointChanged);
 					}
 					break;
 				case STATUS_STRUCTURE_CHANGED:

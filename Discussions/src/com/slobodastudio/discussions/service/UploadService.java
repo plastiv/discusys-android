@@ -3,6 +3,7 @@ package com.slobodastudio.discussions.service;
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.DataIoException;
+import com.slobodastudio.discussions.data.model.ArgPointChanged;
 import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
@@ -66,12 +67,14 @@ public class UploadService extends IntentService {
 		}
 	}
 
-	private static void notifyPhotonArgPointChanged(final ResultReceiver photonReceiver, final int pointId) {
+	private static void notifyPhotonArgPointChanged(final ResultReceiver photonReceiver,
+			final ArgPointChanged argPointChanged) {
 
-		logd("[notifyPhoton] changed arg point id: " + pointId + ", photonReceiver: " + photonReceiver);
+		logd("[notifyPhoton] changed arg point id: " + argPointChanged.getPointId() + ", photonReceiver: "
+				+ photonReceiver);
 		if (photonReceiver != null) {
 			final Bundle bundle = new Bundle();
-			bundle.putInt(SyncResultReceiver.EXTRA_POINT_ID, pointId);
+			bundle.putParcelable(SyncResultReceiver.EXTRA_ARG_POINT_CHANGED, argPointChanged);
 			photonReceiver.send(SyncResultReceiver.STATUS_ARG_POINT_CHANGED, bundle);
 		}
 	}
@@ -89,6 +92,41 @@ public class UploadService extends IntentService {
 			bundle.putInt(SyncResultReceiver.EXTRA_EVENT_TYPE, statsEventId);
 			photonReceiver.send(SyncResultReceiver.STATUS_EVENT_CHANGED, bundle);
 		}
+	}
+
+	private static void sendArgPointChanged(final Intent intent, final byte eventType) {
+
+		if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
+			throw new IllegalArgumentException(
+					"[sendArgPointChanged] called without required extra: selected point");
+		}
+		if (!intent.hasExtra(EXTRA_PHOTON_RECEIVER)) {
+			throw new IllegalArgumentException(
+					"[sendArgPointChanged] called without required extra: photon receiver");
+		}
+		SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
+		ArgPointChanged argPointChanged = new ArgPointChanged();
+		argPointChanged.setEventType(eventType);
+		argPointChanged.setPointId(selectedPoint.getPointId());
+		argPointChanged.setTopicId(selectedPoint.getTopicId());
+		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				argPointChanged);
+	}
+
+	private static void sendPhotonStatsEvent(final Intent intent, final byte statsType) {
+
+		if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
+			throw new IllegalArgumentException(
+					"[sendPhotonStatsEvent] called without required extra: selected point");
+		}
+		if (!intent.hasExtra(EXTRA_PHOTON_RECEIVER)) {
+			throw new IllegalArgumentException(
+					"[sendPhotonStatsEvent] called without required extra: photon receiver");
+		}
+		SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
+		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+				selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
+				statsType);
 	}
 
 	@Override
@@ -221,15 +259,8 @@ public class UploadService extends IntentService {
 			attachment.setAttachmentId(attachmentId);
 			ContentValues cv = attachment.toContentValues();
 			getContentResolver().insert(Attachments.CONTENT_URI, cv);
-			if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
-				throw new IllegalArgumentException("[insertSource] called without required selected point");
-			}
-			SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
-			notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-					selectedPoint.getPointId());
-			notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-					selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
-					StatsType.BADGE_EDITED);
+			sendArgPointChanged(intent, Points.PointChangedType.MODIFIED);
+			sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 		} else {
 			throw new DataIoException("Failed to update newly inserted attachment with id: " + attachmentId);
 		}
@@ -252,8 +283,7 @@ public class UploadService extends IntentService {
 		cv.put(Comments.Columns.PERSON_ID, personId);
 		cv.put(Comments.Columns.POINT_ID, pointId);
 		getContentResolver().insert(Comments.CONTENT_URI, cv);
-		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				pointId);
+		// TODO: rewrite this part
 		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
 			throw new IllegalArgumentException("[insertComment] called without required discussion id");
 		}
@@ -262,8 +292,14 @@ public class UploadService extends IntentService {
 			throw new IllegalArgumentException("[insertComment] called without required topic id");
 		}
 		int topicId = intent.getIntExtra(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
-		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				discussionId, personId, topicId, StatsType.BADGE_EDITED);
+		SelectedPoint selectedPoint = new SelectedPoint();
+		selectedPoint.setDiscussionId(discussionId);
+		selectedPoint.setPersonId(personId);
+		selectedPoint.setPointId(pointId);
+		selectedPoint.setTopicId(topicId);
+		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
+		sendArgPointChanged(intent, Points.PointChangedType.MODIFIED);
+		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 	}
 
 	private void insertDescription(final Intent intent) {
@@ -297,16 +333,30 @@ public class UploadService extends IntentService {
 		int newId = (Integer) entityDesription.getProperty(Descriptions.Columns.ID).getValue();
 		logd("[insertDescription] new description id: " + newId);
 		description.setId(newId);
-		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), point
-				.getId());
-		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-			throw new IllegalArgumentException("[updatePoint] called without required discussion id");
-		}
-		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_CREATED);
+		// notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+		// point
+		// .getId());
+		// if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
+		// throw new IllegalArgumentException("[updatePoint] called without required discussion id");
+		// }
+		// int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		// notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+		// discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_CREATED);
 		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
 		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
+		// TODO: rewrite this part
+		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
+			throw new IllegalArgumentException("[insertComment] called without required discussion id");
+		}
+		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		SelectedPoint selectedPoint = new SelectedPoint();
+		selectedPoint.setDiscussionId(discussionId);
+		selectedPoint.setPersonId(point.getPersonId());
+		selectedPoint.setPointId(point.getId());
+		selectedPoint.setTopicId(point.getTopicId());
+		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
+		sendArgPointChanged(intent, Points.PointChangedType.CREATED);
+		sendPhotonStatsEvent(intent, StatsType.BADGE_CREATED);
 	}
 
 	private void insertSource(final Intent intent) {
@@ -320,15 +370,8 @@ public class UploadService extends IntentService {
 		source.setSourceId(sourceId);
 		ContentValues cv = source.toContentValues();
 		getContentResolver().insert(Sources.CONTENT_URI, cv);
-		if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
-			throw new IllegalArgumentException("[insertSource] called without required selected point");
-		}
-		SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
-		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				selectedPoint.getPointId());
-		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
-				StatsType.BADGE_EDITED);
+		sendArgPointChanged(intent, Points.PointChangedType.MODIFIED);
+		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 	}
 
 	private void updateDescription(final Intent intent) {
@@ -350,16 +393,30 @@ public class UploadService extends IntentService {
 		logd("[updatePoint] " + point.toMyString());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
 		odataWrite.updatePoint(point);
-		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER), point
-				.getId());
-		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-			throw new IllegalArgumentException("[updatePoint] called without required discussion id");
-		}
-		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_EDITED);
+		// notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+		// point
+		// .getId());
+		// if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
+		// throw new IllegalArgumentException("[updatePoint] called without required discussion id");
+		// }
+		// int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		// notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
+		// discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_EDITED);
 		String where = Points.Columns.ID + "=?";
 		String[] args = new String[] { String.valueOf(point.getId()) };
 		getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where, args);
+		// TODO: rewrite this part
+		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
+			throw new IllegalArgumentException("[insertComment] called without required discussion id");
+		}
+		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
+		SelectedPoint selectedPoint = new SelectedPoint();
+		selectedPoint.setDiscussionId(discussionId);
+		selectedPoint.setPersonId(point.getPersonId());
+		selectedPoint.setPointId(point.getId());
+		selectedPoint.setTopicId(point.getTopicId());
+		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
+		sendArgPointChanged(intent, Points.PointChangedType.MODIFIED);
+		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 	}
 }

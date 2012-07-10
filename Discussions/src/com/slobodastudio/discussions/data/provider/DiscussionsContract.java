@@ -655,6 +655,13 @@ public final class DiscussionsContract {
 			public static final String TOPIC_ID = "Topic";
 		}
 
+		public static final class PointChangedType {
+
+			public static final byte CREATED = 0;
+			public static final byte DELETED = 2;
+			public static final byte MODIFIED = 1;
+		}
+
 		/** Side codes constants. */
 		public static final class SideCode {
 
