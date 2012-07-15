@@ -17,6 +17,17 @@ public class PhotonHelper {
 		throw new UnsupportedOperationException("Class is prevented from instantiation");
 	}
 
+	public static void sendArgPointChanged(final int statsEvent, final SelectedPoint selectedPoint,
+			final ResultReceiver photonReceiver) {
+
+		if (photonReceiver != null) {
+			final Bundle bundle = new Bundle();
+			bundle.putInt(SyncResultReceiver.EXTRA_STATS_EVENT, statsEvent);
+			bundle.putParcelable(SyncResultReceiver.EXTRA_SELECTED_POINT, selectedPoint);
+			photonReceiver.send(SyncResultReceiver.STATUS_EVENT_CHANGED, bundle);
+		}
+	}
+
 	public static void sendArgPointDeleted(final Point point, final ResultReceiver photonReceiver) {
 
 		ArgPointChanged argPointChanged = new ArgPointChanged();
@@ -45,6 +56,17 @@ public class PhotonHelper {
 		PhotonHelper.sendArgPointChanged(argPointChanged, photonReceiver);
 	}
 
+	public static void sendStatsEvent(final int statsEvent, final SelectedPoint selectedPoint,
+			final ResultReceiver photonReceiver) {
+
+		if (photonReceiver != null) {
+			final Bundle bundle = new Bundle();
+			bundle.putParcelable(SyncResultReceiver.EXTRA_SELECTED_POINT, selectedPoint);
+			bundle.putInt(SyncResultReceiver.EXTRA_STATS_EVENT, statsEvent);
+			photonReceiver.send(SyncResultReceiver.STATUS_EVENT_CHANGED, bundle);
+		}
+	}
+
 	private static void sendArgPointChanged(final ArgPointChanged argPointChanged,
 			final ResultReceiver photonReceiver) {
 
@@ -53,15 +75,5 @@ public class PhotonHelper {
 			bundle.putParcelable(SyncResultReceiver.EXTRA_ARG_POINT_CHANGED, argPointChanged);
 			photonReceiver.send(SyncResultReceiver.STATUS_ARG_POINT_CHANGED, bundle);
 		}
-	}
-
-	private static void sendArgPointChanged(final SelectedPoint selectedPoint, final int eventType,
-			final ResultReceiver photonReceiver) {
-
-		ArgPointChanged argPointChanged = new ArgPointChanged();
-		argPointChanged.setEventType(eventType);
-		argPointChanged.setPointId(selectedPoint.getPointId());
-		argPointChanged.setTopicId(selectedPoint.getTopicId());
-		sendArgPointChanged(argPointChanged, photonReceiver);
 	}
 }

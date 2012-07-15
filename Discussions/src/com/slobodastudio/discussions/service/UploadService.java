@@ -16,8 +16,8 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
-import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
 import com.slobodastudio.discussions.photon.PhotonHelper;
+import com.slobodastudio.discussions.photon.constants.StatsEvent;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MediaStoreHelper;
@@ -90,21 +90,6 @@ public class UploadService extends IntentService {
 
 		if (DEBUG) {
 			Log.d(TAG, message);
-		}
-	}
-
-	private static void notifyPhotonStatsEvent(final ResultReceiver photonReceiver, final int discussionId,
-			final int userId, final int changedTopicId, final byte statsEventId) {
-
-		logd("[notifyPhoton] discussion id: " + discussionId + ", user id: " + userId + ", topic id: "
-				+ changedTopicId + ", event id: " + statsEventId + ", photonReceiver: " + photonReceiver);
-		if (photonReceiver != null) {
-			final Bundle bundle = new Bundle();
-			bundle.putInt(SyncResultReceiver.EXTRA_DISCUSSION_ID, discussionId);
-			bundle.putInt(SyncResultReceiver.EXTRA_USER_ID, userId);
-			bundle.putInt(SyncResultReceiver.EXTRA_TOPIC_ID, changedTopicId);
-			bundle.putInt(SyncResultReceiver.EXTRA_EVENT_TYPE, statsEventId);
-			photonReceiver.send(SyncResultReceiver.STATUS_EVENT_CHANGED, bundle);
 		}
 	}
 
@@ -211,16 +196,20 @@ public class UploadService extends IntentService {
 		Attachment attachment = intent.getParcelableExtra(ServiceExtraKeys.VALUE);
 		logd("[insertAttachment] " + attachment.getTitle());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
+		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 		Uri attachmentUri = getUriFromExtra(intent);
 		int attachmentId;
 		switch (attachment.getFormat()) {
 			case Attachments.AttachmentType.JPG:
 				attachment.setTitle(MediaStoreHelper.getTitleFromUri(this, attachmentUri));
 				attachmentId = HttpUtil.insertImageAttachment(this, attachmentUri);
+				PhotonHelper.sendStatsEvent(StatsEvent.IMAGE_ADDED, selectedPoint, photonReceiver);
 				break;
 			case Attachments.AttachmentType.PDF:
 				attachment.setTitle(attachmentUri.getLastPathSegment());
 				attachmentId = HttpUtil.insertPdfAttachment(this, attachmentUri);
+				PhotonHelper.sendStatsEvent(StatsEvent.PDF_ADDED, selectedPoint, photonReceiver);
 				break;
 			case Attachments.AttachmentType.YOUTUBE:
 				OEntity entity = odataWrite.insertAttachment(attachment);
@@ -231,6 +220,7 @@ public class UploadService extends IntentService {
 				String vid = attachmentUri.getQueryParameter("v");
 				attachment.setVideoEmbedURL("http://www.youtube.com/embed/" + vid);
 				attachment.setVideoThumbURL(YoutubeHelper.getThumbImageUrl(attachmentUri.toString()));
+				PhotonHelper.sendStatsEvent(StatsEvent.YOUTUBE_ADDED, selectedPoint, photonReceiver);
 				break;
 			default:
 				throw new UnsupportedOperationException(
@@ -243,10 +233,7 @@ public class UploadService extends IntentService {
 			attachment.setAttachmentId(attachmentId);
 			ContentValues cv = attachment.toContentValues();
 			getContentResolver().insert(Attachments.CONTENT_URI, cv);
-			SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
-			ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 			PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
-			// TODO send stats events here
 		} else {
 			throw new DataIoException("Failed to update newly inserted attachment with id: " + attachmentId);
 		}
@@ -266,7 +253,7 @@ public class UploadService extends IntentService {
 		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
 		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 		PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
-		// TODO send stats events here
+		PhotonHelper.sendStatsEvent(StatsEvent.COMMENT_ADDED, selectedPoint, photonReceiver);
 	}
 
 	private void insertDescription(final Intent intent) {
@@ -303,9 +290,10 @@ public class UploadService extends IntentService {
 		description.setId(newId);
 		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
 		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
+		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
 		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 		PhotonHelper.sendArgPointUpdated(point, photonReceiver);
-		// TODO send stats events here
+		PhotonHelper.sendStatsEvent(StatsEvent.BADGE_CREATED, selectedPoint, photonReceiver);
 	}
 
 	private void insertSource(final Intent intent) {
@@ -322,7 +310,7 @@ public class UploadService extends IntentService {
 		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
 		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 		PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
-		// TODO send stats events here
+		PhotonHelper.sendStatsEvent(StatsEvent.SOURCE_ADDED, selectedPoint, photonReceiver);
 	}
 
 	private boolean isConnected() {
@@ -355,9 +343,10 @@ public class UploadService extends IntentService {
 		logd("[updatePoint] " + point.toMyString());
 		updatePointOnServer(point);
 		updatePointOnLocal(point);
-		PhotonHelper.sendArgPointUpdated(point, getPhotonReceiverFromExtra(intent));
-		// TODO: send stats event
-		// sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
+		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
+		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
+		PhotonHelper.sendArgPointUpdated(point, photonReceiver);
+		PhotonHelper.sendStatsEvent(StatsEvent.BADGE_EDITED, selectedPoint, photonReceiver);
 	}
 
 	private int updatePointOnLocal(final Point point) {

@@ -8,8 +8,8 @@ import com.slobodastudio.discussions.data.odata.OdataWriteClient;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
-import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
 import com.slobodastudio.discussions.photon.PhotonHelper;
+import com.slobodastudio.discussions.photon.constants.StatsEvent;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
@@ -17,7 +17,6 @@ import com.slobodastudio.discussions.utils.MyLog;
 import android.app.IntentService;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.util.Log;
 
@@ -68,21 +67,6 @@ public class DeleteService extends IntentService {
 
 		if (DEBUG) {
 			Log.d(TAG, message);
-		}
-	}
-
-	private static void notifyPhotonStatsEvent(final ResultReceiver photonReceiver, final int discussionId,
-			final int userId, final int changedTopicId, final byte statsEventId) {
-
-		logd("[notifyPhoton] discussion id: " + discussionId + ", user id: " + userId + ", topic id: "
-				+ changedTopicId + ", event id: " + statsEventId + ", photonReceiver: " + photonReceiver);
-		if (photonReceiver != null) {
-			final Bundle bundle = new Bundle();
-			bundle.putInt(SyncResultReceiver.EXTRA_DISCUSSION_ID, discussionId);
-			bundle.putInt(SyncResultReceiver.EXTRA_USER_ID, userId);
-			bundle.putInt(SyncResultReceiver.EXTRA_TOPIC_ID, changedTopicId);
-			bundle.putInt(SyncResultReceiver.EXTRA_EVENT_TYPE, statsEventId);
-			photonReceiver.send(SyncResultReceiver.STATUS_EVENT_CHANGED, bundle);
 		}
 	}
 
@@ -160,9 +144,7 @@ public class DeleteService extends IntentService {
 		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
 		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 		PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
-		// TODO: send stats event here
-		// notifyPhotonStatsEvent(getPhotonReceiverFromExtra(intent), selectedPoint.getDiscussionId(),
-		// selectedPoint.getPersonId(), selectedPoint.getTopicId(), StatsType.BADGE_EDITED);
+		PhotonHelper.sendStatsEvent(StatsEvent.MEDIA_REMOVED, selectedPoint, photonReceiver);
 		String where = Attachments.Columns.ID + "=?";
 		String[] args = new String[] { String.valueOf(attachmentId) };
 		getContentResolver().delete(Attachments.CONTENT_URI, where, args);
@@ -175,10 +157,9 @@ public class DeleteService extends IntentService {
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
 		odataWrite.deleteComment(commentId);
 		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
-		PhotonHelper.sendArgPointUpdated(selectedPoint, getPhotonReceiverFromExtra(intent));
-		// TODO send stats here
-		// notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-		// discussionId, personId, topicId, StatsType.BADGE_EDITED);
+		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
+		PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
+		PhotonHelper.sendStatsEvent(StatsEvent.COMMENT_REMOVED, selectedPoint, photonReceiver);
 		String where = Comments.Columns.ID + "=?";
 		String[] args = new String[] { String.valueOf(commentId) };
 		getContentResolver().delete(Comments.CONTENT_URI, where, args);
@@ -186,7 +167,6 @@ public class DeleteService extends IntentService {
 
 	private void deletePoint(final Intent intent) {
 
-		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
 		//
 		int pointId = selectedPoint.getPointId();
@@ -195,9 +175,10 @@ public class DeleteService extends IntentService {
 		Point deletePoint = getPointFromLocal(pointId);
 		deletePointOnServer(deletePoint);
 		deletePointOnLocal(deletePoint);
+		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 		updatePointOrderNumbers(deletePoint, photonReceiver);
 		PhotonHelper.sendArgPointDeleted(deletePoint, photonReceiver);
-		// TODO: send stats here
+		PhotonHelper.sendStatsEvent(StatsEvent.BADGE_EDITED, selectedPoint, photonReceiver);
 	}
 
 	private int deletePointOnLocal(final Point point) {
@@ -245,8 +226,6 @@ public class DeleteService extends IntentService {
 		updatePointOnServer(point);
 		updatePointOnLocal(point);
 		PhotonHelper.sendArgPointUpdated(point, photonReceiver);
-		// TODO: trigger photon stats
-		// sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 	}
 
 	private int updatePointOnLocal(final Point point) {

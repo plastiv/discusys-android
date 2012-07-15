@@ -3,6 +3,7 @@ package com.slobodastudio.discussions.photon;
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.PreferenceHelper;
 import com.slobodastudio.discussions.data.model.ArgPointChanged;
+import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.photon.constants.ActorPropertiesKey;
 import com.slobodastudio.discussions.photon.constants.DeviceType;
 import com.slobodastudio.discussions.photon.constants.DiscussionEventCode;
@@ -46,8 +47,6 @@ import java.util.TimerTask;
 public class PhotonController implements IPhotonPeerListener {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
-	private static final int INVALID_POINT_ID = -1;
-	private static final int INVALID_TOPIC_ID = -1;
 	private static final String TAG = PhotonController.class.getSimpleName();
 	private final PhotonServiceCallbackHandler mCallbackHandler;
 	private String mGameLobbyName;
@@ -174,20 +173,6 @@ public class PhotonController implements IPhotonPeerListener {
 				mOnlineUsers.remove(leftActorNumber);
 				logUsersOnline();
 				break;
-			case DiscussionEventCode.STRUCTURE_CHANGED: {
-				int personId = (Integer) event.Parameters.get(DiscussionParameterKey.USER_ID);
-				if (personId != mLocalUser.getUserId()) {
-					int changedTopicId = (Integer) event.Parameters
-							.get(DiscussionParameterKey.CHANGED_TOPIC_ID);
-					if (changedTopicId == INVALID_TOPIC_ID) {
-						// special code. new point was added or deleted
-						mCallbackHandler.onRefreshCurrentTopic();
-						break;
-					}
-					mCallbackHandler.onStructureChanged(changedTopicId);
-				}
-				break;
-			}
 			case DiscussionEventCode.ARG_POINT_CHANGED:
 				onArgPointChangedEvent(event.Parameters);
 				break;
@@ -291,84 +276,6 @@ public class PhotonController implements IPhotonPeerListener {
 		}
 	}
 
-	public void opJoinFromLobby() {
-
-		HashMap<Byte, Object> actorProperties = new HashMap<Byte, Object>();
-		actorProperties.put(ActorPropertiesKey.NAME, mLocalUser.getUserName());
-		actorProperties.put(ActorPropertiesKey.DB_ID, mLocalUser.getUserId());
-		actorProperties.put(ActorPropertiesKey.DEVICE_TYPE, DeviceType.ANDROID);
-		opJoinFromLobby(mGameLobbyName, PhotonConstants.LOBBY, actorProperties, true);
-	}
-
-	public boolean opSendArgPointChanged(final ArgPointChanged argPointChanged) {
-
-		if (DEBUG) {
-			Log.d(TAG, "[opSendArgPointChanged] point id: " + argPointChanged.getPointId() + " , topic id: "
-					+ argPointChanged.getTopicId() + " , event type: " + argPointChanged.getEventType());
-		}
-		if (!isConnected()) {
-			throw new IllegalStateException(
-					"You trying to send notification while not connected to the server");
-		}
-		if (argPointChanged.getPointId() < -1) {
-			throw new IllegalArgumentException("[opSendArgPointChanged] Point id can't be below zero");
-		}
-		if (argPointChanged.getTopicId() < 0) {
-			throw new IllegalArgumentException("[opSendArgPointChanged] Topic id can't be below zero");
-		}
-		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
-				Object.class);
-		structureChangedParameters.put(DiscussionParameterKey.POINT_CHANGE_TYPE, argPointChanged
-				.getEventType());
-		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, argPointChanged.getPointId());
-		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, argPointChanged.getTopicId());
-		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED, structureChangedParameters,
-				true);
-	}
-
-	public boolean opSendNotifyStructureChanged(final int activeTopicId) {
-
-		if (DEBUG) {
-			Log.d(TAG, "[opSendNotifyStructureChanged] topic id: " + activeTopicId);
-		}
-		if (!isConnected()) {
-			throw new IllegalStateException(
-					"You trying to send notification while not connected to the server");
-		}
-		if (activeTopicId < 0) {
-			throw new IllegalArgumentException("Active topic id can't be below zero");
-		}
-		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
-				Object.class);
-		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, activeTopicId);
-		structureChangedParameters.put(DiscussionParameterKey.FORCE_SELF_NOTIFICATION, (byte) 1);
-		structureChangedParameters.put(DiscussionParameterKey.USER_ID, mLocalUser.getUserId());
-		structureChangedParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
-		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_STRUCTURE_CHANGED, structureChangedParameters,
-				true);
-	}
-
-	boolean opSendStatsEvent(final int discussionId, final int userId, final int changedTopicId,
-			final int statsEventId) {
-
-		if (!isConnected()) {
-			throw new IllegalStateException(
-					"Cant perfom operation \"opSendStatsEvent\" in disconnected state");
-		}
-		if (DEBUG) {
-			Log.d(TAG, "[opSendStatsEvent] topic id: " + changedTopicId + ", userId: " + userId
-					+ ", discussionId: " + discussionId);
-		}
-		TypedHashMap<Byte, Object> eventStatsParameters = new TypedHashMap<Byte, Object>(Byte.class,
-				Object.class);
-		eventStatsParameters.put(DiscussionParameterKey.DISCUSSION_ID, discussionId);
-		eventStatsParameters.put(DiscussionParameterKey.USER_ID, userId);
-		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, changedTopicId);
-		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEventId);
-		eventStatsParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
-		return mPeer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
-	}
-
 	private void logUsersOnline() {
 
 		if (DEBUG) {
@@ -398,6 +305,15 @@ public class PhotonController implements IPhotonPeerListener {
 		argPointChanged.setPointId(pointId);
 		argPointChanged.setTopicId(topicId);
 		mCallbackHandler.onArgPointChanged(argPointChanged);
+	}
+
+	private void opJoinFromLobby() {
+
+		HashMap<Byte, Object> actorProperties = new HashMap<Byte, Object>();
+		actorProperties.put(ActorPropertiesKey.NAME, mLocalUser.getUserName());
+		actorProperties.put(ActorPropertiesKey.DB_ID, mLocalUser.getUserId());
+		actorProperties.put(ActorPropertiesKey.DEVICE_TYPE, DeviceType.ANDROID);
+		opJoinFromLobby(mGameLobbyName, PhotonConstants.LOBBY, actorProperties, true);
 	}
 
 	private boolean opJoinFromLobby(final String gameName, final String lobbyName,
@@ -431,6 +347,52 @@ public class PhotonController implements IPhotonPeerListener {
 		opRequestParameters.put(LiteOpParameterKey.ACTORS, toIntArray(unknownActorsNumbers));
 		opRequestParameters.put(LiteOpParameterKey.PROPERTIES, Byte.valueOf(LiteOpPropertyType.ACTOR));
 		return mPeer.opCustom(LiteOpCode.GetProperties, opRequestParameters, true);
+	}
+
+	private boolean opSendArgPointChanged(final ArgPointChanged argPointChanged) {
+
+		if (DEBUG) {
+			Log.d(TAG, "[opSendArgPointChanged] point id: " + argPointChanged.getPointId() + " , topic id: "
+					+ argPointChanged.getTopicId() + " , event type: " + argPointChanged.getEventType());
+		}
+		if (!isConnected()) {
+			throw new IllegalStateException(
+					"You trying to send notification while not connected to the server");
+		}
+		if (argPointChanged.getPointId() < -1) {
+			throw new IllegalArgumentException("[opSendArgPointChanged] Point id can't be below zero");
+		}
+		if (argPointChanged.getTopicId() < 0) {
+			throw new IllegalArgumentException("[opSendArgPointChanged] Topic id can't be below zero");
+		}
+		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
+				Object.class);
+		structureChangedParameters.put(DiscussionParameterKey.POINT_CHANGE_TYPE, argPointChanged
+				.getEventType());
+		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, argPointChanged.getPointId());
+		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, argPointChanged.getTopicId());
+		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED, structureChangedParameters,
+				true);
+	}
+
+	private boolean opSendStatsEvent(final int statsEvent, final SelectedPoint selectedPoint) {
+
+		if (!isConnected()) {
+			throw new IllegalStateException(
+					"Cant perfom operation \"opSendStatsEvent\" in disconnected state");
+		}
+		if (DEBUG) {
+			Log.d(TAG, "[opSendStatsEvent] topic id: " + selectedPoint.getTopicId() + ", userId: "
+					+ selectedPoint.getPersonId() + ", discussionId: " + selectedPoint.getDiscussionId());
+		}
+		TypedHashMap<Byte, Object> eventStatsParameters = new TypedHashMap<Byte, Object>(Byte.class,
+				Object.class);
+		eventStatsParameters.put(DiscussionParameterKey.DISCUSSION_ID, selectedPoint.getDiscussionId());
+		eventStatsParameters.put(DiscussionParameterKey.USER_ID, selectedPoint.getPersonId());
+		eventStatsParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, selectedPoint.getTopicId());
+		eventStatsParameters.put(DiscussionParameterKey.STATS_EVENT, statsEvent);
+		eventStatsParameters.put(DiscussionParameterKey.DEVICE_TYPE, DeviceType.ANDROID);
+		return mPeer.opCustom(DiscussionOperationCode.STATS_EVENT, eventStatsParameters, true);
 	}
 
 	private void startPeerUpdateTimer() {
@@ -495,14 +457,10 @@ public class PhotonController implements IPhotonPeerListener {
 	public class SyncResultReceiver extends ResultReceiver {
 
 		public static final String EXTRA_ARG_POINT_CHANGED = "intent.extra.key.EXTRA_ARG_POINT_CHANGED";
-		public static final String EXTRA_DISCUSSION_ID = "intent.extra.key.EXTRA_DISCUSSION_ID";
-		public static final String EXTRA_EVENT_TYPE = "intent.extra.key.EXTRA_EVENT_TYPE";
-		public static final String EXTRA_POINT_ID = "intent.extra.key.EXTRA_POINT_ID";
-		public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
-		public static final String EXTRA_USER_ID = "intent.extra.key.EXTRA_USER_ID";
+		public static final String EXTRA_SELECTED_POINT = "intent.extra.key.EXTRA_SELECTED_POINT";
+		public static final String EXTRA_STATS_EVENT = "intent.extra.key.EXTRA_STATS_EVENT";
 		public static final int STATUS_ARG_POINT_CHANGED = 0x3;
 		public static final int STATUS_EVENT_CHANGED = 0x4;
-		public static final int STATUS_STRUCTURE_CHANGED = 0x2;
 
 		public SyncResultReceiver(final Handler handler) {
 
@@ -523,19 +481,11 @@ public class PhotonController implements IPhotonPeerListener {
 						opSendArgPointChanged(argPointChanged);
 					}
 					break;
-				case STATUS_STRUCTURE_CHANGED:
-					int topicId = resultData.getInt(EXTRA_TOPIC_ID);
-					if (isConnected()) {
-						opSendNotifyStructureChanged(topicId);
-					}
-					break;
 				case STATUS_EVENT_CHANGED:
-					int discussionsId = resultData.getInt(EXTRA_DISCUSSION_ID);
-					int changedTopicId = resultData.getInt(EXTRA_TOPIC_ID);
-					int userId = resultData.getInt(EXTRA_USER_ID);
-					int statsEventId = resultData.getInt(EXTRA_EVENT_TYPE);
+					SelectedPoint selectedPoint = resultData.getParcelable(EXTRA_SELECTED_POINT);
+					int statsEvent = resultData.getInt(EXTRA_STATS_EVENT);
 					if (isConnected()) {
-						opSendStatsEvent(discussionsId, userId, changedTopicId, statsEventId);
+						opSendStatsEvent(statsEvent, selectedPoint);
 					}
 					break;
 				default:

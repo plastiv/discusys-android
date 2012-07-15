@@ -120,12 +120,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			throw new IllegalArgumentException("[onActionDelete] was called with incorrect point id: "
 					+ mPointId);
 		}
-		SelectedPoint selectedPoint = new SelectedPoint();
-		selectedPoint.setDiscussionId(mDiscussionId);
-		selectedPoint.setPersonId(mPersonId);
-		selectedPoint.setPointId(mPointId);
-		selectedPoint.setTopicId(mTopicId);
-		((BaseActivity) getActivity()).getServiceHelper().deletePoint(selectedPoint);
+		((BaseActivity) getActivity()).getServiceHelper().deletePoint(getSelectedPoint());
 	}
 
 	public void onActionSave() {
@@ -151,7 +146,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		if (mPointId != INVALID_POINT_ID) {
 			// update point
 			point.setId(mPointId);
-			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle());
+			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle(),
+					getSelectedPoint());
 		} else {
 			// new point
 			point.setId(INVALID_POINT_ID);
@@ -164,7 +160,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			Description description = new Description(mDescriptionId, mDescriptionEditText.getText()
 					.toString(), null, mPointId);
 			values.putAll(description.toBundle());
-			((BaseActivity) getActivity()).getServiceHelper().insertPointAndDescription(values);
+			((BaseActivity) getActivity()).getServiceHelper().insertPointAndDescription(values,
+					getSelectedPoint());
 		}
 	}
 
@@ -237,6 +234,16 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	public void setEmpty(final boolean empty) {
 
 		mIsEmpty = empty;
+	}
+
+	private SelectedPoint getSelectedPoint() {
+
+		SelectedPoint selectedPoint = new SelectedPoint();
+		selectedPoint.setDiscussionId(mDiscussionId);
+		selectedPoint.setPersonId(mPersonId);
+		selectedPoint.setPointId(mPointId);
+		selectedPoint.setTopicId(mTopicId);
+		return selectedPoint;
 	}
 
 	private int getSelectedSideCodeId() {

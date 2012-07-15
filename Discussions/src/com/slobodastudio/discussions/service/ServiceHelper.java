@@ -22,9 +22,9 @@ public class ServiceHelper {
 
 	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
 	private static final String TAG = ServiceHelper.class.getSimpleName();
+	private final ResultReceiver mActivityReceiver;
 	private final Context mContext;
 	private OdataSyncResultListener mOdataListener;
-	private final ResultReceiver mActivityReceiver;
 	private boolean mOdataSyncing;
 	private final PhotonController mPhotonController;
 
@@ -162,12 +162,13 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
-	public void insertPointAndDescription(final Bundle values) {
+	public void insertPointAndDescription(final Bundle values, final SelectedPoint selectedPoint) {
 
 		// TODO: separate point and description objects from one bundle
 		Intent intent = new Intent(IntentAction.UPLOAD);
 		intent.putExtra(ServiceExtraKeys.TYPE_ID, UploadService.TYPE_INSERT_POINT_AND_DESCRIPTION);
 		intent.putExtra(ServiceExtraKeys.VALUE, values);
+		intent.putExtra(ServiceExtraKeys.SELECTED_POINT, selectedPoint);
 		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
 		intent.putExtra(ServiceExtraKeys.PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);
@@ -204,11 +205,12 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
-	public void updatePoint(final Bundle pointValue) {
+	public void updatePoint(final Bundle pointValue, final SelectedPoint selectedPoint) {
 
 		Intent intent = new Intent(IntentAction.UPLOAD);
 		intent.putExtra(ServiceExtraKeys.TYPE_ID, UploadService.TYPE_UPDATE_POINT);
 		intent.putExtra(ServiceExtraKeys.VALUE, pointValue);
+		intent.putExtra(ServiceExtraKeys.SELECTED_POINT, selectedPoint);
 		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
 		intent.putExtra(ServiceExtraKeys.PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);
