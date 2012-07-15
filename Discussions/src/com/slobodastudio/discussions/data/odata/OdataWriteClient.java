@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.data.model.Attachment;
+import com.slobodastudio.discussions.data.model.Comment;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.Source;
@@ -69,13 +70,14 @@ public class OdataWriteClient extends BaseOdataClient {
 		// @formatter:on
 	}
 
-	public OEntity insertComment(final String text, final int personId, final int pointId) {
+	public OEntity insertComment(final Comment comment) {
 
 		// @formatter:off
 		return mConsumer.createEntity(Comments.TABLE_NAME)
-				.link(Comments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(personId)))
-				.properties(OProperties.string(Comments.Columns.TEXT, text))
-				.link("ArgPoint", OEntityKey.parse(String.valueOf(pointId))).execute();
+				.link(Comments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(comment.getPersonId())))
+				.properties(OProperties.string(Comments.Columns.TEXT, comment.getText()))
+				.link("ArgPoint", OEntityKey.parse(String.valueOf(comment.getPointId())))
+				.execute();
 		// @formatter:on
 	}
 

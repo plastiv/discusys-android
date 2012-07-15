@@ -4,6 +4,7 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.model.Attachment;
+import com.slobodastudio.discussions.data.model.Comment;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
 import com.slobodastudio.discussions.data.model.SelectedPoint;
@@ -17,8 +18,6 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
 import com.slobodastudio.discussions.photon.PhotonHelper;
-import com.slobodastudio.discussions.photon.constants.StatsType;
-import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MediaStoreHelper;
@@ -39,13 +38,6 @@ import org.odata4j.core.OEntity;
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class UploadService extends IntentService {
 
-	public static final String EXTRA_DISCUSSION_ID = "intent.extra.key.EXTRA_DISCUSSION_ID";
-	public static final String EXTRA_PHOTON_RECEIVER = "intent.extra.key.PHOTON_RECEIVER";
-	public static final String EXTRA_SELECTED_POINT = "intent.extra.key.EXTRA_SELECTED_POINT";
-	public static final String EXTRA_TOPIC_ID = "intent.extra.key.EXTRA_TOPIC_ID";
-	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
-	public static final String EXTRA_URI = "intent.extra.key.EXTRA_URI";
-	public static final String EXTRA_VALUE = "intent.extra.key.EXTRA_VALUE";
 	public static final int TYPE_INSERT_ATTACHMENT = 0x6;
 	public static final int TYPE_INSERT_COMMENT = 0x5;
 	public static final int TYPE_INSERT_DESCRIPTION = 0x3;
@@ -53,12 +45,45 @@ public class UploadService extends IntentService {
 	public static final int TYPE_INSERT_SOURCE = 0x7;
 	public static final int TYPE_UPDATE_DESCRIPTION = 0x2;
 	public static final int TYPE_UPDATE_POINT = 0x1;
-	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
 	private static final String TAG = UploadService.class.getSimpleName();
 
 	public UploadService() {
 
 		super(TAG);
+	}
+
+	private static ResultReceiver getActivityReceiverFromExtra(final Intent intent) {
+
+		return intent.getParcelableExtra(ServiceExtraKeys.ACTIVITY_RECEIVER);
+	}
+
+	private static ResultReceiver getPhotonReceiverFromExtra(final Intent intent) {
+
+		return intent.getParcelableExtra(ServiceExtraKeys.PHOTON_RECEIVER);
+	}
+
+	private static SelectedPoint getSelectedPointFromExtra(final Intent intent) {
+
+		if (!intent.hasExtra(ServiceExtraKeys.SELECTED_POINT)) {
+			throw new IllegalArgumentException("[getSelectedPointFromExtra] called without required extra: "
+					+ ServiceExtraKeys.SELECTED_POINT);
+		}
+		return intent.getParcelableExtra(ServiceExtraKeys.SELECTED_POINT);
+	}
+
+	private static int getTypeFromExtra(final Intent intent) {
+
+		return intent.getIntExtra(ServiceExtraKeys.TYPE_ID, Integer.MIN_VALUE);
+	}
+
+	private static Uri getUriFromExtra(final Intent intent) {
+
+		if (!intent.hasExtra(ServiceExtraKeys.URI)) {
+			throw new IllegalArgumentException("[getUriFromExtra] called without required extra: "
+					+ ServiceExtraKeys.URI);
+		}
+		return intent.getParcelableExtra(ServiceExtraKeys.URI);
 	}
 
 	private static void logd(final String message) {
@@ -83,24 +108,7 @@ public class UploadService extends IntentService {
 		}
 	}
 
-	private static void sendPhotonStatsEvent(final Intent intent, final byte statsType) {
-
-		if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
-			throw new IllegalArgumentException(
-					"[sendPhotonStatsEvent] called without required extra: selected point");
-		}
-		if (!intent.hasExtra(EXTRA_PHOTON_RECEIVER)) {
-			throw new IllegalArgumentException(
-					"[sendPhotonStatsEvent] called without required extra: photon receiver");
-		}
-		SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
-		notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				selectedPoint.getDiscussionId(), selectedPoint.getPersonId(), selectedPoint.getTopicId(),
-				statsType);
-	}
-
-	@Override
-	protected void onHandleIntent(final Intent intent) {
+	private static void validateIntent(final Intent intent) {
 
 		if (!IntentAction.UPLOAD.equals(intent.getAction())) {
 			throw new IllegalArgumentException("Service was started with unknown intent: "
@@ -109,42 +117,40 @@ public class UploadService extends IntentService {
 		if (intent.getExtras() == null) {
 			throw new IllegalArgumentException("Service was started without extras");
 		}
-		if (!intent.hasExtra(EXTRA_PHOTON_RECEIVER)) {
-			throw new IllegalArgumentException("Service was started without extras: photon receiver");
+		if (!intent.hasExtra(ServiceExtraKeys.ACTIVITY_RECEIVER)) {
+			throw new IllegalArgumentException("Service was started without extras: "
+					+ ServiceExtraKeys.ACTIVITY_RECEIVER);
 		}
-		if (!intent.hasExtra(EXTRA_TYPE_ID)) {
-			throw new IllegalArgumentException("Service was started without extras: type id");
+		if (!intent.hasExtra(ServiceExtraKeys.PHOTON_RECEIVER)) {
+			throw new IllegalArgumentException("Service was started without extras: "
+					+ ServiceExtraKeys.PHOTON_RECEIVER);
 		}
-		if (!intent.hasExtra(EXTRA_VALUE)) {
-			throw new IllegalArgumentException("Service was started without extras: value");
+		if (!intent.hasExtra(ServiceExtraKeys.TYPE_ID)) {
+			throw new IllegalArgumentException("Service was started without extras: "
+					+ ServiceExtraKeys.TYPE_ID);
 		}
-		if (!intent.hasExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER)) {
-			throw new IllegalArgumentException("Service was started without extras: status receiver");
+		if (!intent.hasExtra(ServiceExtraKeys.VALUE)) {
+			throw new IllegalArgumentException("Service was started without extras: "
+					+ ServiceExtraKeys.VALUE);
 		}
-		final ResultReceiver receiver = intent
-				.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
-		boolean connected;
-		if (ApplicationConstants.DEV_MODE) {
-			connected = true;
+	}
+
+	@Override
+	protected void onHandleIntent(final Intent intent) {
+
+		logd("[onHandleIntent] intent: " + intent.toString());
+		validateIntent(intent);
+		final ResultReceiver activityReceiver = getActivityReceiverFromExtra(intent);
+		if (isConnected()) {
+			ActivityResultHelper.sendStatusStart(activityReceiver);
 		} else {
-			connected = ConnectivityUtil.isNetworkConnected(this);
-		}
-		if (connected) {
-			if (receiver != null) {
-				receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, Bundle.EMPTY);
-			}
-		} else {
-			if (receiver != null) {
-				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT, getString(R.string.text_error_network_off));
-				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
-			}
+			String errorString = getString(R.string.text_error_network_off);
+			ActivityResultHelper.sendStatusError(activityReceiver, errorString);
 			stopSelf();
 			return;
 		}
-		logd("[onHandleIntent] intent: " + intent.toString());
 		try {
-			switch (intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE)) {
+			switch (getTypeFromExtra(intent)) {
 				case TYPE_INSERT_POINT_AND_DESCRIPTION:
 					insertPointAndDescription(intent);
 					break;
@@ -167,25 +173,16 @@ public class UploadService extends IntentService {
 					insertSource(intent);
 					break;
 				default:
-					throw new IllegalArgumentException("Illegal type id: "
-							+ intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE));
+					throw new IllegalArgumentException("Illegal type id: " + getTypeFromExtra(intent));
 			}
 		} catch (Exception e) {
 			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
-			if (receiver != null) {
-				// Pass back error to surface listener
-				final Bundle bundle = new Bundle();
-				bundle.putString(Intent.EXTRA_TEXT, e.toString());
-				receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
-			}
+			ActivityResultHelper.sendStatusError(activityReceiver, e.getMessage());
 			stopSelf();
 			return;
 		}
+		ActivityResultHelper.sendStatusFinished(activityReceiver);
 		logd("[onHandleIntent] sync finished");
-		// Announce success to any surface listener
-		if (receiver != null) {
-			receiver.send(OdataSyncResultReceiver.STATUS_FINISHED, Bundle.EMPTY);
-		}
 	}
 
 	private int createPointOrderNumber(final Point point) {
@@ -200,12 +197,10 @@ public class UploadService extends IntentService {
 		}
 		String[] columns = new String[] { "MAX(" + Points.Columns.ORDER_NUMBER + ")" };
 		Cursor cursorMaxNum = getContentResolver().query(Points.CONTENT_URI, columns, where, null, null);
-		logd("Cursor count: " + cursorCount.getCount());
 		int maxOrderNum = 0;
 		if (cursorMaxNum.moveToFirst()) {
 			maxOrderNum = cursorMaxNum.getInt(0) + 1;
 		}
-		logd("Max order num: " + maxOrderNum);
 		cursorCount.close();
 		cursorMaxNum.close();
 		return maxOrderNum;
@@ -213,14 +208,10 @@ public class UploadService extends IntentService {
 
 	private void insertAttachment(final Intent intent) {
 
-		if (!intent.hasExtra(EXTRA_URI)) {
-			throw new IllegalArgumentException(
-					"[insertAttachment] was called without required attachment uri");
-		}
-		Attachment attachment = intent.getParcelableExtra(EXTRA_VALUE);
-		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		Attachment attachment = intent.getParcelableExtra(ServiceExtraKeys.VALUE);
 		logd("[insertAttachment] " + attachment.getTitle());
-		Uri attachmentUri = intent.getParcelableExtra(EXTRA_URI);
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		Uri attachmentUri = getUriFromExtra(intent);
 		int attachmentId;
 		switch (attachment.getFormat()) {
 			case Attachments.AttachmentType.JPG:
@@ -252,8 +243,10 @@ public class UploadService extends IntentService {
 			attachment.setAttachmentId(attachmentId);
 			ContentValues cv = attachment.toContentValues();
 			getContentResolver().insert(Attachments.CONTENT_URI, cv);
-			PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.MODIFIED);
-			sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
+			SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
+			ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
+			PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
+			// TODO send stats events here
 		} else {
 			throw new DataIoException("Failed to update newly inserted attachment with id: " + attachmentId);
 		}
@@ -261,43 +254,24 @@ public class UploadService extends IntentService {
 
 	private void insertComment(final Intent intent) {
 
-		Bundle commentBundle = intent.getBundleExtra(EXTRA_VALUE);
-		logd("[insertComment] " + commentBundle.getString(Comments.Columns.TEXT));
+		Bundle commentBundle = intent.getBundleExtra(ServiceExtraKeys.VALUE);
+		Comment comment = new Comment(commentBundle);
+		logd("[insertComment] " + comment.getText());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
-		String text = commentBundle.getString(Comments.Columns.TEXT);
-		int personId = commentBundle.getInt(Comments.Columns.PERSON_ID, Integer.MIN_VALUE);
-		int pointId = commentBundle.getInt(Comments.Columns.POINT_ID, Integer.MIN_VALUE);
-		OEntity entity = odataWrite.insertComment(text, personId, pointId);
+		OEntity entity = odataWrite.insertComment(comment);
 		int commentId = (Integer) entity.getProperty(Comments.Columns.ID).getValue();
 		logd("[insertComment] new comment id: " + commentId);
-		ContentValues cv = new ContentValues();
-		cv.put(Comments.Columns.ID, commentId);
-		cv.put(Comments.Columns.TEXT, text);
-		cv.put(Comments.Columns.PERSON_ID, personId);
-		cv.put(Comments.Columns.POINT_ID, pointId);
-		getContentResolver().insert(Comments.CONTENT_URI, cv);
-		// TODO: rewrite this part
-		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-			throw new IllegalArgumentException("[insertComment] called without required discussion id");
-		}
-		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-		if (!intent.hasExtra(EXTRA_TOPIC_ID)) {
-			throw new IllegalArgumentException("[insertComment] called without required topic id");
-		}
-		int topicId = intent.getIntExtra(EXTRA_TOPIC_ID, Integer.MIN_VALUE);
-		SelectedPoint selectedPoint = new SelectedPoint();
-		selectedPoint.setDiscussionId(discussionId);
-		selectedPoint.setPersonId(personId);
-		selectedPoint.setPointId(pointId);
-		selectedPoint.setTopicId(topicId);
-		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
-		PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.MODIFIED);
-		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
+		comment.setId(commentId);
+		getContentResolver().insert(Comments.CONTENT_URI, comment.toContentValues());
+		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
+		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
+		PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
+		// TODO send stats events here
 	}
 
 	private void insertDescription(final Intent intent) {
 
-		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Bundle descriptionBundle = intent.getBundleExtra(ServiceExtraKeys.VALUE);
 		Description description = new Description(descriptionBundle);
 		logd("[insertDescription] " + description.toMyString());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
@@ -310,11 +284,11 @@ public class UploadService extends IntentService {
 
 	private void insertPointAndDescription(final Intent intent) {
 
-		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Bundle pointBundle = intent.getBundleExtra(ServiceExtraKeys.VALUE);
 		Point point = new Point(pointBundle);
 		logd("[insertPoint] " + point.toMyString());
 		point.setOrderNumber(createPointOrderNumber(point));
-		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Bundle descriptionBundle = intent.getBundleExtra(ServiceExtraKeys.VALUE);
 		Description description = new Description(descriptionBundle);
 		logd("[insertDescription] " + description.toMyString());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
@@ -327,35 +301,16 @@ public class UploadService extends IntentService {
 		int newId = (Integer) entityDesription.getProperty(Descriptions.Columns.ID).getValue();
 		logd("[insertDescription] new description id: " + newId);
 		description.setId(newId);
-		// notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-		// point
-		// .getId());
-		// if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-		// throw new IllegalArgumentException("[updatePoint] called without required discussion id");
-		// }
-		// int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-		// notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-		// discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_CREATED);
 		getContentResolver().insert(Points.CONTENT_URI, point.toContentValues());
 		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
-		// TODO: rewrite this part
-		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-			throw new IllegalArgumentException("[insertComment] called without required discussion id");
-		}
-		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-		SelectedPoint selectedPoint = new SelectedPoint();
-		selectedPoint.setDiscussionId(discussionId);
-		selectedPoint.setPersonId(point.getPersonId());
-		selectedPoint.setPointId(point.getId());
-		selectedPoint.setTopicId(point.getTopicId());
-		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
-		PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.CREATED);
-		sendPhotonStatsEvent(intent, StatsType.BADGE_CREATED);
+		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
+		PhotonHelper.sendArgPointUpdated(point, photonReceiver);
+		// TODO send stats events here
 	}
 
 	private void insertSource(final Intent intent) {
 
-		Source source = intent.getParcelableExtra(EXTRA_VALUE);
+		Source source = intent.getParcelableExtra(ServiceExtraKeys.VALUE);
 		logd("[insertSource] " + source.getLink());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
 		OEntity entity = odataWrite.insertSource(source);
@@ -364,13 +319,26 @@ public class UploadService extends IntentService {
 		source.setSourceId(sourceId);
 		ContentValues cv = source.toContentValues();
 		getContentResolver().insert(Sources.CONTENT_URI, cv);
-		PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.MODIFIED);
-		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
+		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
+		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
+		PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
+		// TODO send stats events here
+	}
+
+	private boolean isConnected() {
+
+		boolean connected;
+		if (ApplicationConstants.DEV_MODE) {
+			connected = true;
+		} else {
+			connected = ConnectivityUtil.isNetworkConnected(this);
+		}
+		return connected;
 	}
 
 	private void updateDescription(final Intent intent) {
 
-		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Bundle descriptionBundle = intent.getBundleExtra(ServiceExtraKeys.VALUE);
 		Description description = new Description(descriptionBundle);
 		logd("[updateDescription] " + description.toMyString());
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
@@ -382,35 +350,26 @@ public class UploadService extends IntentService {
 
 	private void updatePoint(final Intent intent) {
 
-		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
+		Bundle pointBundle = intent.getBundleExtra(ServiceExtraKeys.VALUE);
 		Point point = new Point(pointBundle);
 		logd("[updatePoint] " + point.toMyString());
-		OdataWriteClient odataWrite = new OdataWriteClient(this);
-		odataWrite.updatePoint(point);
-		// notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-		// point
-		// .getId());
-		// if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-		// throw new IllegalArgumentException("[updatePoint] called without required discussion id");
-		// }
-		// int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-		// notifyPhotonStatsEvent((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-		// discussionId, point.getPersonId(), point.getTopicId(), StatsType.BADGE_EDITED);
+		updatePointOnServer(point);
+		updatePointOnLocal(point);
+		PhotonHelper.sendArgPointUpdated(point, getPhotonReceiverFromExtra(intent));
+		// TODO: send stats event
+		// sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
+	}
+
+	private int updatePointOnLocal(final Point point) {
+
 		String where = Points.Columns.ID + "=?";
 		String[] args = new String[] { String.valueOf(point.getId()) };
-		getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where, args);
-		// TODO: rewrite this part
-		if (!intent.hasExtra(EXTRA_DISCUSSION_ID)) {
-			throw new IllegalArgumentException("[insertComment] called without required discussion id");
-		}
-		int discussionId = intent.getIntExtra(EXTRA_DISCUSSION_ID, Integer.MIN_VALUE);
-		SelectedPoint selectedPoint = new SelectedPoint();
-		selectedPoint.setDiscussionId(discussionId);
-		selectedPoint.setPersonId(point.getPersonId());
-		selectedPoint.setPointId(point.getId());
-		selectedPoint.setTopicId(point.getTopicId());
-		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
-		PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.MODIFIED);
-		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
+		return getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where, args);
+	}
+
+	private boolean updatePointOnServer(final Point point) {
+
+		OdataWriteClient odataWrite = new OdataWriteClient(this);
+		return odataWrite.updatePoint(point);
 	}
 }

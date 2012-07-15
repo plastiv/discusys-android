@@ -16,16 +16,13 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
-import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
-import com.slobodastudio.discussions.utils.fragmentasynctask.ResultCodes;
 import com.slobodastudio.discussions.utils.lazylist.ImageLoader;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.text.TextUtils;
 import android.util.Log;
@@ -40,21 +37,24 @@ import java.io.IOException;
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class DownloadService extends IntentService {
 
-	public static final String EXTRA_TYPE_ID = "intent.extra.key.EXTRA_TYPE_ID";
-	public static final String EXTRA_VALUE_ID = "intent.extra.key.EXTRA_VALUE_ID";
 	public static final int TYPE_ALL = 0x0;
 	public static final int TYPE_DESCRIPTION_ITEM = 0x6;
 	public static final int TYPE_DESCRIPTIONS = 0x5;
 	public static final int TYPE_POINT = 0x1;
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
 	public static final int TYPE_UPDATE_POINT = 0x7;
-	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
 	private static final String TAG = DownloadService.class.getSimpleName();
-	ResultReceiver receiver;
+	private ResultReceiver activityReceiver;
 
 	public DownloadService() {
 
 		super(TAG);
+	}
+
+	private static ResultReceiver getActivityReceiverFromExtra(final Intent intent) {
+
+		return intent.getParcelableExtra(ServiceExtraKeys.ACTIVITY_RECEIVER);
 	}
 
 	private static final String getTypeAsString(final int typeId) {
@@ -77,6 +77,16 @@ public class DownloadService extends IntentService {
 		}
 	}
 
+	private static int getTypeFromExtra(final Intent intent) {
+
+		return intent.getIntExtra(ServiceExtraKeys.TYPE_ID, Integer.MIN_VALUE);
+	}
+
+	private static int getValueIdFromExtra(final Intent intent) {
+
+		return intent.getIntExtra(ServiceExtraKeys.VALUE_ID, Integer.MIN_VALUE);
+	}
+
 	private static void logd(final String message) {
 
 		if (DEBUG) {
@@ -84,15 +94,7 @@ public class DownloadService extends IntentService {
 		}
 	}
 
-	@Override
-	public void onDestroy() {
-
-		logd("[onDestroy]");
-		super.onDestroy();
-	}
-
-	@Override
-	protected void onHandleIntent(final Intent intent) {
+	private static void validateIntent(final Intent intent) {
 
 		if (!IntentAction.DOWNLOAD.equals(intent.getAction())) {
 			throw new IllegalArgumentException("Service was started with unknown intent: "
@@ -101,21 +103,31 @@ public class DownloadService extends IntentService {
 		if (intent.getExtras() == null) {
 			throw new IllegalArgumentException("Service was started without extras");
 		}
-		if (!intent.hasExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER)) {
-			throw new IllegalArgumentException("Service was started without extras: status receiver");
+		if (!intent.hasExtra(ServiceExtraKeys.ACTIVITY_RECEIVER)) {
+			throw new IllegalArgumentException("Service was started without extras: "
+					+ ServiceExtraKeys.ACTIVITY_RECEIVER);
 		}
-		if (!intent.hasExtra(EXTRA_TYPE_ID)) {
-			throw new IllegalArgumentException("Service was started without extras: type id");
+		if (!intent.hasExtra(ServiceExtraKeys.TYPE_ID)) {
+			throw new IllegalArgumentException("Service was started without extras: "
+					+ ServiceExtraKeys.TYPE_ID);
 		}
-		receiver = intent.getParcelableExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER);
-		if (!ConnectivityUtil.isNetworkConnected(this)) {
-			publishError(getString(R.string.text_error_network_off));
+	}
+
+	@Override
+	protected void onHandleIntent(final Intent intent) {
+
+		logd("[onHandleIntent] intent: " + intent.toString());
+		validateIntent(intent);
+		activityReceiver = getActivityReceiverFromExtra(intent);
+		if (isConnected()) {
+			ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_connecting), 0);
+		} else {
+			String errorString = getString(R.string.text_error_network_off);
+			ActivityResultHelper.sendStatusError(activityReceiver, errorString);
 			return;
 		}
-		publishProgress(getString(R.string.progress_connecting), 0);
-		logd("[onHandleIntent] intent: " + intent.toString() + ", receiver: " + receiver);
 		try {
-			switch (intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE)) {
+			switch (getTypeFromExtra(intent)) {
 				case TYPE_ALL:
 					downloadAll();
 					break;
@@ -135,29 +147,26 @@ public class DownloadService extends IntentService {
 					downloadDescription(intent);
 					break;
 				default:
-					throw new IllegalArgumentException("Illegal type id: "
-							+ intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE));
+					throw new IllegalArgumentException("Illegal type id: " + getTypeFromExtra(intent));
 			}
 		} catch (ClientHandlerException e) {
 			MyLog.e(TAG, "[onHandleIntent] ClientHandlerException. Intent action: " + intent.getAction(), e);
-			publishError(getString(R.string.text_error_client_handler));
+			String errorString = getString(R.string.text_error_client_handler);
+			ActivityResultHelper.sendStatusError(activityReceiver, errorString);
 			return;
 		} catch (DataIoException e) {
 			MyLog.e(TAG, "[onHandleIntent] DataIoException. Intent action: " + intent.getAction(), e);
-			int downloadType = intent.getIntExtra(EXTRA_TYPE_ID, Integer.MIN_VALUE);
+			int downloadType = getTypeFromExtra(intent);
 			String errorMsg = getString(R.string.text_error_database_io, getTypeAsString(downloadType));
-			publishError(errorMsg);
+			ActivityResultHelper.sendStatusError(activityReceiver, errorMsg);
 			return;
 		} catch (Exception e) {
 			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
-			publishError(e.getMessage());
+			ActivityResultHelper.sendStatusError(activityReceiver, e.getMessage());
 			return;
 		}
+		ActivityResultHelper.sendStatusFinished(activityReceiver);
 		logd("[onHandleIntent] sync finished");
-		// Announce success to any surface listener
-		if (receiver != null) {
-			receiver.send(OdataSyncResultReceiver.STATUS_FINISHED, Bundle.EMPTY);
-		}
 	}
 
 	private void downloadAll() {
@@ -169,7 +178,7 @@ public class DownloadService extends IntentService {
 		// TODO: delete all rows in all tables, clean cache here
 		// TODO: only download new (without delete in odata service)
 		// TODO: progress download sessions
-		publishProgress(getString(R.string.progress_calculate_count), 0);
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_calculate_count), 0);
 		new ImageLoader(getApplicationContext()).clearCache();
 		int downloadedCount = 0;
 		//
@@ -185,58 +194,69 @@ public class DownloadService extends IntentService {
 		int commentsCount = getTableCount(Comments.TABLE_NAME);
 		int totalCount = sessionCount + seatsCount + personsCount + discussionsCount + pointsCount
 				+ topicsCount + attachmentsCount + sourcesCount + descriptionCount + commentsCount;
-		publishMaxCount(totalCount);
-		publishProgress(getString(R.string.progress_downloading_sessions), downloadedCount);
+		ActivityResultHelper.sendStatusStartWithCount(activityReceiver, totalCount);
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_sessions), downloadedCount);
 		OdataReadClient odataClient = new OdataReadClient(this);
 		//
 		odataClient.refreshSessions();
 		logd("[downloadAll] sessions completed");
 		downloadedCount += sessionCount;
-		publishProgress(getString(R.string.progress_downloading_seats), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_seats),
+				downloadedCount);
 		//
 		odataClient.refreshSeats();
 		logd("[downloadAll] seats completed");
 		downloadedCount += seatsCount;
-		publishProgress(getString(R.string.progress_downloading_persons), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_persons),
+				downloadedCount);
 		//
 		odataClient.refreshPersons();
 		logd("[downloadAll] persons completed");
 		downloadedCount += personsCount;
-		publishProgress(getString(R.string.progress_downloading_discussions), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_discussions), downloadedCount);
 		//
 		odataClient.refreshDiscussions();
 		logd("[downloadAll] discussions completed");
 		downloadedCount += discussionsCount;
-		publishProgress(getString(R.string.progress_downloading_topics), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_topics),
+				downloadedCount);
 		odataClient.refreshTopics();
 		logd("[downloadAll] topics completed");
 		downloadedCount += topicsCount;
-		publishProgress(getString(R.string.progress_downloading_points), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_points),
+				downloadedCount);
 		odataClient.refreshPoints();
 		logd("[downloadAll] points completed");
 		downloadedCount += pointsCount;
-		publishProgress(getString(R.string.progress_downloading_descriptions), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_descriptions), downloadedCount);
 		odataClient.refreshDescriptions();
 		logd("[downloadAll] descriptions completed");
 		downloadedCount += descriptionCount;
-		publishProgress(getString(R.string.progress_downloading_comments), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_comments), downloadedCount);
 		odataClient.refreshComments();
 		logd("[downloadAll] comments completed");
 		downloadedCount += commentsCount;
-		publishProgress(getString(R.string.progress_downloading_attachments), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_attachments), downloadedCount);
 		odataClient.refreshAttachments();
 		logd("[downloadAll] attachments completed");
 		downloadedCount += attachmentsCount;
-		publishProgress(getString(R.string.progress_downloading_sources), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_sources),
+				downloadedCount);
 		odataClient.refreshSources();
 		logd("[downloadAll] sources completed");
 		downloadedCount += sourcesCount;
-		publishProgress(getString(R.string.progress_downloading_finished), downloadedCount);
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_finished), downloadedCount);
 	}
 
 	private void downloadDescription(final Intent intent) {
 
-		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
+		int pointId = getValueIdFromExtra(intent);
 		if (pointId < 0) {
 			throw new IllegalArgumentException("Illegal point id for download: " + pointId);
 		}
@@ -255,7 +275,7 @@ public class DownloadService extends IntentService {
 
 	private void downloadPoint(final Intent intent) {
 
-		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
+		int pointId = getValueIdFromExtra(intent);
 		if (pointId < 0) {
 			throw new IllegalArgumentException("Illegal point id for download: " + pointId);
 		}
@@ -266,7 +286,7 @@ public class DownloadService extends IntentService {
 
 	private void downloadPointsFromTopic(final Intent intent) {
 
-		int topicId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
+		int topicId = getValueIdFromExtra(intent);
 		if (topicId < 0) {
 			throw new IllegalArgumentException("Illegal topic id for download points: " + topicId);
 		}
@@ -290,32 +310,15 @@ public class DownloadService extends IntentService {
 		return 0;
 	}
 
-	private void publishError(final String errorMessage) {
+	private boolean isConnected() {
 
-		if (receiver != null) {
-			final Bundle bundle = new Bundle();
-			bundle.putString(Intent.EXTRA_TEXT, errorMessage);
-			receiver.send(OdataSyncResultReceiver.STATUS_ERROR, bundle);
+		boolean connected;
+		if (ApplicationConstants.DEV_MODE) {
+			connected = true;
+		} else {
+			connected = ConnectivityUtil.isNetworkConnected(this);
 		}
-	}
-
-	private void publishMaxCount(final int count) {
-
-		if (receiver != null) {
-			final Bundle bundle = new Bundle();
-			bundle.putInt("EXTRA_MAX_PROGRESS", count);
-			receiver.send(ResultCodes.STATUS_STARTED, bundle);
-		}
-	}
-
-	private void publishProgress(final String message, final int progress) {
-
-		if (receiver != null) {
-			final Bundle bundle = new Bundle();
-			bundle.putString(Intent.EXTRA_TEXT, message);
-			bundle.putInt("EXTRA_RESULT_PROGRESS", progress);
-			receiver.send(OdataSyncResultReceiver.STATUS_RUNNING, bundle);
-		}
+		return connected;
 	}
 
 	private boolean testConnection() {
@@ -327,17 +330,19 @@ public class DownloadService extends IntentService {
 			return true;
 		} catch (ClientProtocolException e) {
 			Log.e(TAG, "Couldnt make a connection to: " + odataUrl, e);
-			publishError(getString(R.string.text_error_client_handler));
+			String errorString = getString(R.string.text_error_client_handler);
+			ActivityResultHelper.sendStatusError(activityReceiver, errorString);
 		} catch (IOException e) {
 			Log.e(TAG, "Couldnt make a connection to: " + odataUrl, e);
-			publishError(getString(R.string.text_error_client_handler));
+			String errorString = getString(R.string.text_error_client_handler);
+			ActivityResultHelper.sendStatusError(activityReceiver, errorString);
 		}
 		return false;
 	}
 
 	private void updatePoint(final Intent intent) {
 
-		int pointId = intent.getIntExtra(EXTRA_VALUE_ID, Integer.MIN_VALUE);
+		int pointId = getValueIdFromExtra(intent);
 		if (pointId < 0) {
 			throw new IllegalArgumentException("Illegal point id for download: " + pointId);
 		}

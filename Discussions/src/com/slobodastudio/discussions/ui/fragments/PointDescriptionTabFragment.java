@@ -151,7 +151,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		if (mPointId != INVALID_POINT_ID) {
 			// update point
 			point.setId(mPointId);
-			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle(), mDiscussionId);
+			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle());
 		} else {
 			// new point
 			point.setId(INVALID_POINT_ID);
@@ -164,8 +164,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			Description description = new Description(mDescriptionId, mDescriptionEditText.getText()
 					.toString(), null, mPointId);
 			values.putAll(description.toBundle());
-			((BaseActivity) getActivity()).getServiceHelper()
-					.insertPointAndDescription(values, mDiscussionId);
+			((BaseActivity) getActivity()).getServiceHelper().insertPointAndDescription(values);
 		}
 	}
 

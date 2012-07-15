@@ -11,7 +11,7 @@ import android.util.Log;
 
 public class ControlService extends Service {
 
-	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
 	private static final String TAG = ControlService.class.getSimpleName();
 	/** indicates whether onRebind should be used */
 	private final boolean mAllowRebind = true;

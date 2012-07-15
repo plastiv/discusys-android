@@ -27,7 +27,7 @@ public class DeleteService extends IntentService {
 	public static final int TYPE_DELETE_ATTACHMENT = 0x2;
 	public static final int TYPE_DELETE_COMMENT = 0x1;
 	public static final int TYPE_DELETE_POINT = 0x0;
-	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
+	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
 	private static final String TAG = DeleteService.class.getSimpleName();
 
 	public DeleteService() {
@@ -143,7 +143,7 @@ public class DeleteService extends IntentService {
 			}
 		} catch (Exception e) {
 			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
-			ActivityResultHelper.sendStatusError(activityReceiver, e.toString());
+			ActivityResultHelper.sendStatusError(activityReceiver, e.getMessage());
 			stopSelf();
 			return;
 		}

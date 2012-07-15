@@ -216,8 +216,7 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		commentValues.putString(Comments.Columns.TEXT, comment);
 		commentValues.putInt(Comments.Columns.POINT_ID, mSelectedPoint.getPointId());
 		commentValues.putInt(Comments.Columns.PERSON_ID, mLoggedInPersonId);
-		((BaseActivity) getActivity()).getServiceHelper().insertComment(commentValues,
-				mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId());
+		((BaseActivity) getActivity()).getServiceHelper().insertComment(commentValues, mSelectedPoint);
 	}
 
 	private void onActionDeleteComment(final MenuItem item) {

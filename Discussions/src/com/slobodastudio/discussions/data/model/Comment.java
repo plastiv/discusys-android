@@ -1,17 +1,33 @@
 package com.slobodastudio.discussions.data.model;
 
-import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 public class Comment implements Value {
 
-	private final int id;
-	private final String text;
+	private int id;
 	private final Integer personId;
 	private final Integer pointId;
+	private final String text;
+
+	public Comment() {
+
+		id = Integer.MIN_VALUE;
+		text = "";
+		personId = Integer.MIN_VALUE;
+		pointId = Integer.MIN_VALUE;
+	}
+
+	public Comment(final Bundle commentBundle) {
+
+		id = commentBundle.getInt(Comments.Columns.ID, Integer.MIN_VALUE);
+		text = commentBundle.getString(Comments.Columns.TEXT);
+		personId = commentBundle.getInt(Comments.Columns.PERSON_ID, Integer.MIN_VALUE);
+		pointId = commentBundle.getInt(Comments.Columns.POINT_ID, Integer.MIN_VALUE);
+	}
 
 	public Comment(final Cursor cursor) {
 
@@ -33,16 +49,29 @@ public class Comment implements Value {
 		}
 	}
 
-	public Comment(final int id, final String text, final Integer personId, final Integer pointId) {
+	public int getId() {
 
-		super();
-		if ((personId == null) && (pointId == null)) {
-			throw new DataIoException("Both foreign key cant be null");
-		}
+		return id;
+	}
+
+	public Integer getPersonId() {
+
+		return personId;
+	}
+
+	public Integer getPointId() {
+
+		return pointId;
+	}
+
+	public String getText() {
+
+		return text;
+	}
+
+	public void setId(final int id) {
+
 		this.id = id;
-		this.text = text;
-		this.personId = personId;
-		this.pointId = pointId;
 	}
 
 	@Override
