@@ -1,6 +1,8 @@
 package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
+import com.slobodastudio.discussions.data.model.ArgPointChanged;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.DiscussionUser;
 import com.slobodastudio.discussions.photon.PhotonServiceCallback;
 
@@ -19,12 +21,27 @@ public class ResolverPhotonServiceCallback implements PhotonServiceCallback {
 	}
 
 	@Override
-	public void onArgPointChanged(final int pointId) {
+	public void onArgPointChanged(final ArgPointChanged argPointChanged) {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onArgPointChanged] point id: " + pointId);
+			Log.d(TAG, "[onArgPointChanged] point id: " + argPointChanged.getPointId() + " , topic id: "
+					+ argPointChanged.getTopicId() + " , event type: " + argPointChanged.getEventType());
 		}
-		mServiceHelper.updatePoint(pointId);
+		switch (argPointChanged.getEventType()) {
+			case Points.PointChangedType.CREATED:
+				mServiceHelper.updatePoint(argPointChanged.getPointId());
+				break;
+			case Points.PointChangedType.MODIFIED:
+				mServiceHelper.updatePoint(argPointChanged.getPointId());
+				break;
+			case Points.PointChangedType.DELETED:
+				mServiceHelper.deleteLocalPoint(argPointChanged.getPointId());
+				break;
+			default:
+				Log.e(TAG, "[onArgPointChangedEvent] unknown Point Change Type: "
+						+ argPointChanged.getEventType());
+				break;
+		}
 	}
 
 	@Override

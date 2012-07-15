@@ -41,7 +41,6 @@ import com.actionbarsherlock.app.SherlockFragment;
 public class PointCommentsTabFragment extends SherlockFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
-	private static final String EXTRA_KEY_COMMENT_TEXT = "extra_key_comment_text";
 	private static final String TAG = PointCommentsTabFragment.class.getSimpleName();
 	private EditText mCommentEditText;
 	private SimpleCursorAdapter mCommentsAdapter;
@@ -230,13 +229,8 @@ public class PointCommentsTabFragment extends SherlockFragment {
 			return;
 		}
 		int columnIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
-		int pointIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.POINT_ID);
-		int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
 		int commentId = cursor.getInt(columnIndex);
-		int pointId = cursor.getInt(pointIdIndex);
-		int personId = cursor.getInt(personIdIndex);
-		((BaseActivity) getActivity()).getServiceHelper().deleteComment(commentId, pointId,
-				mSelectedPoint.getDiscussionId(), mSelectedPoint.getTopicId(), personId);
+		((BaseActivity) getActivity()).getServiceHelper().deleteComment(commentId, mSelectedPoint);
 	}
 
 	private void setUpCommentsAdapter() {

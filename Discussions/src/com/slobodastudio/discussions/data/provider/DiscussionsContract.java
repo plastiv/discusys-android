@@ -631,10 +631,6 @@ public final class DiscussionsContract {
 
 			/** Type Boolean. */
 			public static final String CHANGES_PENDING = "ChangesPending";
-			/** Type Int32. Special value, because sqlite word Group is reserved. */
-			public static final String GROUP_ID = "Group_id";
-			/** Type Int32. */
-			public static final String GROUP_ID_SERVER = "Group";
 			/** Type Int32. */
 			public static final String ID = "Id";
 			/** Type String. */
@@ -657,9 +653,9 @@ public final class DiscussionsContract {
 
 		public static final class PointChangedType {
 
-			public static final byte CREATED = 0;
-			public static final byte DELETED = 2;
-			public static final byte MODIFIED = 1;
+			public static final int CREATED = 0;
+			public static final int DELETED = 2;
+			public static final int MODIFIED = 1;
 		}
 
 		/** Side codes constants. */

@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.PreferenceHelper;
+import com.slobodastudio.discussions.data.model.ArgPointChanged;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
@@ -44,10 +45,10 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	private ViewPager pager;
 
 	@Override
-	public void onArgPointChanged(final int pointId) {
+	public void onArgPointChanged(final ArgPointChanged argPointChanged) {
 
 		if (DEBUG) {
-			Log.d(TAG, "[onArgPointChanged] Empty point id: " + pointId);
+			Log.d(TAG, "[onArgPointChanged] Empty point id: " + argPointChanged.getPointId());
 		}
 	}
 

@@ -19,7 +19,7 @@ public class ArgPointChanged implements Parcelable {
 			return new ArgPointChanged[size];
 		}
 	};
-	private byte eventType;
+	private int eventType;
 	private int pointId;
 	private int topicId;
 
@@ -43,7 +43,7 @@ public class ArgPointChanged implements Parcelable {
 		return 0;
 	}
 
-	public byte getEventType() {
+	public int getEventType() {
 
 		return eventType;
 	}
@@ -58,7 +58,7 @@ public class ArgPointChanged implements Parcelable {
 		return topicId;
 	}
 
-	public void setEventType(final byte eventType) {
+	public void setEventType(final int eventType) {
 
 		this.eventType = eventType;
 	}
@@ -76,7 +76,7 @@ public class ArgPointChanged implements Parcelable {
 	@Override
 	public void writeToParcel(final Parcel out, final int flags) {
 
-		out.writeByte(eventType);
+		out.writeInt(eventType);
 		out.writeInt(pointId);
 		out.writeInt(topicId);
 	}

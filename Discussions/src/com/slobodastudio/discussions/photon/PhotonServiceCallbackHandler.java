@@ -1,5 +1,7 @@
 package com.slobodastudio.discussions.photon;
 
+import com.slobodastudio.discussions.data.model.ArgPointChanged;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,10 +18,10 @@ public class PhotonServiceCallbackHandler implements PhotonServiceCallback {
 	}
 
 	@Override
-	public void onArgPointChanged(final int pointId) {
+	public void onArgPointChanged(final ArgPointChanged argPointChanged) {
 
 		for (PhotonServiceCallback h : m_callbacks) {
-			h.onArgPointChanged(pointId);
+			h.onArgPointChanged(argPointChanged);
 		}
 	}
 

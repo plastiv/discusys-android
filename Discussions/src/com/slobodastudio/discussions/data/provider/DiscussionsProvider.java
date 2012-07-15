@@ -310,11 +310,6 @@ public class DiscussionsProvider extends ContentProvider {
 					getContext().getContentResolver().notifyChange(Persons.CONTENT_URI, null);
 					break;
 				case POINTS_DIR:
-					if (values.containsKey(Points.Columns.GROUP_ID_SERVER)) {
-						values.put(Points.Columns.GROUP_ID, values
-								.getAsInteger(Points.Columns.GROUP_ID_SERVER));
-						values.remove(Points.Columns.GROUP_ID_SERVER);
-					}
 					insertedId = db.insertOrThrow(Points.TABLE_NAME, null, values);
 					insertedUri = Points.buildTableUri(insertedId);
 					break;

@@ -3,7 +3,6 @@ package com.slobodastudio.discussions.service;
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.DataIoException;
-import com.slobodastudio.discussions.data.model.ArgPointChanged;
 import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
@@ -17,6 +16,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descripti
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.photon.PhotonController.SyncResultReceiver;
+import com.slobodastudio.discussions.photon.PhotonHelper;
 import com.slobodastudio.discussions.photon.constants.StatsType;
 import com.slobodastudio.discussions.service.ServiceHelper.OdataSyncResultReceiver;
 import com.slobodastudio.discussions.ui.IntentAction;
@@ -28,6 +28,7 @@ import com.slobodastudio.discussions.utils.YoutubeHelper;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ResultReceiver;
@@ -67,18 +68,6 @@ public class UploadService extends IntentService {
 		}
 	}
 
-	private static void notifyPhotonArgPointChanged(final ResultReceiver photonReceiver,
-			final ArgPointChanged argPointChanged) {
-
-		logd("[notifyPhoton] changed arg point id: " + argPointChanged.getPointId() + ", photonReceiver: "
-				+ photonReceiver);
-		if (photonReceiver != null) {
-			final Bundle bundle = new Bundle();
-			bundle.putParcelable(SyncResultReceiver.EXTRA_ARG_POINT_CHANGED, argPointChanged);
-			photonReceiver.send(SyncResultReceiver.STATUS_ARG_POINT_CHANGED, bundle);
-		}
-	}
-
 	private static void notifyPhotonStatsEvent(final ResultReceiver photonReceiver, final int discussionId,
 			final int userId, final int changedTopicId, final byte statsEventId) {
 
@@ -92,25 +81,6 @@ public class UploadService extends IntentService {
 			bundle.putInt(SyncResultReceiver.EXTRA_EVENT_TYPE, statsEventId);
 			photonReceiver.send(SyncResultReceiver.STATUS_EVENT_CHANGED, bundle);
 		}
-	}
-
-	private static void sendArgPointChanged(final Intent intent, final byte eventType) {
-
-		if (!intent.hasExtra(EXTRA_SELECTED_POINT)) {
-			throw new IllegalArgumentException(
-					"[sendArgPointChanged] called without required extra: selected point");
-		}
-		if (!intent.hasExtra(EXTRA_PHOTON_RECEIVER)) {
-			throw new IllegalArgumentException(
-					"[sendArgPointChanged] called without required extra: photon receiver");
-		}
-		SelectedPoint selectedPoint = intent.getParcelableExtra(EXTRA_SELECTED_POINT);
-		ArgPointChanged argPointChanged = new ArgPointChanged();
-		argPointChanged.setEventType(eventType);
-		argPointChanged.setPointId(selectedPoint.getPointId());
-		argPointChanged.setTopicId(selectedPoint.getTopicId());
-		notifyPhotonArgPointChanged((ResultReceiver) intent.getParcelableExtra(EXTRA_PHOTON_RECEIVER),
-				argPointChanged);
 	}
 
 	private static void sendPhotonStatsEvent(final Intent intent, final byte statsType) {
@@ -218,6 +188,29 @@ public class UploadService extends IntentService {
 		}
 	}
 
+	private int createPointOrderNumber(final Point point) {
+
+		String where = Points.Columns.PERSON_ID + "=" + point.getPersonId() + " AND "
+				+ Points.Columns.TOPIC_ID + "=" + point.getTopicId();
+		Cursor cursorCount = getContentResolver().query(Points.CONTENT_URI, null, where, null, null);
+		if (cursorCount.getCount() == 0) {
+			// new point is first
+			cursorCount.close();
+			return 0;
+		}
+		String[] columns = new String[] { "MAX(" + Points.Columns.ORDER_NUMBER + ")" };
+		Cursor cursorMaxNum = getContentResolver().query(Points.CONTENT_URI, columns, where, null, null);
+		logd("Cursor count: " + cursorCount.getCount());
+		int maxOrderNum = 0;
+		if (cursorMaxNum.moveToFirst()) {
+			maxOrderNum = cursorMaxNum.getInt(0) + 1;
+		}
+		logd("Max order num: " + maxOrderNum);
+		cursorCount.close();
+		cursorMaxNum.close();
+		return maxOrderNum;
+	}
+
 	private void insertAttachment(final Intent intent) {
 
 		if (!intent.hasExtra(EXTRA_URI)) {
@@ -259,7 +252,7 @@ public class UploadService extends IntentService {
 			attachment.setAttachmentId(attachmentId);
 			ContentValues cv = attachment.toContentValues();
 			getContentResolver().insert(Attachments.CONTENT_URI, cv);
-			sendArgPointChanged(intent, Points.PointChangedType.MODIFIED);
+			PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.MODIFIED);
 			sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 		} else {
 			throw new DataIoException("Failed to update newly inserted attachment with id: " + attachmentId);
@@ -298,7 +291,7 @@ public class UploadService extends IntentService {
 		selectedPoint.setPointId(pointId);
 		selectedPoint.setTopicId(topicId);
 		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
-		sendArgPointChanged(intent, Points.PointChangedType.MODIFIED);
+		PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.MODIFIED);
 		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 	}
 
@@ -319,7 +312,8 @@ public class UploadService extends IntentService {
 
 		Bundle pointBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Point point = new Point(pointBundle);
-		logd("[insertPoint] " + point.toMyString()); // insert new description
+		logd("[insertPoint] " + point.toMyString());
+		point.setOrderNumber(createPointOrderNumber(point));
 		Bundle descriptionBundle = intent.getBundleExtra(EXTRA_VALUE);
 		Description description = new Description(descriptionBundle);
 		logd("[insertDescription] " + description.toMyString());
@@ -355,7 +349,7 @@ public class UploadService extends IntentService {
 		selectedPoint.setPointId(point.getId());
 		selectedPoint.setTopicId(point.getTopicId());
 		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
-		sendArgPointChanged(intent, Points.PointChangedType.CREATED);
+		PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.CREATED);
 		sendPhotonStatsEvent(intent, StatsType.BADGE_CREATED);
 	}
 
@@ -370,7 +364,7 @@ public class UploadService extends IntentService {
 		source.setSourceId(sourceId);
 		ContentValues cv = source.toContentValues();
 		getContentResolver().insert(Sources.CONTENT_URI, cv);
-		sendArgPointChanged(intent, Points.PointChangedType.MODIFIED);
+		PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.MODIFIED);
 		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 	}
 
@@ -416,7 +410,7 @@ public class UploadService extends IntentService {
 		selectedPoint.setPointId(point.getId());
 		selectedPoint.setTopicId(point.getTopicId());
 		intent.putExtra(EXTRA_SELECTED_POINT, selectedPoint);
-		sendArgPointChanged(intent, Points.PointChangedType.MODIFIED);
+		PhotonHelper.sendArgPointChanged(intent.getExtras(), Points.PointChangedType.MODIFIED);
 		sendPhotonStatsEvent(intent, StatsType.BADGE_EDITED);
 	}
 }

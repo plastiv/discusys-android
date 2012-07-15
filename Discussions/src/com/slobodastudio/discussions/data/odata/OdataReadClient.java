@@ -108,7 +108,12 @@ public class OdataReadClient extends BaseOdataClient {
 	public void refreshComments() {
 
 		logd("[refreshComments]");
-		Enumerable<OEntity> comments = getCommentsEntities();
+		Enumerable<OEntity> comments;
+		if (ApplicationConstants.ODATA_SANITIZE) {
+			comments = getCommentsEntities();
+		} else {
+			comments = getFilteredCommentsEntities();
+		}
 		int deletedCount = mContentResolver.delete(Comments.CONTENT_URI, "1", null);
 		logd("[refreshComments] comments was deleted: " + deletedCount);
 		for (OEntity comment : comments) {
@@ -340,8 +345,7 @@ public class OdataReadClient extends BaseOdataClient {
 	private Enumerable<OEntity> getCommentsEntities() {
 
 		return mConsumer.getEntities(Comments.TABLE_NAME)
-				.expand(Points.TABLE_NAME + "," + Persons.TABLE_NAME).filter(
-						"ArgPoint/Id ne null and Person/Id ne null").execute();
+				.expand(Points.TABLE_NAME + "," + Persons.TABLE_NAME).execute();
 	}
 
 	private Enumerable<OEntity> getCommentsEntities(final int pointId) {
@@ -356,6 +360,13 @@ public class OdataReadClient extends BaseOdataClient {
 		return mConsumer.getEntities(Descriptions.TABLE_NAME).expand(
 				Points.TABLE_NAME + "," + Discussions.TABLE_NAME).filter(
 				"ArgPoint/Id ne null or Discussion/Id ne null").execute();
+	}
+
+	private Enumerable<OEntity> getFilteredCommentsEntities() {
+
+		return mConsumer.getEntities(Comments.TABLE_NAME)
+				.expand(Points.TABLE_NAME + "," + Persons.TABLE_NAME).filter(
+						"ArgPoint/Id ne null and Person/Id ne null").execute();
 	}
 
 	private Enumerable<OEntity> getPointsEntities() {

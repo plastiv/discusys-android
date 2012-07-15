@@ -164,9 +164,6 @@ public class OdataWriteClient extends BaseOdataClient {
 				.properties(OProperties.int32(Points.Columns.ORDER_NUMBER, Integer.valueOf(point.getOrderNumber())))	
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())));
 		// @formatter:on
-		if (point.getGroupId() != Integer.MIN_VALUE) {
-			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())));
-		}
 		return request.execute();
 	}
 
@@ -242,11 +239,9 @@ public class OdataWriteClient extends BaseOdataClient {
 				.properties(OProperties.string(Points.Columns.RECENTLY_ENTERED_SOURCE, point.getRecentlyEnteredSource()))
 				.properties(OProperties.boolean_(Points.Columns.SHARED_TO_PUBLIC, Boolean.valueOf(point.isSharedToPublic())))
 				.properties(OProperties.int32(Points.Columns.SIDE_CODE, Integer.valueOf(point.getSideCode())))	
+			    .properties(OProperties.int32(Points.Columns.ORDER_NUMBER, Integer.valueOf(point.getOrderNumber())))
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())));
 		// @formatter:on
-		if (point.getGroupId() != Integer.MIN_VALUE) {
-			request.link(Points.Columns.GROUP_ID_SERVER, OEntityKey.parse(String.valueOf(point.getGroupId())));
-		}
 		return request.execute();
 	}
 

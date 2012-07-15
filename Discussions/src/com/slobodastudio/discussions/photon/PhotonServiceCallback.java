@@ -1,8 +1,10 @@
 package com.slobodastudio.discussions.photon;
 
+import com.slobodastudio.discussions.data.model.ArgPointChanged;
+
 public interface PhotonServiceCallback {
 
-	void onArgPointChanged(int pointId);
+	void onArgPointChanged(ArgPointChanged argPointChanged);
 
 	void onConnect();
 

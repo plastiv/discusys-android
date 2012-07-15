@@ -5,12 +5,10 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 
 public class Point implements Value {
 
 	private boolean changesPending;
-	private int groupId;
 	private int id;
 	private String name;
 	private int orderNumber;
@@ -25,9 +23,9 @@ public class Point implements Value {
 	public Point() {
 
 		changesPending = false;
-		groupId = Integer.MIN_VALUE;
 		id = Integer.MIN_VALUE;
 		name = "Your point here";
+		orderNumber = Integer.MIN_VALUE;
 		personId = Integer.MIN_VALUE;
 		recentlyEnteredMediaUrl = "Paste link to media and return";
 		recentlyEnteredSource = "Your source here";
@@ -39,7 +37,6 @@ public class Point implements Value {
 	public Point(final Bundle bundle) {
 
 		changesPending = bundle.getBoolean(Points.Columns.CHANGES_PENDING);
-		groupId = bundle.getInt(Points.Columns.GROUP_ID);
 		id = bundle.getInt(Points.Columns.ID);
 		name = bundle.getString(Points.Columns.NAME);
 		orderNumber = bundle.getInt(Points.Columns.ORDER_NUMBER, 0);
@@ -59,9 +56,8 @@ public class Point implements Value {
 		if (cursor.isAfterLast()) {
 			throw new IllegalArgumentException("You have to iterate cursor first. Was after last position.");
 		}
-		Log.d("Point", "Cursor position: " + cursor.getPosition());
 		int changesPendingIndex = cursor.getColumnIndexOrThrow(Points.Columns.CHANGES_PENDING);
-		int groupIdIndex = cursor.getColumnIndexOrThrow(Points.Columns.GROUP_ID);
+		int orderNumIndex = cursor.getColumnIndexOrThrow(Points.Columns.ORDER_NUMBER);
 		int idIndex = cursor.getColumnIndexOrThrow(Points.Columns.ID);
 		int nameIndex = cursor.getColumnIndexOrThrow(Points.Columns.NAME);
 		int personIdIndex = cursor.getColumnIndexOrThrow(Points.Columns.PERSON_ID);
@@ -79,7 +75,7 @@ public class Point implements Value {
 			throw new IllegalStateException("Point cursor has unknown changes pending value: "
 					+ cursor.getInt(changesPendingIndex));
 		}
-		groupId = cursor.getInt(groupIdIndex);
+		orderNumber = cursor.getInt(orderNumIndex);
 		id = cursor.getInt(idIndex);
 		name = cursor.getString(nameIndex);
 		personId = cursor.getInt(personIdIndex);
@@ -95,11 +91,6 @@ public class Point implements Value {
 		}
 		sideCode = cursor.getInt(sideCodeIndex);
 		topicId = cursor.getInt(topicIdIndex);
-	}
-
-	public Integer getGroupId() {
-
-		return groupId;
 	}
 
 	public int getId() {
@@ -157,11 +148,6 @@ public class Point implements Value {
 		this.changesPending = changesPending;
 	}
 
-	public void setGroupId(final Integer groupId) {
-
-		this.groupId = groupId;
-	}
-
 	public void setId(final int id) {
 
 		this.id = id;
@@ -211,7 +197,6 @@ public class Point implements Value {
 
 		Bundle bundle = new Bundle();
 		bundle.putBoolean(Points.Columns.CHANGES_PENDING, changesPending);
-		bundle.putInt(Points.Columns.GROUP_ID, groupId);
 		bundle.putInt(Points.Columns.ID, id);
 		bundle.putString(Points.Columns.NAME, name);
 		bundle.putInt(Points.Columns.ORDER_NUMBER, orderNumber);
@@ -229,7 +214,6 @@ public class Point implements Value {
 
 		ContentValues cv = new ContentValues();
 		cv.put(Points.Columns.CHANGES_PENDING, changesPending);
-		cv.put(Points.Columns.GROUP_ID, groupId);
 		cv.put(Points.Columns.ID, id);
 		cv.put(Points.Columns.NAME, name);
 		cv.put(Points.Columns.ORDER_NUMBER, orderNumber);

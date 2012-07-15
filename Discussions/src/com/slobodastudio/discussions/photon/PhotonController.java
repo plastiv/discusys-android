@@ -188,25 +188,9 @@ public class PhotonController implements IPhotonPeerListener {
 				}
 				break;
 			}
-			case DiscussionEventCode.ARG_POINT_CHANGED: {
-				// check if actor num is here
-				if (event.Parameters.containsKey(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR)) {
-					int actorId = (Integer) event.Parameters
-							.get(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR);
-					if (actorId == mLocalUser.getActorNumber()) {
-						break;
-					}
-				}
-				// update
-				int pointId = (Integer) event.Parameters.get(DiscussionParameterKey.ARG_POINT_ID);
-				if (pointId == INVALID_POINT_ID) {
-					// special code. new point was added or deleted
-					mCallbackHandler.onRefreshCurrentTopic();
-					break;
-				}
-				mCallbackHandler.onArgPointChanged(pointId);
+			case DiscussionEventCode.ARG_POINT_CHANGED:
+				onArgPointChangedEvent(event.Parameters);
 				break;
-			}
 			default:
 				Log.e(TAG, "[onEvent] unsupported event: "
 						+ DiscussionEventCode.asString(event.Code.byteValue()));
@@ -316,53 +300,6 @@ public class PhotonController implements IPhotonPeerListener {
 		opJoinFromLobby(mGameLobbyName, PhotonConstants.LOBBY, actorProperties, true);
 	}
 
-	// public void SendArgPointChanged(int argPointId, int topicId)
-	//
-	// {
-	//
-	// if (peer == null || peer.PeerState != PeerStateValue.Connected)
-	//
-	// return;
-	//
-	//
-	//
-	// var parameter = Serializers.WriteChangedArgPoint(argPointId, topicId, PointChangedType.Modified);
-	//
-	// peer.OpCustom((byte)DiscussionOpCode.NotifyArgPointChanged, parameter, true);
-	//
-	// }
-	//
-	// public void SendArgPointCreated(int argPointId, int topicId)
-	//
-	// {
-	//
-	// if (peer == null || peer.PeerState != PeerStateValue.Connected)
-	//
-	// return;
-	//
-	//
-	//
-	// var parameter = Serializers.WriteChangedArgPoint(argPointId, topicId, PointChangedType.Created);
-	//
-	// peer.OpCustom((byte)DiscussionOpCode.NotifyArgPointChanged, parameter, true);
-	//
-	// }
-	//
-	// public void SendArgPointDeleted(int argPointId, int topicId)
-	//
-	// {
-	//
-	// if (peer == null || peer.PeerState != PeerStateValue.Connected)
-	//
-	// return;
-	//
-	//
-	//
-	// var parameter = Serializers.WriteChangedArgPoint(argPointId, topicId, PointChangedType.Deleted);
-	//
-	// peer.OpCustom((byte)DiscussionOpCode.NotifyArgPointChanged, parameter, true);
-	//
-	// }
 	public boolean opSendArgPointChanged(final ArgPointChanged argPointChanged) {
 
 		if (DEBUG) {
@@ -381,12 +318,10 @@ public class PhotonController implements IPhotonPeerListener {
 		}
 		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
 				Object.class);
-		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, argPointChanged.getPointId());
-		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, argPointChanged.getTopicId());
 		structureChangedParameters.put(DiscussionParameterKey.POINT_CHANGE_TYPE, argPointChanged
 				.getEventType());
-		structureChangedParameters.put(DiscussionParameterKey.STRUCT_CHANGE_ACTOR_NR, mLocalUser
-				.getActorNumber());
+		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, argPointChanged.getPointId());
+		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, argPointChanged.getTopicId());
 		return mPeer.opCustom(DiscussionOperationCode.NOTIFY_ARGPOINT_CHANGED, structureChangedParameters,
 				true);
 	}
@@ -445,6 +380,24 @@ public class PhotonController implements IPhotonPeerListener {
 						+ " actor num: " + user.getActorNumber());
 			}
 		}
+	}
+
+	private void onArgPointChangedEvent(final TypedHashMap<Byte, Object> parameters) {
+
+		if (DEBUG) {
+			Log.d(TAG, "[onArgPointChangedEvent] point id: "
+					+ parameters.get(DiscussionParameterKey.ARG_POINT_ID) + " , topic id: "
+					+ parameters.get(DiscussionParameterKey.CHANGED_TOPIC_ID) + " , event type: "
+					+ parameters.get(DiscussionParameterKey.POINT_CHANGE_TYPE));
+		}
+		int pointId = (Integer) parameters.get(DiscussionParameterKey.ARG_POINT_ID);
+		int type = (Integer) parameters.get(DiscussionParameterKey.POINT_CHANGE_TYPE);
+		int topicId = (Integer) parameters.get(DiscussionParameterKey.CHANGED_TOPIC_ID);
+		ArgPointChanged argPointChanged = new ArgPointChanged();
+		argPointChanged.setEventType(type);
+		argPointChanged.setPointId(pointId);
+		argPointChanged.setTopicId(topicId);
+		mCallbackHandler.onArgPointChanged(argPointChanged);
 	}
 
 	private boolean opJoinFromLobby(final String gameName, final String lobbyName,

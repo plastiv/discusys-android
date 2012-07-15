@@ -4,6 +4,7 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.model.Source;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.photon.PhotonController;
 import com.slobodastudio.discussions.ui.IntentAction;
 
@@ -39,36 +40,40 @@ public class ServiceHelper {
 	public void deleteAttachment(final int attachmentId, final SelectedPoint selectedPoint) {
 
 		Intent intent = new Intent(IntentAction.DELETE);
-		intent.putExtra(DeleteService.EXTRA_TYPE_ID, DeleteService.TYPE_DELETE_ATTACHMENT);
-		intent.putExtra(DeleteService.EXTRA_VALUE_ID, attachmentId);
-		intent.putExtra(DeleteService.EXTRA_SELECTED_POINT, selectedPoint);
-		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
-		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		intent.putExtra(ServiceExtraKeys.TYPE_ID, DeleteService.TYPE_DELETE_ATTACHMENT);
+		intent.putExtra(ServiceExtraKeys.VALUE_ID, attachmentId);
+		intent.putExtra(ServiceExtraKeys.SELECTED_POINT, selectedPoint);
+		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(ServiceExtraKeys.PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);
 	}
 
-	public void deleteComment(final int commentId, final int pointId, final int discussionId,
-			final int topicId, final int personId) {
+	public void deleteComment(final int commentId, final SelectedPoint selectedPoint) {
 
 		Intent intent = new Intent(IntentAction.DELETE);
-		intent.putExtra(DeleteService.EXTRA_TYPE_ID, DeleteService.TYPE_DELETE_COMMENT);
-		intent.putExtra(DeleteService.EXTRA_VALUE_ID, commentId);
-		intent.putExtra(DeleteService.EXTRA_POINT_ID, pointId);
-		intent.putExtra(DeleteService.EXTRA_DISCUSSION_ID, discussionId);
-		intent.putExtra(DeleteService.EXTRA_TOPIC_ID, topicId);
-		intent.putExtra(DeleteService.EXTRA_PERSON_ID, personId);
-		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
-		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		intent.putExtra(ServiceExtraKeys.TYPE_ID, DeleteService.TYPE_DELETE_COMMENT);
+		intent.putExtra(ServiceExtraKeys.VALUE_ID, commentId);
+		intent.putExtra(ServiceExtraKeys.SELECTED_POINT, selectedPoint);
+		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(ServiceExtraKeys.PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);
 	}
 
-	public void deletePoint(final int pointId) {
+	public int deleteLocalPoint(final int pointId) {
+
+		String where = Points.Columns.ID + "=?";
+		String[] args = new String[] { String.valueOf(pointId) };
+		return mContext.getContentResolver().delete(Points.CONTENT_URI, where, args);
+	}
+
+	public void deletePoint(final SelectedPoint selectedPoint) {
 
 		Intent intent = new Intent(IntentAction.DELETE);
-		intent.putExtra(DeleteService.EXTRA_TYPE_ID, DeleteService.TYPE_DELETE_POINT);
-		intent.putExtra(DeleteService.EXTRA_VALUE_ID, pointId);
-		intent.putExtra(OdataSyncResultReceiver.EXTRA_STATUS_RECEIVER, mOdataResultReceiver);
-		intent.putExtra(UploadService.EXTRA_PHOTON_RECEIVER, mPhotonController.getResultReceiver());
+		intent.putExtra(ServiceExtraKeys.TYPE_ID, DeleteService.TYPE_DELETE_POINT);
+		intent.putExtra(ServiceExtraKeys.VALUE_ID, selectedPoint.getPointId());
+		intent.putExtra(ServiceExtraKeys.SELECTED_POINT, selectedPoint);
+		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mOdataResultReceiver);
+		intent.putExtra(ServiceExtraKeys.PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);
 	}
 

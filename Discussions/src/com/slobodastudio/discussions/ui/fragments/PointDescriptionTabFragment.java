@@ -4,6 +4,7 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.model.Description;
 import com.slobodastudio.discussions.data.model.Point;
+import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
@@ -119,7 +120,12 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			throw new IllegalArgumentException("[onActionDelete] was called with incorrect point id: "
 					+ mPointId);
 		}
-		((BaseActivity) getActivity()).getServiceHelper().deletePoint(mPointId);
+		SelectedPoint selectedPoint = new SelectedPoint();
+		selectedPoint.setDiscussionId(mDiscussionId);
+		selectedPoint.setPersonId(mPersonId);
+		selectedPoint.setPointId(mPointId);
+		selectedPoint.setTopicId(mTopicId);
+		((BaseActivity) getActivity()).getServiceHelper().deletePoint(selectedPoint);
 	}
 
 	public void onActionSave() {
@@ -149,8 +155,6 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		} else {
 			// new point
 			point.setId(INVALID_POINT_ID);
-			int orderNumber = createPointOrderNumber();
-			point.setOrderNumber(orderNumber);
 			Bundle values = point.toBundle();
 			// with new description
 			if (mDescriptionId != Integer.MIN_VALUE) {
@@ -234,20 +238,6 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	public void setEmpty(final boolean empty) {
 
 		mIsEmpty = empty;
-	}
-
-	private int createPointOrderNumber() {
-
-		String[] columns = new String[] { "MAX(" + Points.Columns.ORDER_NUMBER + ")" };
-		String where = Points.Columns.PERSON_ID + "=" + mPersonId;
-		Cursor cursor = getActivity().getContentResolver().query(Points.CONTENT_URI, columns, where, null,
-				null);
-		int maxOrderNum = 0;
-		if (cursor.moveToFirst()) {
-			maxOrderNum = cursor.getInt(0) + 1;
-		}
-		cursor.close();
-		return maxOrderNum;
 	}
 
 	private int getSelectedSideCodeId() {
