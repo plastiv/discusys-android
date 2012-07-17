@@ -8,11 +8,9 @@ public class ApplicationConstants {
 	public static final boolean DEV_MODE = true;
 	public static final boolean LOGD_SERVICE = true && DEV_MODE;
 	public static final boolean ODATA_DUMP_LOG = false;
-	// public static final boolean ODATA_LOCAL = true && DEV_MODE;
 	/** Clean up servers database if row with null foreign key found. */
 	public static final boolean ODATA_SANITIZE = true && DEV_MODE;
 
-	// public static final boolean PHOTON_LOCAL = true && DEV_MODE;
 	/** A private Constructor prevents class from instantiating. */
 	private ApplicationConstants() {
 
