@@ -437,6 +437,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 						Bundle args = new Bundle();
 						args.putInt(ExtraKey.POINT_ID, mPointId);
 						getLoaderManager().initLoader(DESCRIPTION_ID, args, this);
+						getLoaderManager().destroyLoader(POINT_ID);
 					} else {
 						Log.w(TAG, "[onLoadFinished] Cant move to first item. LOADER_POINT_ID count was: "
 								+ data.getCount());
