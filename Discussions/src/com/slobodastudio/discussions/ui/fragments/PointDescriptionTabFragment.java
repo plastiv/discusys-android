@@ -40,6 +40,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	private int mDiscussionId;
 	private boolean mIsEmpty;
 	private EditText mNameEditText;
+	private int mOrderNum;
 	private int mPersonId;
 	private Cursor mPointCursor;
 	private final PointCursorLoader mPointCursorLoader;
@@ -146,6 +147,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		if (mPointId != INVALID_POINT_ID) {
 			// update point
 			point.setId(mPointId);
+			point.setOrderNumber(mOrderNum);
 			((BaseActivity) getActivity()).getServiceHelper().updatePoint(point.toBundle(),
 					getSelectedPoint());
 		} else {
@@ -430,6 +432,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 						mNameEditText.setText(value.getName());
 						mSideCodeSpinner.setSelection(value.getSideCode(), true);
 						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+						mOrderNum = value.getOrderNumber();
 						getSherlockActivity().getSupportActionBar().setTitle(value.getName());
 						Bundle args = new Bundle();
 						args.putInt(ExtraKey.POINT_ID, mPointId);

@@ -405,8 +405,8 @@ public class DiscussionsProvider extends ContentProvider {
 						Points.TABLE_NAME);
 				builder.where(selection, selectionArgs);
 				Cursor c = builder.query(db, new String[] { BaseColumns._ID, Points.Columns.ID,
-						Points.Columns.NAME, Persons.Columns.COLOR }, Points.Qualified.POINT_ID, null,
-						sortOrder, null);
+						Points.Columns.NAME, Persons.Columns.COLOR, Points.Columns.ORDER_NUMBER },
+						Points.Qualified.POINT_ID, null, sortOrder, null);
 				notificationUri = Points.CONTENT_URI;
 				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
 				return c;

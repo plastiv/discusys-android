@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -42,9 +41,9 @@ public class UserPointListFragment extends SherlockListFragment {
 		setListAdapter(null);
 		addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
-		mUserPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null,
-				new String[] { Points.Columns.NAME, Points.Columns.ID }, new int[] { R.id.list_item_text,
-						R.id.image_person_color }, 0);
+		mUserPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_point, null,
+				new String[] { Points.Columns.NAME, Points.Columns.ID, Points.Columns.ORDER_NUMBER },
+				new int[] { R.id.list_item_text, R.id.image_person_color, R.id.text_order_num }, 0);
 		mUserPointsAdapter.setViewBinder(new ViewBinder() {
 
 			@Override
@@ -60,6 +59,10 @@ public class UserPointListFragment extends SherlockListFragment {
 					case R.id.list_item_text:
 						TextView itemText = (TextView) view;
 						itemText.setText(cursor.getString(columnIndex));
+						return true;
+					case R.id.text_order_num:
+						TextView orderNumView = (TextView) view;
+						orderNumView.setText(cursor.getString(columnIndex));
 						return true;
 					default:
 						return false;
@@ -141,7 +144,7 @@ public class UserPointListFragment extends SherlockListFragment {
 				case LOADER_USER_POINTS_ID: {
 					String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "=? ";
 					String[] args = { String.valueOf(mTopicId), String.valueOf(mPersonId) };
-					String sortOrder = BaseColumns._ID + " DESC";
+					String sortOrder = Points.Columns.ORDER_NUMBER + " DESC";
 					return new CursorLoader(getActivity(), Points.CONTENT_URI, null, where, args, sortOrder);
 				}
 				default:
