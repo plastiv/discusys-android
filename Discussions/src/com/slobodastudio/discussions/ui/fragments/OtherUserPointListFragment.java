@@ -40,8 +40,8 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 
 		super.onActivityCreated(savedInstanceState);
 		initFromIntentExtra();
-		setListAdapter(null);
-		addListHeader();
+		// setListAdapter(null);
+		// addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
 		mOtherPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_point, null,
 				new String[] { Points.Columns.NAME, Persons.Columns.COLOR, Points.Columns.ORDER_NUMBER },
@@ -74,8 +74,8 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 		// Prepare the loader. Either re-connect with an existing one, or start a new one.
 		getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_OTHER_POINTS_ID, null,
 				new OtherUserPointsCursorLoader());
-		getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_PERSON_ID, null,
-				new OtherUserPointsCursorLoader());
+		// getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_PERSON_ID, null,
+		// new OtherUserPointsCursorLoader());
 	}
 
 	@Override

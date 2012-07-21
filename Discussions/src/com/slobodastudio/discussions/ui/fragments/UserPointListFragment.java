@@ -38,8 +38,8 @@ public class UserPointListFragment extends SherlockListFragment {
 
 		super.onActivityCreated(savedInstanceState);
 		initFromIntentExtra();
-		setListAdapter(null);
-		addListHeader();
+		// setListAdapter(null);
+		// addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
 		mUserPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_point, null,
 				new String[] { Points.Columns.NAME, Points.Columns.ID, Points.Columns.ORDER_NUMBER },

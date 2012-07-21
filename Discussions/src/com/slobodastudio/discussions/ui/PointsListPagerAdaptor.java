@@ -42,4 +42,10 @@ public class PointsListPagerAdaptor extends FragmentPagerAdapter {
 
 		return fragments.get(position);
 	}
+
+	@Override
+	public CharSequence getPageTitle(final int position) {
+
+		return getItem(position).getArguments().getString(ExtraKey.LIST_HEADER);
+	}
 }

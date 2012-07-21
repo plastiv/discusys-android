@@ -25,6 +25,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 
@@ -144,6 +145,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		initFromIntentExtra();
 		setContentView(R.layout.activity_new_points);
 		pager = (ViewPager) super.findViewById(R.id.viewpager);
+		PagerTitleStrip pagerTitleStrip = (PagerTitleStrip) findViewById(R.id.pagerTitleStrip);
 		getSupportLoaderManager().initLoader(PersonsCursorLoader.LOADER_TOPIC_PERSONS, null,
 				new PersonsCursorLoader());
 	}
@@ -247,19 +249,28 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		private void initializePaging(final Cursor cursor) {
 
 			List<Fragment> fragments = new Vector<Fragment>();
-			Bundle otherUsersArguments = new Bundle(1);
+			Bundle otherUsersArguments = new Bundle(3);
 			otherUsersArguments.putInt(ExtraKey.PERSON_ID, mPersonId);
 			otherUsersArguments.putInt(ExtraKey.ORIGIN_PERSON_ID, mPersonId);
+			otherUsersArguments.putString(ExtraKey.LIST_HEADER, getString(R.string.text_other_users_points));
 			fragments.add(Fragment.instantiate(PointsActivity.this, AllOtherUserPointListFragment.class
 					.getName(), otherUsersArguments));
-			fragments.add(Fragment.instantiate(PointsActivity.this, UserPointListFragment.class.getName()));
+			Bundle currentUserPointsArguments = new Bundle(1);
+			currentUserPointsArguments.putString(ExtraKey.LIST_HEADER,
+					getString(R.string.text_current_user_points));
+			fragments.add(Fragment.instantiate(PointsActivity.this, UserPointListFragment.class.getName(),
+					currentUserPointsArguments));
 			int personIdIndex = cursor.getColumnIndexOrThrow(Persons.Columns.ID);
+			int personNameIndex = cursor.getColumnIndexOrThrow(Persons.Columns.NAME);
 			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
 				int personId = cursor.getInt(personIdIndex);
 				if (personId != mPersonId) {
 					Bundle arguments = new Bundle(1);
 					arguments.putInt(ExtraKey.PERSON_ID, personId);
 					arguments.putInt(ExtraKey.ORIGIN_PERSON_ID, mPersonId);
+					String personName = cursor.getString(personNameIndex);
+					String listHeader = getString(R.string.text_other_users_points_format, personName);
+					arguments.putString(ExtraKey.LIST_HEADER, listHeader);
 					fragments.add(Fragment.instantiate(PointsActivity.this, OtherUserPointListFragment.class
 							.getName(), arguments));
 				}
