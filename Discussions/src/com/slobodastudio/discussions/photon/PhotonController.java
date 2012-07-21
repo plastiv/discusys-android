@@ -367,7 +367,7 @@ public class PhotonController implements IPhotonPeerListener {
 		}
 		TypedHashMap<Byte, Object> structureChangedParameters = new TypedHashMap<Byte, Object>(Byte.class,
 				Object.class);
-		structureChangedParameters.put(DiscussionParameterKey.POINT_CHANGE_TYPE, argPointChanged
+		structureChangedParameters.put(DiscussionParameterKey.POINT_CHANGE_TYPE,  argPointChanged
 				.getEventType());
 		structureChangedParameters.put(DiscussionParameterKey.ARG_POINT_ID, argPointChanged.getPointId());
 		structureChangedParameters.put(DiscussionParameterKey.CHANGED_TOPIC_ID, argPointChanged.getTopicId());

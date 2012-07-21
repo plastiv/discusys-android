@@ -292,7 +292,7 @@ public class UploadService extends IntentService {
 		getContentResolver().insert(Descriptions.CONTENT_URI, description.toContentValues());
 		SelectedPoint selectedPoint = getSelectedPointFromExtra(intent);
 		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
-		PhotonHelper.sendArgPointUpdated(point, photonReceiver);
+		PhotonHelper.sendArgPointCreated(point, photonReceiver);
 		PhotonHelper.sendStatsEvent(StatsEvent.BADGE_CREATED, selectedPoint, photonReceiver);
 	}
 

@@ -27,6 +27,15 @@ public class PhotonHelper {
 			photonReceiver.send(SyncResultReceiver.STATUS_EVENT_CHANGED, bundle);
 		}
 	}
+	
+	public static void sendArgPointCreated(final Point point, final ResultReceiver photonReceiver) {
+
+		ArgPointChanged argPointChanged = new ArgPointChanged();
+		argPointChanged.setEventType(Points.PointChangedType.CREATED);
+		argPointChanged.setPointId(point.getId());
+		argPointChanged.setTopicId(point.getTopicId());
+		PhotonHelper.sendArgPointChanged(argPointChanged, photonReceiver);
+	}
 
 	public static void sendArgPointDeleted(final Point point, final ResultReceiver photonReceiver) {
 
