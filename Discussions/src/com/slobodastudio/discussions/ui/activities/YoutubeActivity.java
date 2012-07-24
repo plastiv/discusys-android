@@ -102,7 +102,7 @@ public class YoutubeActivity extends BaseActivity {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(R.string.dialog_text_youtube_select_video_first).setCancelable(true)
-				.setPositiveButton(R.string.button_title_ok, new DialogInterface.OnClickListener() {
+				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 
 					@Override
 					public void onClick(final DialogInterface dialog, final int id) {

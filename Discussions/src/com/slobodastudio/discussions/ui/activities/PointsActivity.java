@@ -28,6 +28,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.util.TypedValue;
 
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
@@ -143,9 +144,12 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 
 		super.onCreate(savedInstanceState);
 		initFromIntentExtra();
-		setContentView(R.layout.activity_new_points);
+		setContentView(R.layout.activity_list_point);
 		pager = (ViewPager) super.findViewById(R.id.viewpager);
+		findViewById(R.id.abs__action_bar);
 		PagerTitleStrip pagerTitleStrip = (PagerTitleStrip) findViewById(R.id.pagerTitleStrip);
+		pagerTitleStrip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+		pagerTitleStrip.setPadding(5, 10, 10, 5);
 		getSupportLoaderManager().initLoader(PersonsCursorLoader.LOADER_TOPIC_PERSONS, null,
 				new PersonsCursorLoader());
 	}

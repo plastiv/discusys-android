@@ -3,6 +3,7 @@
  */
 package com.slobodastudio.discussions;
 
+import android.annotation.TargetApi;
 import android.app.Application;
 import android.os.StrictMode;
 
@@ -10,6 +11,7 @@ import com.bugsense.trace.BugSenseHandler;
 
 public class DiscussionsApplication extends Application {
 
+	@TargetApi(9)
 	@Override
 	public void onCreate() {
 

@@ -43,7 +43,6 @@
     <string name="button_title_select_attach">Add attachment</string>
     <string name="button_title_go_to_market">Go to market</string>
     <string name="button_title_cancel">Cancel</string>
-    <string name="button_title_ok">Ok</string>
     <!-- menus -->
     <string name="menu_action_refresh">Refresh</string>
     <string name="menu_action_delete">Delete</string>
@@ -63,7 +62,7 @@
     <string name="text_empty_topics_list">No topics</string>
     <string name="text_empty_sessions_list">No sessions</string>
     <string name="text_empty_seats_list">No seats</string>
-    <string name="text_empty_attachments_list">Attachments list is empty</string>
+    <string name="text_empty_media_list">No media</string>
     <string name="text_empty_discussion_info">Disscussion info is empty</string>
     <string name="text_select_point">Select point to see details</string>
     <string name="text_other_users_points">Other points</string>

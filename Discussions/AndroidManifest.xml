@@ -85,7 +85,7 @@
         <!-- Image Preview -->
         <activity
             android:name=".ui.activities.ImagePreviewActivity"
-            android:label="@string/activity_title_discussions_info" >
+            android:label="@string/activity_title_image_preview" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

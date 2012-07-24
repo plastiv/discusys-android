@@ -410,7 +410,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setMessage(R.string.dialog_text_camera_need_install_first).setCancelable(true)
-				.setPositiveButton(R.string.button_title_ok, new DialogInterface.OnClickListener() {
+				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 
 					@Override
 					public void onClick(final DialogInterface dialog, final int id) {
@@ -450,7 +450,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setMessage(R.string.dialog_text_sdcard_unmounted).setCancelable(true).setPositiveButton(
-				R.string.button_title_ok, new DialogInterface.OnClickListener() {
+				android.R.string.ok, new DialogInterface.OnClickListener() {
 
 					@Override
 					public void onClick(final DialogInterface dialog, final int id) {
