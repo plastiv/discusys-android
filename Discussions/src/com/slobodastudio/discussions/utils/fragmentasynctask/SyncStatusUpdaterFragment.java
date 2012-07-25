@@ -84,9 +84,11 @@ public class SyncStatusUpdaterFragment extends Fragment implements DetachableRes
 			case ResultCodes.STATUS_ERROR: {
 				// Error happened down in SyncService, show as toast.
 				mSyncing = false;
-				final String errorText = getString(R.string.toast_sync_error, resultData
-						.getString(Intent.EXTRA_TEXT));
-				showLongToast(errorText);
+				if (getActivity() != null) {
+					final String errorText = getString(R.string.toast_sync_error, resultData
+							.getString(Intent.EXTRA_TEXT));
+					showLongToast(errorText);
+				}
 				break;
 			}
 			case ResultCodes.STATUS_STARTED: {

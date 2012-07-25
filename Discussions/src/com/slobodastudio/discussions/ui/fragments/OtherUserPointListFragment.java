@@ -134,9 +134,8 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 
 	private void onActionView(final int position) {
 
-		// position - 1 because of header
 		if ((mOtherPointsAdapter.getCursor() != null)
-				&& mOtherPointsAdapter.getCursor().moveToPosition(position - 1)) {
+				&& mOtherPointsAdapter.getCursor().moveToPosition(position)) {
 			int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
 			int valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
 			// Otherwise we need to launch a new activity to display details
@@ -158,7 +157,7 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 					String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "=? AND "
 							+ Points.Columns.PERSON_ID + "=" + Persons.Qualified.PERSON_ID;
 					String[] args = { String.valueOf(mTopicId), String.valueOf(mPersonId) };
-					String sortOrder = Points.Columns.ORDER_NUMBER + " DESC";
+					String sortOrder = Points.Columns.ORDER_NUMBER + " ASC";
 					return new CursorLoader(getActivity(), Points.CONTENT_AND_PERSON_URI, null, where, args,
 							sortOrder);
 				}

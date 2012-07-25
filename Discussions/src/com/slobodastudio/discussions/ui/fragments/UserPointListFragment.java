@@ -123,9 +123,8 @@ public class UserPointListFragment extends SherlockListFragment {
 
 	private void onActionEdit(final int position) {
 
-		// position - 1 because of header
 		if ((mUserPointsAdapter.getCursor() != null)
-				&& mUserPointsAdapter.getCursor().moveToPosition(position - 1)) {
+				&& mUserPointsAdapter.getCursor().moveToPosition(position)) {
 			int valueIdIndex = mUserPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
 			int pointId = mUserPointsAdapter.getCursor().getInt(valueIdIndex);
 			Intent intent = createEditPointIntent(pointId);
@@ -144,7 +143,7 @@ public class UserPointListFragment extends SherlockListFragment {
 				case LOADER_USER_POINTS_ID: {
 					String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID + "=? ";
 					String[] args = { String.valueOf(mTopicId), String.valueOf(mPersonId) };
-					String sortOrder = Points.Columns.ORDER_NUMBER + " DESC";
+					String sortOrder = Points.Columns.ORDER_NUMBER + " ASC";
 					return new CursorLoader(getActivity(), Points.CONTENT_URI, null, where, args, sortOrder);
 				}
 				default:

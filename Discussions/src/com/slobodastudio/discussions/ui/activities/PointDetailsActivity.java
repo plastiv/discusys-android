@@ -174,8 +174,10 @@ public class PointDetailsActivity extends BaseActivity {
 			setupActionBarTabs();
 		}
 		if (savedInstanceState != null) {
-			getSupportActionBar()
-					.setSelectedNavigationItem(savedInstanceState.getInt(EXTRA_KEY_TAB_INDEX, 0));
+			if (!IntentAction.NEW.equals(action)) {
+				getSupportActionBar().setSelectedNavigationItem(
+						savedInstanceState.getInt(EXTRA_KEY_TAB_INDEX, 0));
+			}
 		} else if (Intent.ACTION_VIEW.equals(action)) {
 			getSupportActionBar().setSelectedNavigationItem(COMMENT_TAB_POSITION);
 		}

@@ -40,8 +40,6 @@ public class AllOtherUserPointListFragment extends SherlockListFragment {
 
 		super.onActivityCreated(savedInstanceState);
 		initFromIntentExtra();
-		// setListAdapter(null);
-		// addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
 		mOtherPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_point, null,
 				new String[] { Points.Columns.NAME, Persons.Columns.COLOR, Points.Columns.ORDER_NUMBER },
@@ -132,9 +130,8 @@ public class AllOtherUserPointListFragment extends SherlockListFragment {
 
 	private void onActionView(final int position) {
 
-		// position - 1 because of header
 		if ((mOtherPointsAdapter.getCursor() != null)
-				&& mOtherPointsAdapter.getCursor().moveToPosition(position - 1)) {
+				&& mOtherPointsAdapter.getCursor().moveToPosition(position)) {
 			int valueIdIndex = mOtherPointsAdapter.getCursor().getColumnIndexOrThrow(Points.Columns.ID);
 			int valueId = mOtherPointsAdapter.getCursor().getInt(valueIdIndex);
 			// Otherwise we need to launch a new activity to display details
@@ -155,7 +152,7 @@ public class AllOtherUserPointListFragment extends SherlockListFragment {
 					String where = Points.Columns.TOPIC_ID + "=? AND " + Points.Columns.PERSON_ID
 							+ "!=? AND " + Points.Columns.PERSON_ID + "=" + Persons.Qualified.PERSON_ID;
 					String[] args = { String.valueOf(mTopicId), String.valueOf(mOriginPersonId) };
-					String sortOrder = Points.Columns.PERSON_ID + "," + Points.Columns.ORDER_NUMBER + " DESC";
+					String sortOrder = Points.Columns.PERSON_ID + "," + Points.Columns.ORDER_NUMBER + " ASC";
 					return new CursorLoader(getActivity(), Points.CONTENT_AND_PERSON_URI, null, where, args,
 							sortOrder);
 				}

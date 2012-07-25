@@ -192,8 +192,10 @@ public class DiscusysPreferenceActivity extends SherlockPreferenceActivity imple
 			mBound = false;
 		}
 		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-		mProgressDialog.dismiss();
-		mProgressDialog = null;
+		if (mProgressDialog != null) {
+			mProgressDialog.dismiss();
+			mProgressDialog = null;
+		}
 	}
 
 	private void publishMessage() {

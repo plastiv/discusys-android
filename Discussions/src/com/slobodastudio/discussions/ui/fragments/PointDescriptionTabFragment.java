@@ -450,6 +450,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 						Description description = new Description(mDescriptionCursor);
 						mDescriptionEditText.setText(description.getText());
 						mDescriptionId = description.getId();
+						getLoaderManager().destroyLoader(DESCRIPTION_ID);
 					} else {
 						Log.w(TAG, "[onLoadFinished] LOADER_DESCRIPTION_ID count was: " + data.getCount());
 					}
