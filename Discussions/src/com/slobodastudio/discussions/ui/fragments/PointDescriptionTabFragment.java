@@ -21,10 +21,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
@@ -45,8 +43,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	private Cursor mPointCursor;
 	private final PointCursorLoader mPointCursorLoader;
 	private int mPointId;
-	private CheckBox mSharedToPublicCheckBox;
-	private Spinner mSideCodeSpinner;
+	// private CheckBox mSharedToPublicCheckBox;
+	// private Spinner mSideCodeSpinner;
 	private int mTopicId;
 
 	public PointDescriptionTabFragment() {
@@ -141,8 +139,10 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		Point point = new Point();
 		point.setPersonId(mPersonId);
 		point.setName(mNameEditText.getText().toString());
-		point.setSharedToPublic(mSharedToPublicCheckBox.isChecked());
-		point.setSideCode(getSelectedSideCodeId());
+		// point.setSharedToPublic(mSharedToPublicCheckBox.isChecked());
+		point.setSharedToPublic(true);
+		// point.setSideCode(getSelectedSideCodeId());
+		point.setSideCode(Points.SideCode.NEUTRAL);
 		point.setTopicId(topicId);
 		if (mPointId != INVALID_POINT_ID) {
 			// update point
@@ -200,8 +200,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 				container, false);
 		mNameEditText = (EditText) layout.findViewById(R.id.et_point_name);
 		mDescriptionEditText = (EditText) layout.findViewById(R.id.et_point_description);
-		mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
-		mSharedToPublicCheckBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
+		// mSideCodeSpinner = (Spinner) layout.findViewById(R.id.spinner_point_agreement_code);
+		// mSharedToPublicCheckBox = (CheckBox) layout.findViewById(R.id.chb_share_to_public);
 		if (getArguments() == null) {
 			// at this point we are expected to show point details
 			throw new IllegalArgumentException("Fragment was called without arguments");
@@ -217,13 +217,13 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 
 		super.onSaveInstanceState(outState);
 		if (!isEmpty()) {
-			if (mSharedToPublicCheckBox != null) {
-				outState.putBoolean(ExtraKey.SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
-			}
+			// if (mSharedToPublicCheckBox != null) {
+			// outState.putBoolean(ExtraKey.SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
+			// }
 			if (mNameEditText.getText() != null) {
 				outState.putString(ExtraKey.POINT_NAME, mNameEditText.getText().toString());
 			}
-			outState.putInt(ExtraKey.AGREEMENT_CODE, getSelectedSideCodeId());
+			// outState.putInt(ExtraKey.AGREEMENT_CODE, getSelectedSideCodeId());
 			outState.putInt(ExtraKey.PERSON_ID, mPersonId);
 			outState.putInt(ExtraKey.TOPIC_ID, mTopicId);
 			outState.putInt(ExtraKey.POINT_ID, mPointId);
@@ -249,21 +249,20 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		return selectedPoint;
 	}
 
-	private int getSelectedSideCodeId() {
-
-		switch ((int) mSideCodeSpinner.getSelectedItemId()) {
-			case Points.SideCode.CONS:
-				return Points.SideCode.CONS;
-			case Points.SideCode.NEUTRAL:
-				return Points.SideCode.NEUTRAL;
-			case Points.SideCode.PROS:
-				return Points.SideCode.PROS;
-			default:
-				throw new IllegalArgumentException("Unknown side code: "
-						+ (int) mSideCodeSpinner.getSelectedItemId());
-		}
-	}
-
+	// private int getSelectedSideCodeId() {
+	//
+	// switch ((int) mSideCodeSpinner.getSelectedItemId()) {
+	// case Points.SideCode.CONS:
+	// return Points.SideCode.CONS;
+	// case Points.SideCode.NEUTRAL:
+	// return Points.SideCode.NEUTRAL;
+	// case Points.SideCode.PROS:
+	// return Points.SideCode.PROS;
+	// default:
+	// throw new IllegalArgumentException("Unknown side code: "
+	// + (int) mSideCodeSpinner.getSelectedItemId());
+	// }
+	// }
 	private void onActionEdit(final Bundle savedInstanceState) {
 
 		if (!getArguments().containsKey(ExtraKey.DISCUSSION_ID)) {
@@ -340,19 +339,20 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		if (!savedInstanceState.containsKey(ExtraKey.DESCRIPTION_TEXT)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain description text");
 		}
-		if (!savedInstanceState.containsKey(ExtraKey.AGREEMENT_CODE)) {
-			throw new IllegalStateException("SavedInstanceState doesnt contain agreement code");
-		}
-		if (!savedInstanceState.containsKey(ExtraKey.SHARED_TO_PUBLIC)) {
-			throw new IllegalStateException("SavedInstanceState doesnt contain shared to public");
-		}
+		// if (!savedInstanceState.containsKey(ExtraKey.AGREEMENT_CODE)) {
+		// throw new IllegalStateException("SavedInstanceState doesnt contain agreement code");
+		// }
+		// if (!savedInstanceState.containsKey(ExtraKey.SHARED_TO_PUBLIC)) {
+		// throw new IllegalStateException("SavedInstanceState doesnt contain shared to public");
+		// }
 		mPointId = savedInstanceState.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
 		mPersonId = savedInstanceState.getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 		mTopicId = savedInstanceState.getInt(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
 		mNameEditText.setText(savedInstanceState.getString(ExtraKey.POINT_NAME));
 		mDescriptionEditText.setText(savedInstanceState.getString(ExtraKey.DESCRIPTION_TEXT));
-		mSideCodeSpinner.setSelection(savedInstanceState.getInt(ExtraKey.AGREEMENT_CODE, Integer.MIN_VALUE));
-		mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(ExtraKey.SHARED_TO_PUBLIC));
+		// mSideCodeSpinner.setSelection(savedInstanceState.getInt(ExtraKey.AGREEMENT_CODE,
+		// Integer.MIN_VALUE));
+		// mSharedToPublicCheckBox.setChecked(savedInstanceState.getBoolean(ExtraKey.SHARED_TO_PUBLIC));
 	}
 
 	private void setViewsEnabled(final boolean enabled) {
@@ -361,8 +361,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			mDescriptionEditText.setEnabled(false);
 			mNameEditText.setEnabled(false);
 			mDescriptionEditText.setEnabled(false);
-			mSideCodeSpinner.setEnabled(false);
-			mSharedToPublicCheckBox.setEnabled(false);
+			// mSideCodeSpinner.setEnabled(false);
+			// mSharedToPublicCheckBox.setEnabled(false);
 		}
 	}
 
@@ -431,8 +431,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 						mPersonId = value.getPersonId();
 						mTopicId = value.getTopicId();
 						mNameEditText.setText(value.getName());
-						mSideCodeSpinner.setSelection(value.getSideCode(), true);
-						mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
+						// mSideCodeSpinner.setSelection(value.getSideCode(), true);
+						// mSharedToPublicCheckBox.setChecked(value.isSharedToPublic());
 						mOrderNum = value.getOrderNumber();
 						getSherlockActivity().getSupportActionBar().setTitle(value.getName());
 						Bundle args = new Bundle();

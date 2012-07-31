@@ -17,6 +17,7 @@
     <string name="activity_title_webview">Select url</string>
     <string name="activity_title_youtube">Select youtube video</string>
     <string name="activity_title_preferences">Preferences</string>
+    <string name="activity_title_comment">Comment</string>
     <string name="action_mode_title_points">Edit point</string>
     <string name="action_mode_title_view_points">View point</string>
     <string name="dialog_title_user_name">Input user name</string>

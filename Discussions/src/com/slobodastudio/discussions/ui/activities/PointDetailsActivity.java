@@ -61,6 +61,7 @@ public class PointDetailsActivity extends BaseActivity {
 		if (isLandscape()) {
 			if (isScreenSizeNormal() || isScreenSizeSmall()) {
 				getSupportActionBar().setDisplayShowHomeEnabled(false);
+				getSupportActionBar().setDisplayShowTitleEnabled(false);
 			}
 		}
 	}
@@ -184,6 +185,8 @@ public class PointDetailsActivity extends BaseActivity {
 			}
 		} else if (Intent.ACTION_VIEW.equals(action)) {
 			getSupportActionBar().setSelectedNavigationItem(COMMENT_TAB_POSITION);
+		} else if (Intent.ACTION_EDIT.equals(action)) {
+			getSupportActionBar().setSelectedNavigationItem(DISCUSSION_INFO_TAB_POSITION);
 		}
 	}
 

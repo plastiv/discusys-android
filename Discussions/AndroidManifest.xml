@@ -136,7 +136,7 @@
         <activity
             android:name=".ui.activities.PointDetailsActivity"
             android:label="@string/activity_title_point"
-            android:windowSoftInputMode="stateUnchanged" >
+            android:windowSoftInputMode="adjustResize" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -190,6 +190,19 @@
             android:label="@string/activity_title_preferences" >
             <intent-filter>
                 <action android:name="com.slobodastudio.intent.action.OPEN_PREFERENCES" />
+            </intent-filter>
+        </activity>
+        
+         <!-- Comment -->
+        <activity
+            android:name=".ui.activities.CommentDetailsActivity"
+            android:label="@string/activity_title_comment" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.discussions.comment" />
             </intent-filter>
         </activity>
 

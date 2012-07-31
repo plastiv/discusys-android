@@ -12,6 +12,7 @@ import com.slobodastudio.discussions.ui.activities.BaseActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager;
@@ -28,7 +29,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -143,6 +146,20 @@ public class PointCommentsTabFragment extends SherlockFragment {
 			final Bundle savedInstanceState) {
 
 		mCommentsList = (ListView) inflater.inflate(R.layout.tab_fragment_point_comments, container, false);
+		mCommentsList.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(final AdapterView<?> parent, final View view, final int position,
+					final long id) {
+
+				Cursor cursor = (Cursor) mCommentsAdapter.getItem(position - 1);
+				int commentIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
+				int commentId = cursor.getInt(commentIdIndex);
+				Uri commentUri = Comments.buildTableUri(commentId);
+				Intent commentIntent = new Intent(Intent.ACTION_VIEW, commentUri);
+				startActivity(commentIntent);
+			}
+		});
 		registerForContextMenu(mCommentsList);
 		addCommentsHeader();
 		addCommentsFooter();
