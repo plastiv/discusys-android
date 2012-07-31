@@ -2,9 +2,11 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.PreferenceHelper;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
+import com.slobodastudio.discussions.ui.fragments.DiscussionInfoFragment;
 import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointDescriptionTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointMediaTabFragment;
@@ -18,6 +20,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -39,9 +42,10 @@ public class PointDetailsActivity extends BaseActivity {
 
 	private static final int COMMENT_TAB_POSITION = 1;
 	private static final int DESCRIPTION_TAB_POSITION = 0;
+	private static final int DISCUSSION_INFO_TAB_POSITION = 3;
 	private static final String EXTRA_KEY_TAB_INDEX = "extra_key_tab_index";
 	private static final int MEDIA_TAB_POSITION = 2;
-	private static final int SOURCE_TAB_POSITION = 3;
+	private static final int SOURCE_TAB_POSITION = 4;
 	private static final String TAG = PointDetailsActivity.class.getSimpleName();
 	private int discussionId;
 	private TabsAdapter mTabsAdapter;
@@ -226,6 +230,18 @@ public class PointDetailsActivity extends BaseActivity {
 				descriptionArguments);
 	}
 
+	private void addDiscussionInfoTab() {
+
+		Tab tab = getSupportActionBar().newTab();
+		// sourceTab.setText(R.string.tab_title_source);
+		Uri discussionUri = Discussions.buildTableUri(discussionId);
+		Intent intent = new Intent(Intent.ACTION_VIEW);
+		intent.putExtra(DiscussionInfoFragment.EXTRA_URI, discussionUri);
+		Bundle arguments = DiscussionInfoFragment.intentToFragmentArguments(intent);
+		tab.setIcon(R.drawable.ic_action_info);
+		mTabsAdapter.addTab(tab, FragmentTag.DISCUSSION_INFO, DiscussionInfoFragment.class, arguments);
+	}
+
 	private void addMediaTab() {
 
 		Tab mediaTab = getSupportActionBar().newTab();
@@ -295,12 +311,14 @@ public class PointDetailsActivity extends BaseActivity {
 		if (isLandscape()) {
 			if (isScreenSizeNormal() || isScreenSizeSmall()) {
 				bar.setDisplayShowHomeEnabled(false);
+				bar.setDisplayShowTitleEnabled(false);
 			}
 		}
 		mTabsAdapter = new TabsAdapter(this, bar, mViewPager);
 		addDescriptionTab();
 		addCommentsTab();
 		addMediaTab();
+		addDiscussionInfoTab();
 		addSourceTab();
 	}
 
@@ -427,6 +445,7 @@ public class PointDetailsActivity extends BaseActivity {
 
 	private final class FragmentTag {
 
+		private static final String DISCUSSION_INFO = "point_discussion_info_tag";
 		private static final String POINT_COMMENTS = "point_comments_tag";
 		private static final String POINT_DESCRIPTION = "point_description_tag";
 		private static final String POINT_MEDIA = "point_media_tag";

@@ -4,17 +4,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/tv_discussion_description"
-        style="@style/TextDescription"
-        android:text="@string/text_empty_discussion_info" />
-
-    <ListView
-        android:id="@+id/listview_attachments"
+    <fragment
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp"
-        android:transcriptMode="normal" />
+        android:layout_height="match_parent"
+        class="com.slobodastudio.discussions.ui.fragments.DiscussionInfoFragment" />
 
 </LinearLayout>

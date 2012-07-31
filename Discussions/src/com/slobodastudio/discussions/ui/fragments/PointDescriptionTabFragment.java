@@ -215,10 +215,11 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	@Override
 	public void onSaveInstanceState(final Bundle outState) {
 
-		// TODO: save comment edit text on rotation
 		super.onSaveInstanceState(outState);
 		if (!isEmpty()) {
-			outState.putBoolean(ExtraKey.SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
+			if (mSharedToPublicCheckBox != null) {
+				outState.putBoolean(ExtraKey.SHARED_TO_PUBLIC, mSharedToPublicCheckBox.isChecked());
+			}
 			if (mNameEditText.getText() != null) {
 				outState.putString(ExtraKey.POINT_NAME, mNameEditText.getText().toString());
 			}

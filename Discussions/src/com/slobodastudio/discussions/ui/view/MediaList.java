@@ -13,55 +13,58 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
+import android.util.AttributeSet;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class MediaList {
+public class MediaList extends ListView {
 
 	private static final String TAG = MediaList.class.getSimpleName();
 	private final com.slobodastudio.discussions.utils.lazylist.ImageLoader imageLoader;
 	private SimpleCursorAdapter mAttachmentsAdapter;
-	private final ListView mAttachmentsList;
 	private final Context mContext;
 	private int postionOffset = 0;
 
-	public MediaList(final Context context, final ListView listView) {
+	public MediaList(final Context context) {
 
-		mContext = context;
-		imageLoader = ImageLoaderSingleton.getInstance(mContext);
-		mAttachmentsList = listView;
-		mAttachmentsList.setOnItemClickListener(new AttachmentsItemClickListener());
-		setAttachmentsAdapter();
+		this(context, null);
 	}
 
+	public MediaList(final Context context, final AttributeSet attrs) {
+
+		this(context, attrs, android.R.attr.listViewStyle);
+	}
+
+	public MediaList(final Context context, final AttributeSet attrs, final int defStyle) {
+
+		super(context, attrs, defStyle);
+		mContext = context;
+		imageLoader = ImageLoaderSingleton.getInstance(mContext);
+		setOnItemClickListener(new AttachmentsItemClickListener());
+	}
+
+	@Override
 	public SimpleCursorAdapter getAdapter() {
 
 		return mAttachmentsAdapter;
 	}
 
-	public ListView getListView() {
-
-		return mAttachmentsList;
-	}
-
-	public void setPositionOffset(final int positionOffset) {
-
-		postionOffset = positionOffset;
-	}
-
-	private void setAttachmentsAdapter() {
+	public void setAttachmentsAdapter() {
 
 		mAttachmentsAdapter = new SimpleCursorAdapter(mContext, R.layout.list_item_media, null, new String[] {
 				Attachments.Columns.TITLE, Attachments.Columns.ID, Attachments.Columns.FORMAT }, new int[] {
 				R.id.text_attachment_name, R.id.image_attachment_preview, R.id.image_attachment_filetype }, 0);
 		mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
-		mAttachmentsList.setAdapter(mAttachmentsAdapter);
+		setAdapter(mAttachmentsAdapter);
+	}
+
+	public void setPositionOffset(final int positionOffset) {
+
+		postionOffset = positionOffset;
 	}
 
 	private class AttachmentsItemClickListener implements OnItemClickListener {
@@ -135,26 +138,6 @@ public class MediaList {
 			}
 		}
 
-		private float convertPixelsFromDensityPixel(final int valueInDp) {
-
-			return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, mContext.getResources()
-					.getDisplayMetrics());
-		}
-
-		private Bitmap scaleDown(final Bitmap realImage) {
-
-			return scaleDown(realImage, convertPixelsFromDensityPixel(75), true);
-		}
-
-		private Bitmap scaleDown(final Bitmap realImage, final float maxImageSize, final boolean filter) {
-
-			float ratio = Math.min(maxImageSize / realImage.getWidth(), maxImageSize / realImage.getHeight());
-			int width = Math.round(ratio * realImage.getWidth());
-			int height = Math.round(ratio * realImage.getHeight());
-			Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width, height, filter);
-			return newBitmap;
-		}
-
 		private void setFiletypeImage(final ImageView imageView, final Cursor cursor, final int columnIndex) {
 
 			int attachmentFormat = cursor.getInt(columnIndex);
@@ -218,19 +201,6 @@ public class MediaList {
 					options.inSampleSize = 2;
 					Bitmap bitmap = BitmapFactory.decodeByteArray(thumbData, 0, thumbData.length, options);
 					imageView.setImageBitmap(bitmap);
-					// imageView.setImageBitmap(scaleDown(bitmap));
-					// int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
-					// final int valueId = cursor.getInt(idColumn);
-					// imageView.setOnClickListener(new OnClickListener() {
-					//
-					// @Override
-					// public void onClick(final View v) {
-					//
-					// Intent intent = new Intent(Intent.ACTION_VIEW, Attachments.buildTableUri(valueId));
-					// startActivity(intent);
-					// }
-					// });
-					// break;
 					break;
 				case AttachmentType.GENERAL_WEB_LINK:
 				case AttachmentType.NONE:

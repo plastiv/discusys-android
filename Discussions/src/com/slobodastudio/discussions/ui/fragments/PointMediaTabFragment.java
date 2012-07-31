@@ -40,18 +40,19 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.SherlockListFragment;
+import com.actionbarsherlock.app.SherlockFragment;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class PointMediaTabFragment extends SherlockListFragment {
+public class PointMediaTabFragment extends SherlockFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int PICK_CAMERA_PHOTO = 0x03;
@@ -135,15 +136,15 @@ public class PointMediaTabFragment extends SherlockListFragment {
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
-		registerForContextMenu(getListView());
-		setListShown(false);
+		registerForContextMenu(mediaList);
 		initFromArguments();
+		mediaList.setAdapter(null);
 		addAttachmentsHeader();
 		if (footerButtonsEnabled) {
 			addAttachmentsFooter();
 		}
-		mediaList = new MediaList(getActivity(), getListView());
 		mediaList.setPositionOffset(1);
+		mediaList.setAttachmentsAdapter();
 		initAttachmentsLoader();
 	}
 
@@ -208,6 +209,15 @@ public class PointMediaTabFragment extends SherlockListFragment {
 		inflater.inflate(R.menu.context_attachments, menu);
 	}
 
+	@Override
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+			final Bundle savedInstanceState) {
+
+		mediaList = (MediaList) inflater.inflate(R.layout.tab_fragment_point_media, container, false);
+		// mediaList = (MediaList) layout.findViewById(R.id.listview_attachments);
+		return mediaList;
+	}
+
 	public void onServiceConnected() {
 
 		if (newAttachment != null) {
@@ -237,7 +247,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 				Context.LAYOUT_INFLATER_SERVICE);
 		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
 		setSelectAttachClickListener(footerView);
-		getListView().addFooterView(footerView);
+		mediaList.addFooterView(footerView);
 	}
 
 	private void addAttachmentsHeader() {
@@ -246,7 +256,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 				Context.LAYOUT_INFLATER_SERVICE);
 		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
 		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
-		getListView().addHeaderView(headerView);
+		mediaList.addHeaderView(headerView);
 	}
 
 	private void handleCameraResult(final Intent data) {
@@ -348,7 +358,7 @@ public class PointMediaTabFragment extends SherlockListFragment {
 			} else {
 				showSdCardUnmountedDialog();
 			}
-		} else {}
+		}
 	}
 
 	private void requestPdfAttachment(final Activity activity) {
@@ -517,11 +527,6 @@ public class PointMediaTabFragment extends SherlockListFragment {
 			switch (loader.getId()) {
 				case ATTACHMENTS_ID:
 					mediaList.getAdapter().swapCursor(data);
-					if (isResumed()) {
-						setListShown(true);
-					} else {
-						setListShownNoAnimation(true);
-					}
 					break;
 				case POINT_NAME_ID:
 					if (data.moveToFirst()) {
