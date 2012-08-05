@@ -22,6 +22,7 @@ public class ExtraKey {
 	public static final String SESSION_ID = "extra_session_id";
 	public static final String SHARED_TO_PUBLIC = "extra_shared_to_public";
 	public static final String TOPIC_ID = "extra_topic_id";
+	public static final String URI = "extra_uri";
 	public static final String VIEW_ENABLED = "extra_view_enabled";
 
 	/** A public Constructor prevents class from instantiating. */

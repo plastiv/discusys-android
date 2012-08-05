@@ -1,11 +1,9 @@
 package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.ui.ExtraKey;
-import com.slobodastudio.discussions.ui.view.MediaList;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -24,10 +22,8 @@ import com.actionbarsherlock.app.SherlockFragment;
 
 public class DiscussionInfoFragment extends SherlockFragment {
 
-	public static final String EXTRA_URI = "EXTRA_URI";
 	private static final String TAG = DiscussionInfoFragment.class.getSimpleName();
 	private TextView discussionText;
-	private MediaList mediaList;
 
 	/** Converts an intent into a {@link Bundle} suitable for use as fragment arguments. */
 	public static Bundle intentToFragmentArguments(final Intent intent) {
@@ -70,8 +66,6 @@ public class DiscussionInfoFragment extends SherlockFragment {
 		View layout = inflater.inflate(R.layout.fragment_discussion_description, container, false);
 		discussionText = (TextView) layout.findViewById(R.id.tv_discussion_description);
 		discussionText.setMovementMethod(new ScrollingMovementMethod());
-		mediaList = (MediaList) layout.findViewById(R.id.listview_attachments);
-		mediaList.setAttachmentsAdapter();
 		return layout;
 	}
 
@@ -81,22 +75,19 @@ public class DiscussionInfoFragment extends SherlockFragment {
 		Bundle args = new Bundle();
 		Uri uri;
 		if (getArguments() != null) {
-			uri = getArguments().getParcelable(EXTRA_URI);
+			uri = getArguments().getParcelable(ExtraKey.URI);
 		} else {
 			uri = getActivity().getIntent().getData();
 		}
-		args.putParcelable(EXTRA_URI, uri);
+		args.putParcelable(ExtraKey.URI, uri);
 		getSherlockActivity().getSupportLoaderManager().initLoader(DiscussionInfoCursorLoader.DESCRIPTION_ID,
 				args, loader);
 		getSherlockActivity().getSupportLoaderManager().initLoader(DiscussionInfoCursorLoader.DISCUSSION_ID,
-				args, loader);
-		getSherlockActivity().getSupportLoaderManager().initLoader(DiscussionInfoCursorLoader.ATTACHMENT_ID,
 				args, loader);
 	}
 
 	private class DiscussionInfoCursorLoader implements LoaderCallbacks<Cursor> {
 
-		private static final int ATTACHMENT_ID = 0x02;
 		private static final int DESCRIPTION_ID = 0x00;
 		private static final int DISCUSSION_ID = 0x01;
 
@@ -108,8 +99,6 @@ public class DiscussionInfoFragment extends SherlockFragment {
 					return getDescriptionCursorLoader(arguments);
 				case DISCUSSION_ID:
 					return getDiscussionCursorLoader(arguments);
-				case ATTACHMENT_ID:
-					return getAttachmentCursorLoader(arguments);
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loaderId);
 			}
@@ -124,9 +113,6 @@ public class DiscussionInfoFragment extends SherlockFragment {
 					break;
 				case DISCUSSION_ID:
 					getSherlockActivity().getSupportActionBar().setTitle("");
-					break;
-				case ATTACHMENT_ID:
-					mediaList.getAdapter().swapCursor(null);
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
@@ -143,21 +129,9 @@ public class DiscussionInfoFragment extends SherlockFragment {
 				case DISCUSSION_ID:
 					swapDiscussionTitle(data);
 					break;
-				case ATTACHMENT_ID:
-					mediaList.getAdapter().swapCursor(data);
-					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
 			}
-		}
-
-		private CursorLoader getAttachmentCursorLoader(final Bundle arguments) {
-
-			Uri discussionUri = getUriFromArguments(arguments);
-			String discussionId = Discussions.getValueId(discussionUri);
-			String where = Attachments.Columns.DISCUSSION_ID + "=?";
-			String[] args = new String[] { discussionId };
-			return new CursorLoader(getActivity(), Attachments.CONTENT_URI, null, where, args, null);
 		}
 
 		private CursorLoader getDescriptionCursorLoader(final Bundle arguments) {
@@ -177,10 +151,10 @@ public class DiscussionInfoFragment extends SherlockFragment {
 
 		private Uri getUriFromArguments(final Bundle arguments) {
 
-			if (!arguments.containsKey(EXTRA_URI)) {
+			if (!arguments.containsKey(ExtraKey.URI)) {
 				throw new IllegalArgumentException("Loader was called without extra discussion uri");
 			}
-			return arguments.getParcelable(EXTRA_URI);
+			return arguments.getParcelable(ExtraKey.URI);
 		}
 
 		private void swapDiscussionInfoText(final Cursor cursor) {

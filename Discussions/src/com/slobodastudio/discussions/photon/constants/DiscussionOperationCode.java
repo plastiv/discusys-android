@@ -6,10 +6,12 @@ public class DiscussionOperationCode {
 
 	public static final byte CLUSTER_BADGE_REQUEST = 25;
 	public static final byte CLUSTER_MOVE_REQUEST = 27;
+	public static final byte CLUSTER_STATS_REQUEST = 32;
 	/** client creates shape */
 	public static final byte CREATE_SHAPE_REQUEST = 14;
 	/** client tries to set (or unset) own cursor on shape */
 	public static final byte CURSOR_REQUEST = 13;
+	public static final byte DEDITOR_REPORT = 33;
 	/** client removes shape */
 	public static final byte DELETE_SHAPES_REQUEST = 15;
 	public static final byte DELETE_SINGLE_SHAPE_REQUEST = 18;
@@ -20,6 +22,7 @@ public class DiscussionOperationCode {
 	public static final byte JOIN = LiteOpCode.Join;
 	public static final byte LEAVE = LiteOpCode.Leave;
 	public static final byte LINK_CREATE_REQUEST = 22;
+	public static final byte LINK_REPORT_REQUEST = 34;
 	/** when user edits annotation and saves it, the client sends this, server broadcasts to other clients */
 	public static final byte NOTIFY_ANNOTATION_UPDATED = 9;
 	/** any attribute of given arg.point changed. replacement for NotifyStructureChanged when only single
@@ -124,8 +127,14 @@ public class DiscussionOperationCode {
 				return "UNCLUSTER_BADGE_REQUEST";
 			case UNSELECT_ALL_REQUEST:
 				return "UNSELECT_ALL_REQUEST";
+			case CLUSTER_STATS_REQUEST:
+				return "CLUSTER_STATS_REQUEST";
+			case DEDITOR_REPORT:
+				return "DEDITOR_REPORT";
+			case LINK_REPORT_REQUEST:
+				return "LINK_REPORT_REQUEST";
 			default:
-				throw new IllegalArgumentException("Inknown event code: " + operationCode);
+				return "Inknown operation code: " + operationCode;
 		}
 	}
 }

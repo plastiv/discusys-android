@@ -12,10 +12,12 @@ public class DiscussionEventCode {
 	/** Server notifies client about changed geometry. */
 	public static final byte BADGE_GEOMETRY_CHANGED = 0;
 	public static final byte CLUSTER_BADGE_EVENT = 20;
+	public static final byte CLUSTER_STATS_EVENT = 24;
 	/** client created shape */
 	public static final byte CREATE_SHAPE_EVENT = 10;
 	/** client locked vector shape */
 	public static final byte CURSOR_EVENT = 9;
+	public static final byte DEDITOR_REPORT_EVENT = 23;
 	public static final byte DELETE_SINGLE_SHAPE_EVENT = 14;
 	public static final byte INK_EVENT = 21;
 	/** used for instant updates of global online list 1. in response to NotifyLeaveNotify server notifies
@@ -24,6 +26,8 @@ public class DiscussionEventCode {
 	public static final byte JOIN = LiteEventCode.Join;
 	public static final byte LEAVE = LiteEventCode.Leave;
 	public static final byte LINK_CREATE_EVENT = 17;
+	public static final byte LINK_STATS_EVENT = 25;
+	public static final byte SCENE_LOADING_DONE = 22;
 	public static final byte STATE_SYNC_EVENT = 16;
 	/** server broadcasts stats event */
 	public static final byte STATS_EVENT = 8;
@@ -84,8 +88,16 @@ public class DiscussionEventCode {
 				return "USER_ACC_PLUS_MINUS";
 			case USER_CURSOR_CHANGED:
 				return "USER_CURSOR_CHANGED";
+			case SCENE_LOADING_DONE:
+				return "SCENE_LOADING_DONE";
+			case DEDITOR_REPORT_EVENT:
+				return "DEDITOR_REPORT_EVENT";
+			case CLUSTER_STATS_EVENT:
+				return "CLUSTER_STATS_EVENT";
+			case LINK_STATS_EVENT:
+				return "LINK_STATS_EVENT";
 			default:
-				throw new IllegalArgumentException("Inknown event code: " + eventCode);
+				return "Inknown event code: " + eventCode;
 		}
 	}
 }

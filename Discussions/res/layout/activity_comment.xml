@@ -1,15 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:layout_height="wrap_content" >
+
+    <ImageView
+        android:id="@+id/image_person_color"
+        android:layout_width="10dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:paddingBottom="4dp"
+        android:paddingTop="4dp"
+        android:layout_alignBottom="@+id/textViewComment" />
+
+    <TextView
+        android:id="@+id/text_comment_person_name"
+        style="@style/ListItemTextSingleLine"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="center_vertical"
+        android:layout_toRightOf="@id/image_person_color"
+        android:text="Person name" />
 
     <TextView
         android:id="@+id/textViewComment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="8dp"
-        android:inputType="textMultiLine"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text_comment_person_name"
+        android:padding="8dp"
+        android:layout_toRightOf="@id/image_person_color"
+        android:text="Comment"
         android:textAppearance="@android:style/TextAppearance.Large" />
 
-</LinearLayout>
+</RelativeLayout>

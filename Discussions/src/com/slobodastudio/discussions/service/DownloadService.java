@@ -172,6 +172,7 @@ public class DownloadService extends IntentService {
 	private void downloadAll() {
 
 		logd("[downloadAll]");
+		long startTime = System.currentTimeMillis();
 		if (!testConnection()) {
 			return;
 		}
@@ -252,6 +253,7 @@ public class DownloadService extends IntentService {
 		downloadedCount += sourcesCount;
 		ActivityResultHelper.sendProgress(activityReceiver,
 				getString(R.string.progress_downloading_finished), downloadedCount);
+		Log.v(TAG, "[downloadAll] load time: " + (System.currentTimeMillis() - startTime));
 	}
 
 	private void downloadDescription(final Intent intent) {
