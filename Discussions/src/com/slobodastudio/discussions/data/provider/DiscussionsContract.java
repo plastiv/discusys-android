@@ -806,6 +806,8 @@ public final class DiscussionsContract {
 
 			/** Type DateTime. Format YYYY-MM-DDTHH:MM:SS.SSS */
 			public static final String ESTIMATED_DATA_TIME = "EstimatedDateTime";
+			/** Type DateTime. Format YYYY-MM-DDTHH:MM:SS.SSS */
+			public static final String ESTIMATED_END_DATE_TIME = "EstimatedEndDateTime";
 			/** Type Int32. Fixed set of values: 0, 1, 2 */
 			public static final String ESTIMATED_TIME_SLOT = "EstimatedTimeSlot";
 			/** Type Int32. */
