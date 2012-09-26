@@ -243,7 +243,8 @@ public final class DiscussionsContract {
 		public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(A_TABLE_PREFIX).build();
 		/** Default "ORDER BY" clause. */
 		public static final String DEFAULT_SORT = Columns.TEXT + " ASC";
-		/** Server's database table name */
+		public static final String SERVER_TABLE_NAME = "Description";
+		/** Local database table name */
 		public static final String TABLE_NAME = "RichText";
 
 		/** A private Constructor prevents class from instantiating. */

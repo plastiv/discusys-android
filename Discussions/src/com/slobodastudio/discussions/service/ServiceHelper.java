@@ -86,37 +86,6 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
-	public void downloadDescription(final int pointId) {
-
-		// TODO: make a queue of download requests
-		Intent intent = new Intent(IntentAction.DOWNLOAD);
-		intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_DESCRIPTION_ITEM);
-		intent.putExtra(ServiceExtraKeys.VALUE_ID, pointId);
-		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
-		mContext.startService(intent);
-	}
-
-	public void downloadDescriptions() {
-
-		Intent intent = new Intent(IntentAction.DOWNLOAD);
-		intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_DESCRIPTIONS);
-		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
-		mContext.startService(intent);
-	}
-
-	/** Start intent service to download point into local database.
-	 * 
-	 * @param pointId */
-	public void downloadPoint(final int pointId) {
-
-		// TODO: make a queue of download requests
-		Intent intent = new Intent(IntentAction.DOWNLOAD);
-		intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_POINT);
-		intent.putExtra(ServiceExtraKeys.VALUE_ID, pointId);
-		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
-		mContext.startService(intent);
-	}
-
 	public void downloadPointsFromTopic(final int topicId) {
 
 		Intent intent = new Intent(IntentAction.DOWNLOAD);

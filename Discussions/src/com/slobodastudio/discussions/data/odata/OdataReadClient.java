@@ -35,6 +35,7 @@ import org.odata4j.jersey.consumer.ODataJerseyConsumer;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class OdataReadClient extends BaseOdataClient {
 
 	// TODO: get rid of Enumarable.count() because of poor perfomance

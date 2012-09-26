@@ -5,7 +5,7 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.PreferenceHelper;
 import com.slobodastudio.discussions.data.odata.HttpUtil;
-import com.slobodastudio.discussions.data.odata.OdataReadClient;
+import com.slobodastudio.discussions.data.odata.OdataReadClientWithBatchTransactions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
@@ -38,9 +38,6 @@ import java.io.IOException;
 public class DownloadService extends IntentService {
 
 	public static final int TYPE_ALL = 0x0;
-	public static final int TYPE_DESCRIPTION_ITEM = 0x6;
-	public static final int TYPE_DESCRIPTIONS = 0x5;
-	public static final int TYPE_POINT = 0x1;
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
 	public static final int TYPE_UPDATE_POINT = 0x7;
 	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
@@ -62,16 +59,10 @@ public class DownloadService extends IntentService {
 		switch (typeId) {
 			case TYPE_ALL:
 				return "ALL";
-			case TYPE_POINT:
-				return "point";
 			case TYPE_UPDATE_POINT:
 				return "updated point";
 			case TYPE_POINT_FROM_TOPIC:
 				return "points for topic";
-			case TYPE_DESCRIPTIONS:
-				return "descriptions";
-			case TYPE_DESCRIPTION_ITEM:
-				return "single description";
 			default:
 				throw new IllegalArgumentException("Illegal type id: " + typeId);
 		}
@@ -131,20 +122,11 @@ public class DownloadService extends IntentService {
 				case TYPE_ALL:
 					downloadAll();
 					break;
-				case TYPE_POINT:
-					downloadPoint(intent);
-					break;
 				case TYPE_UPDATE_POINT:
 					updatePoint(intent);
 					break;
 				case TYPE_POINT_FROM_TOPIC:
 					downloadPointsFromTopic(intent);
-					break;
-				case TYPE_DESCRIPTIONS:
-					downloadDescriptions();
-					break;
-				case TYPE_DESCRIPTION_ITEM:
-					downloadDescription(intent);
 					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: " + getTypeFromExtra(intent));
@@ -198,7 +180,8 @@ public class DownloadService extends IntentService {
 		ActivityResultHelper.sendStatusStartWithCount(activityReceiver, totalCount);
 		ActivityResultHelper.sendProgress(activityReceiver,
 				getString(R.string.progress_downloading_sessions), downloadedCount);
-		OdataReadClient odataClient = new OdataReadClient(this);
+		// OdataReadClient odataClient = new OdataReadClient(this);
+		OdataReadClientWithBatchTransactions odataClient = new OdataReadClientWithBatchTransactions(this);
 		//
 		odataClient.refreshSessions();
 		logd("[downloadAll] sessions completed");
@@ -250,40 +233,11 @@ public class DownloadService extends IntentService {
 				downloadedCount);
 		odataClient.refreshSources();
 		logd("[downloadAll] sources completed");
+		odataClient.applyBatchOperations();
 		downloadedCount += sourcesCount;
 		ActivityResultHelper.sendProgress(activityReceiver,
 				getString(R.string.progress_downloading_finished), downloadedCount);
 		Log.v(TAG, "[downloadAll] load time: " + (System.currentTimeMillis() - startTime));
-	}
-
-	private void downloadDescription(final Intent intent) {
-
-		int pointId = getValueIdFromExtra(intent);
-		if (pointId < 0) {
-			throw new IllegalArgumentException("Illegal point id for download: " + pointId);
-		}
-		logd("[downloadDescription] point id: " + pointId);
-		OdataReadClient odata = new OdataReadClient(this);
-		odata.refreshDescription(pointId);
-	}
-
-	private void downloadDescriptions() {
-
-		logd("[downloadDescriptions]");
-		OdataReadClient odataClient = new OdataReadClient(this);
-		odataClient.refreshDescriptions();
-		logd("[downloadDescriptions] descriptions completed");
-	}
-
-	private void downloadPoint(final Intent intent) {
-
-		int pointId = getValueIdFromExtra(intent);
-		if (pointId < 0) {
-			throw new IllegalArgumentException("Illegal point id for download: " + pointId);
-		}
-		logd("[downloadPoint] point id: " + pointId);
-		OdataReadClient odata = new OdataReadClient(this);
-		odata.refreshPoint(pointId);
 	}
 
 	private void downloadPointsFromTopic(final Intent intent) {
@@ -293,8 +247,9 @@ public class DownloadService extends IntentService {
 			throw new IllegalArgumentException("Illegal topic id for download points: " + topicId);
 		}
 		logd("[downloadPointsFromTopic] topic id: " + topicId);
-		OdataReadClient odata = new OdataReadClient(this);
+		OdataReadClientWithBatchTransactions odata = new OdataReadClientWithBatchTransactions(this);
 		odata.updateTopicPoints(topicId);
+		odata.applyBatchOperations();
 	}
 
 	private Integer getTableCount(final String tableName) {
@@ -349,7 +304,8 @@ public class DownloadService extends IntentService {
 			throw new IllegalArgumentException("Illegal point id for download: " + pointId);
 		}
 		logd("[updatePoint] point id: " + pointId);
-		OdataReadClient odata = new OdataReadClient(this);
+		OdataReadClientWithBatchTransactions odata = new OdataReadClientWithBatchTransactions(this);
 		odata.updatePoint(pointId);
+		odata.applyBatchOperations();
 	}
 }
