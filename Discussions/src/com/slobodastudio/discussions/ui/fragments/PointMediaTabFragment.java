@@ -110,26 +110,12 @@ public class PointMediaTabFragment extends SherlockFragment {
 		return arguments;
 	}
 
-	public static void requestYoutubeAttachment(final Activity activity) {
+	@Override
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+			final Bundle savedInstanceState) {
 
-		Intent intent = new Intent(activity, YoutubeActivity.class);
-		activity.startActivityForResult(intent, PICK_YOUTUBE_REQUEST);
-	}
-
-	private static AdapterContextMenuInfo castAdapterContextMenuInfo(final ContextMenuInfo contextMenuInfo) {
-
-		try {
-			// Casts the incoming data object into the type for AdapterView objects.
-			return (AdapterContextMenuInfo) contextMenuInfo;
-		} catch (ClassCastException e) {
-			// If the menu object can't be cast, logs an error.
-			throw new RuntimeException("bad menuInfo: " + contextMenuInfo, e);
-		}
-	}
-
-	private static boolean isSdCardMounted() {
-
-		return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
+		mediaList = (MediaList) inflater.inflate(R.layout.tab_fragment_point_media, container, false);
+		return mediaList;
 	}
 
 	@Override
@@ -160,6 +146,9 @@ public class PointMediaTabFragment extends SherlockFragment {
 				case PICK_IMAGE_REQUEST:
 					if ((data.getData() != null)) {
 						newAttachment = new NewAttachment(PICK_IMAGE_REQUEST, data.getData());
+						if (((BaseActivity) getActivity()).getServiceHelper() != null) {
+							onServiceConnected();
+						}
 					} else {
 						newAttachment = null;
 					}
@@ -167,6 +156,9 @@ public class PointMediaTabFragment extends SherlockFragment {
 				case PICK_PDF_REQUEST:
 					if ((data.getData() != null)) {
 						newAttachment = new NewAttachment(PICK_PDF_REQUEST, data.getData());
+						if (((BaseActivity) getActivity()).getServiceHelper() != null) {
+							onServiceConnected();
+						}
 					} else {
 						newAttachment = null;
 					}
@@ -183,6 +175,28 @@ public class PointMediaTabFragment extends SherlockFragment {
 			}
 		}
 		getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+	}
+
+	public static void requestYoutubeAttachment(final Activity activity) {
+
+		Intent intent = new Intent(activity, YoutubeActivity.class);
+		activity.startActivityForResult(intent, PICK_YOUTUBE_REQUEST);
+	}
+
+	private static AdapterContextMenuInfo castAdapterContextMenuInfo(final ContextMenuInfo contextMenuInfo) {
+
+		try {
+			// Casts the incoming data object into the type for AdapterView objects.
+			return (AdapterContextMenuInfo) contextMenuInfo;
+		} catch (ClassCastException e) {
+			// If the menu object can't be cast, logs an error.
+			throw new RuntimeException("bad menuInfo: " + contextMenuInfo, e);
+		}
+	}
+
+	private static boolean isSdCardMounted() {
+
+		return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
 	}
 
 	@Override
@@ -209,17 +223,9 @@ public class PointMediaTabFragment extends SherlockFragment {
 		inflater.inflate(R.menu.context_attachments, menu);
 	}
 
-	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-			final Bundle savedInstanceState) {
-
-		mediaList = (MediaList) inflater.inflate(R.layout.tab_fragment_point_media, container, false);
-		// mediaList = (MediaList) layout.findViewById(R.id.listview_attachments);
-		return mediaList;
-	}
-
 	public void onServiceConnected() {
 
+		Log.d(TAG, "onServiceConnected()");
 		if (newAttachment != null) {
 			switch (newAttachment.type) {
 				case PICK_CAMERA_PHOTO:

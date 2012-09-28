@@ -34,7 +34,7 @@ public class YoutubeHelper {
 		}
 		String embededURL = "http://www.youtube.com/oembed?url=" + youtubeUrl + "&format=json";
 		try {
-			return new JSONObject(HttpUtil.getRequestToString(embededURL)).getString("title");
+			return new JSONObject(HttpUtil.getString(embededURL)).getString("title");
 		} catch (JSONException e) {
 			Log.e(TAG, "Failed to read title from url: " + embededURL, e);
 			return null;

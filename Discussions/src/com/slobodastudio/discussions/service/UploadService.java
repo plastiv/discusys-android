@@ -202,7 +202,12 @@ public class UploadService extends IntentService {
 		int attachmentId;
 		switch (attachment.getFormat()) {
 			case Attachments.AttachmentType.JPG:
-				attachment.setTitle(MediaStoreHelper.getTitleFromUri(this, attachmentUri));
+				String scheme = attachmentUri.getScheme();
+				if ("content".equals(scheme)) {
+					attachment.setTitle(MediaStoreHelper.getTitleFromUri(this, attachmentUri));
+				} else if ("file".equals(scheme)) {
+					attachment.setTitle(attachmentUri.getLastPathSegment());
+				}
 				attachmentId = HttpUtil.insertImageAttachment(this, attachmentUri);
 				PhotonHelper.sendStatsEvent(StatsEvent.IMAGE_ADDED, selectedPoint, photonReceiver);
 				break;

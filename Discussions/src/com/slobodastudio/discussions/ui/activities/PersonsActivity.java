@@ -1,6 +1,7 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.SharedPreferenceHelper;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.utils.fragmentasynctask.SyncStatusUpdaterFragment;
 
@@ -59,8 +60,12 @@ public class PersonsActivity extends BaseActivity {
 		}
 		if (mIsActivityCreated && mBound) {
 			// when app first run
-			// HttpUtil.insertAttachment(this);
-			triggerRefresh();
+			long currentTime = System.currentTimeMillis();
+			long lastUpdatedTime = SharedPreferenceHelper.getUpdatedTime(this);
+			long fiveMinutes = 300000;
+			if ((currentTime - lastUpdatedTime) > fiveMinutes) {
+				triggerRefresh();
+			}
 			mIsActivityCreated = false;
 		}
 	}

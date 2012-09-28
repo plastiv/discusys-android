@@ -1,7 +1,6 @@
 package com.slobodastudio.discussions.data.provider;
 
 import com.slobodastudio.discussions.ApplicationConstants;
-import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
@@ -13,6 +12,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
+import com.slobodastudio.discussions.utils.MyLog;
 
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
@@ -353,7 +353,8 @@ public class DiscussionsProvider extends ContentProvider {
 					throw new IllegalArgumentException("Unknown uri: " + uri);
 			}
 		} catch (SQLiteException e) {
-			throw new DataIoException("Unable to insert uri: " + uri + ", value: " + values.toString(), e);
+			MyLog.e(TAG, "Unable to insert uri: " + uri + ", value: " + values.toString(), e);
+			return uri;
 		}
 		getContext().getContentResolver().notifyChange(uri, null);
 		return insertedUri;

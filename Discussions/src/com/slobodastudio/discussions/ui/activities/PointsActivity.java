@@ -18,6 +18,7 @@ import com.slobodastudio.discussions.ui.fragments.UserPointListFragment;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -45,6 +46,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	private String mPersonName;
 	private int mTopicId;
 	private ViewPager pager;
+	PagerTitleStrip pagerTitleStrip;
 
 	@Override
 	public void onArgPointChanged(final ArgPointChanged argPointChanged) {
@@ -60,6 +62,14 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		if (DEBUG) {
 			Log.d(TAG, "[onConnect] Empty. ");
 		}
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				pagerTitleStrip.setTextColor(Color.BLACK);// visualize photon is in offline mode
+			}
+		});
 	}
 
 	@Override
@@ -76,6 +86,14 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	public void onErrorOccured(final String message) {
 
 		Log.e(TAG, "[onErrorOccured] Empty. message: " + message);
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				pagerTitleStrip.setTextColor(Color.RED);// visualize photon is in offline mode
+			}
+		});
 	}
 
 	@Override
@@ -147,7 +165,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		setContentView(R.layout.activity_list_point);
 		pager = (ViewPager) super.findViewById(R.id.viewpager);
 		findViewById(R.id.abs__action_bar);
-		PagerTitleStrip pagerTitleStrip = (PagerTitleStrip) findViewById(R.id.pagerTitleStrip);
+		pagerTitleStrip = (PagerTitleStrip) findViewById(R.id.pagerTitleStrip);
 		pagerTitleStrip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 		pagerTitleStrip.setPadding(5, 10, 10, 5);
 		getSupportLoaderManager().initLoader(PersonsCursorLoader.LOADER_TOPIC_PERSONS, null,
@@ -159,7 +177,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		if (mBound && !mService.getPhotonController().isConnected()) {
 			mService.getPhotonController().connect(this, mDiscussionId,
 					PreferenceHelper.getPhotonDbAddress(this), mPersonName, mPersonId);
-			mService.getPhotonController().getCallbackHandler().addCallbackListener(PointsActivity.this);
+			mService.getPhotonController().getCallbackHandler().addCallbackListener(this);
 		}
 	}
 

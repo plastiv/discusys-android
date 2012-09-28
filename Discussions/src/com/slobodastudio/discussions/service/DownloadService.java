@@ -4,6 +4,7 @@ import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.PreferenceHelper;
+import com.slobodastudio.discussions.data.SharedPreferenceHelper;
 import com.slobodastudio.discussions.data.odata.HttpUtil;
 import com.slobodastudio.discussions.data.odata.OdataReadClientWithBatchTransactions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
@@ -238,6 +239,7 @@ public class DownloadService extends IntentService {
 		ActivityResultHelper.sendProgress(activityReceiver,
 				getString(R.string.progress_downloading_finished), downloadedCount);
 		Log.v(TAG, "[downloadAll] load time: " + (System.currentTimeMillis() - startTime));
+		SharedPreferenceHelper.setUpdatedTime(this, System.currentTimeMillis());
 	}
 
 	private void downloadPointsFromTopic(final Intent intent) {

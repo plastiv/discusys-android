@@ -4,6 +4,7 @@
 package com.slobodastudio.discussions.data.odata;
 
 import com.slobodastudio.discussions.data.PreferenceHelper;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.utils.MediaStoreHelper;
 
 import android.content.Context;
@@ -78,31 +79,6 @@ public class HttpUtil {
 		return customHttpClient;
 	}
 
-	public static String getRequestToString(final String url) {
-
-		HttpClient httpClient = getHttpClient();
-		HttpGet httpGetRequest = new HttpGet(url);
-		HttpResponse response;
-		try {
-			response = httpClient.execute(httpGetRequest);
-		} catch (ClientProtocolException e) {
-			Log.e(TAG, "Failed execute http get request for url: " + url, e);
-			return "";
-		} catch (IOException e) {
-			Log.e(TAG, "Failed execute http get request for url: " + url, e);
-			return "";
-		}
-		try {
-			return EntityUtils.toString(response.getEntity());
-		} catch (ParseException e) {
-			Log.e(TAG, "Failed read response for url: " + url, e);
-			return "";
-		} catch (IOException e) {
-			Log.e(TAG, "Failed read response for url: " + url, e);
-			return "";
-		}
-	}
-
 	public static String getString(final String uri) {
 
 		HttpGet httpGet = new HttpGet(uri);
@@ -113,8 +89,16 @@ public class HttpUtil {
 	/** @return id of the inserted file in Attachment table */
 	public static int insertImageAttachment(final Context context, final Uri attachmentUri) {
 
-		FileEntity attachmentEntity = createImageFileEntity(context, attachmentUri);
-		return uploadAttachmentEntity(context, attachmentEntity);
+		String scheme = attachmentUri.getScheme();
+		if ("content".equals(scheme)) {
+			FileEntity attachmentEntity = createImageEntityFromDatabase(context, attachmentUri);
+			return uploadAttachmentEntity(context, attachmentEntity);
+		} else if ("file".equals(scheme)) {
+			FileEntity attachmentEntity = createImageEntityFromFile(attachmentUri);
+			return uploadAttachmentEntity(context, attachmentEntity);
+		} else {
+			throw new IllegalArgumentException("Unsupported scheme: " + scheme);
+		}
 	}
 
 	public static int insertPdfAttachment(final Context context, final Uri attachmentUri) {
@@ -128,25 +112,30 @@ public class HttpUtil {
 
 		try {
 			String odataUrl = PreferenceHelper.getOdataUrl(context);
-			HttpPost postRequest = new HttpPost(odataUrl + "Topic(" + topicId + ")/$links/Person");
-			StringEntity entity = new StringEntity("{uri:\"" + odataUrl + "Person(" + personId + ")\"}",
-					"utf-8");
-			entity.setContentType("application/json");
-			postRequest.setEntity(entity);
-			HttpClient httpClient = getHttpClient();
-			HttpResponse response = httpClient.execute(postRequest);
-			if (response.getEntity() != null) {
-				Log.w("HttpResponse", "HttpResponse: " + EntityUtils.toString(response.getEntity()));
-			}
-		} catch (IllegalArgumentException e) {
-			throw new RuntimeException(e);
+			String postUrl = odataUrl + "Topic(" + topicId + ")/$links/Person";
+			String messageBody = "{uri:\"" + odataUrl + "Person(" + personId + ")\"}";
+			StringEntity stringEntity = new StringEntity(messageBody, "utf-8");
+			stringEntity.setContentType("application/json");
+			HttpPost postRequest = createPostRequest(postUrl, stringEntity);
+			HttpResponse httpResponse = executeRequest(postRequest);
+			String responseString = getHttpResonseAsString(httpResponse);
+			Log.w(TAG, "HttpResponse: " + responseString);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
-		} catch (ClientProtocolException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
 		}
+	}
+
+	private static HttpPost createAttachmentPostRequest(final Context context, final HttpEntity httpEntity) {
+
+		String url = PreferenceHelper.getOdataUrl(context) + Attachments.TABLE_NAME;
+		return createPostRequest(url, httpEntity);
+	}
+
+	private static FileEntity createFileEntity(final String filePath, final String contentType) {
+
+		File file = new File(filePath);
+		FileEntity fileEntity = new FileEntity(file, contentType);
+		return fileEntity;
 	}
 
 	private static Header[] createHeaders() {
@@ -162,24 +151,27 @@ public class HttpUtil {
 						"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2") };
 	}
 
-	private static FileEntity createImageFileEntity(final Context context, final Uri imageUri) {
+	private static FileEntity createImageEntityFromDatabase(final Context context, final Uri imageUri) {
 
-		String attachmentPath = MediaStoreHelper.getPathFromUri(context, imageUri);
-		FileEntity entity = new FileEntity(new File(attachmentPath), "image/jpeg");
-		entity.setContentType("image/jpeg");
-		return entity;
+		String path = MediaStoreHelper.getPathFromUri(context, imageUri);
+		return createFileEntity(path, "image/jpeg");
+	}
+
+	private static FileEntity createImageEntityFromFile(final Uri imageUri) {
+
+		String path = imageUri.getPath();
+		return createFileEntity(path, "image/jpeg");
 	}
 
 	private static FileEntity createPdfFileEntity(final Context context, final Uri pdfUri) {
 
-		FileEntity entity = new FileEntity(new File(pdfUri.getPath()), "application/pdf");
-		entity.setContentType("application/pdf");
-		return entity;
+		String path = pdfUri.getPath();
+		return createFileEntity(path, "application/pdf");
 	}
 
-	private static HttpPost createPostRequest(final Context context, final HttpEntity httpEntity) {
+	private static HttpPost createPostRequest(final String url, final HttpEntity httpEntity) {
 
-		HttpPost postRequest = new HttpPost(PreferenceHelper.getOdataUrl(context) + "Attachment");
+		HttpPost postRequest = new HttpPost(url);
 		postRequest.setHeaders(createHeaders());
 		postRequest.setEntity(httpEntity);
 		return postRequest;
@@ -235,7 +227,7 @@ public class HttpUtil {
 
 	private static int uploadAttachmentEntity(final Context context, final HttpEntity attachmentEntity) {
 
-		HttpPost httpPost = createPostRequest(context, attachmentEntity);
+		HttpPost httpPost = createAttachmentPostRequest(context, attachmentEntity);
 		HttpResponse httpResponse = executeRequest(httpPost);
 		String responseString = getHttpResonseAsString(httpResponse);
 		return parseIdFromJson(responseString);
