@@ -365,6 +365,7 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 			ContentValues cv = OEntityToContentValue(comment);
 			cv.put(Comments.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
 			cv.put(Comments.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
+			// mContentResolver.insert(Comments.CONTENT_URI, cv);
 			insertValues(Comments.CONTENT_URI, cv);
 		}
 	}
@@ -456,6 +457,7 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 
 	private void insertValues(final Uri uri, final ContentValues cv) {
 
+		logd("[insertValues] values: " + cv.toString());
 		operations.add(ContentProviderOperation.newInsert(uri).withValues(cv).build());
 	}
 
