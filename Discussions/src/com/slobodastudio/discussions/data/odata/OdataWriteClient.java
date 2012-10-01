@@ -190,10 +190,10 @@ public class OdataWriteClient extends BaseOdataClient {
 		// @formatter:on
 	}
 
-	public boolean updateAttachment(final Attachment attachment, final int attachmentId) {
+	public void updateAttachment(final Attachment attachment, final int attachmentId) {
 
 		// @formatter:off
-		return mConsumer.mergeEntity(Attachments.TABLE_NAME, attachmentId)
+		mConsumer.mergeEntity(Attachments.TABLE_NAME, attachmentId)
 				.link(Attachments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(attachment.getPersonId())))
 				.properties(OProperties.string(Attachments.Columns.NAME, attachment.getName()))
 				.link(Attachments.Columns.POINT_ID, OEntityKey.parse(String.valueOf(attachment.getPointId())))
@@ -207,7 +207,7 @@ public class OdataWriteClient extends BaseOdataClient {
 		// @formatter:on
 	}
 
-	public boolean updateDescription(final Description description) {
+	public void updateDescription(final Description description) {
 
 		// @formatter:off
 		OModifyRequest<OEntity> request =  mConsumer.mergeEntity(Descriptions.TABLE_NAME, description.getId())				
@@ -221,16 +221,16 @@ public class OdataWriteClient extends BaseOdataClient {
 			request.link(Descriptions.Columns.DISCUSSION_ID, OEntityKey.parse(String.valueOf(description
 					.getDiscussionId())));
 		}
-		return request.execute();
+		request.execute();
 	}
 
-	public boolean updatePerson(final int personId, final String personName) {
+	public void updatePerson(final int personId, final String personName) {
 
-		return mConsumer.mergeEntity(Persons.TABLE_NAME, personId).properties(
+		mConsumer.mergeEntity(Persons.TABLE_NAME, personId).properties(
 				OProperties.string(Persons.Columns.NAME, personName)).execute();
 	}
 
-	public boolean updatePoint(final Point point) {
+	public void updatePoint(final Point point) {
 
 		// @formatter:off
 		OModifyRequest<OEntity> request = mConsumer.mergeEntity(Points.TABLE_NAME, point.getId())
@@ -244,7 +244,7 @@ public class OdataWriteClient extends BaseOdataClient {
 			    .properties(OProperties.int32(Points.Columns.ORDER_NUMBER, Integer.valueOf(point.getOrderNumber())))
 				.link(Points.Columns.TOPIC_ID, OEntityKey.parse(String.valueOf(point.getTopicId())));
 		// @formatter:on
-		return request.execute();
+		request.execute();
 	}
 
 	private void deleteAttachmentsByPointId(final int pointId) {

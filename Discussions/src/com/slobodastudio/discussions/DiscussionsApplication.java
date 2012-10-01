@@ -21,7 +21,7 @@ public class DiscussionsApplication extends Application {
 					.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());
 			StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyLog().build());
 		} else {
-			BugSenseHandler.setup(this, ApplicationConstants.BUG_SENSE_API_KEY);
+			BugSenseHandler.initAndStartSession(this, ApplicationConstants.BUG_SENSE_API_KEY);
 		}
 	}
 }

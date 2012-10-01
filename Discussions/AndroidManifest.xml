@@ -2,12 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.slobodastudio.discussions"
     android:installLocation="auto"
-    android:versionCode="34"
-    android:versionName="0.1.48" >
+    android:versionCode="35"
+    android:versionName="0.1.49" >
 
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="15" />
+        android:targetSdkVersion="16" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -164,13 +164,6 @@
         <activity
             android:name=".ui.activities.WebViewActivity"
             android:label="@string/activity_title_webview" >
-            <intent-filter>
-                <action android:name="android.intent.action.PICK" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="text/url" />
-            </intent-filter>
         </activity>
 
         <!-- YoutubeView -->
@@ -192,8 +185,8 @@
                 <action android:name="com.slobodastudio.intent.action.OPEN_PREFERENCES" />
             </intent-filter>
         </activity>
-        
-         <!-- Comment -->
+
+        <!-- Comment -->
         <activity
             android:name=".ui.activities.CommentDetailsActivity"
             android:label="@string/activity_title_comment" >

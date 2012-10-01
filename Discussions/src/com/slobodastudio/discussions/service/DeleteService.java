@@ -235,10 +235,10 @@ public class DeleteService extends IntentService {
 		return getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where, args);
 	}
 
-	private boolean updatePointOnServer(final Point point) {
+	private void updatePointOnServer(final Point point) {
 
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
-		return odataWrite.updatePoint(point);
+		odataWrite.updatePoint(point);
 	}
 
 	private void updatePointOrderNumbers(final Point deletedPoint, final ResultReceiver photonReceiver) {

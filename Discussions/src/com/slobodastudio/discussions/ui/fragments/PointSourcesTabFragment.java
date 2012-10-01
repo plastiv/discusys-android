@@ -10,6 +10,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
+import com.slobodastudio.discussions.ui.activities.WebViewActivity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -93,8 +94,7 @@ public class PointSourcesTabFragment extends SherlockFragment {
 
 	public static void requestUrlAttachment(final Activity activity) {
 
-		Intent intent = new Intent(Intent.ACTION_PICK);
-		intent.setType("text/url");
+		Intent intent = new Intent(activity, WebViewActivity.class);
 		activity.startActivityForResult(intent, PICK_URL_REQUEST);
 	}
 

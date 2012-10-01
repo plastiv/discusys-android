@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
@@ -178,8 +177,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			return text;
 		}
 		// setup layout
-		RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.tab_fragment_point_description,
-				container, false);
+		View layout = inflater.inflate(R.layout.tab_fragment_point_description, container, false);
 		mNameEditText = (EditText) layout.findViewById(R.id.et_point_name);
 		mDescriptionEditText = (EditText) layout.findViewById(R.id.et_point_description);
 		if (getArguments() == null) {

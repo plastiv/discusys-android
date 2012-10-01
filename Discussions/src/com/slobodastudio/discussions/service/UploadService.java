@@ -2,7 +2,6 @@ package com.slobodastudio.discussions.service;
 
 import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.model.Attachment;
 import com.slobodastudio.discussions.data.model.Comment;
 import com.slobodastudio.discussions.data.model.Description;
@@ -233,15 +232,11 @@ public class UploadService extends IntentService {
 								+ attachment.getFormat());
 		}
 		attachment.setName(attachment.getTitle());
-		boolean updated = odataWrite.updateAttachment(attachment, attachmentId);
-		if (updated) {
-			attachment.setAttachmentId(attachmentId);
-			ContentValues cv = attachment.toContentValues();
-			getContentResolver().insert(Attachments.CONTENT_URI, cv);
-			PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
-		} else {
-			throw new DataIoException("Failed to update newly inserted attachment with id: " + attachmentId);
-		}
+		odataWrite.updateAttachment(attachment, attachmentId);
+		attachment.setAttachmentId(attachmentId);
+		ContentValues cv = attachment.toContentValues();
+		getContentResolver().insert(Attachments.CONTENT_URI, cv);
+		PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);
 	}
 
 	private void insertComment(final Intent intent) {
@@ -361,9 +356,9 @@ public class UploadService extends IntentService {
 		return getContentResolver().update(Points.CONTENT_URI, point.toContentValues(), where, args);
 	}
 
-	private boolean updatePointOnServer(final Point point) {
+	private void updatePointOnServer(final Point point) {
 
 		OdataWriteClient odataWrite = new OdataWriteClient(this);
-		return odataWrite.updatePoint(point);
+		odataWrite.updatePoint(point);
 	}
 }

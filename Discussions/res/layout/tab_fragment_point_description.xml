@@ -1,78 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <EditText
-        android:id="@+id/et_point_name"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginTop="8dp"
-        android:ellipsize="end"
-        android:hint="@string/hint_your_point_name"
-        android:inputType="textMultiLine"
-        android:maxLines="@integer/description_text_max_lines"
-        android:scrollbars="vertical" />
+        android:orientation="vertical" >
 
-    <EditText
-        android:id="@+id/et_point_description"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/et_point_name"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginTop="4dp"
-        android:ellipsize="end"
-        android:gravity="top"
-        android:hint="@string/hint_your_point_description"
-        android:inputType="textMultiLine"
-        android:maxLines="9"
-        android:scrollbars="vertical" />
+        <EditText
+            android:id="@+id/et_point_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:hint="@string/hint_your_point_name"
+            android:inputType="textMultiLine"
+            android:maxLines="@integer/description_text_max_lines"
+            android:scrollbars="vertical" />
 
-    <!--
-    <Spinner
-        android:id="@+id/spinner_point_agreement_code"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@id/et_point_description"
-        android:layout_marginRight="16dp"
-        android:dropDownSelector="@android:layout/simple_spinner_dropdown_item"
-        android:entries="@array/side_codes" >
-    </Spinner>
+        <EditText
+            android:id="@+id/et_point_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:gravity="top"
+            android:hint="@string/hint_your_point_description"
+            android:inputType="textMultiLine"
+            android:scrollbars="vertical" />
+    </LinearLayout>
 
-    <TextView
-        android:id="@+id/tv_shoose_a_side_code"
-        style="@style/DescriptionItemHeader"
-        android:layout_alignBottom="@id/spinner_point_agreement_code"
-        android:layout_alignTop="@id/spinner_point_agreement_code"
-        android:layout_below="@id/et_point_description"
-        android:layout_marginLeft="16dp"
-        android:gravity="center_vertical"
-        android:text="@string/text_point_shoose_a_side_code" />
-
-    <CheckBox
-        android:id="@+id/chb_share_to_public"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@id/spinner_point_agreement_code"
-        android:layout_marginRight="16dp"
-        android:checked="true" />
-
-    <TextView
-        android:id="@+id/tv_shared_to_public"
-        style="@style/DescriptionItemHeader"
-        android:layout_alignBottom="@id/chb_share_to_public"
-        android:layout_alignTop="@id/chb_share_to_public"
-        android:layout_below="@id/spinner_point_agreement_code"
-        android:layout_marginLeft="16dp"
-        android:gravity="center_vertical"
-        android:text="@string/text_point_shared_to_public" />
-    -->
-
-</RelativeLayout>
+</ScrollView>

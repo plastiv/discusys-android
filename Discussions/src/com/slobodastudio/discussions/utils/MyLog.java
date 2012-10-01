@@ -7,7 +7,6 @@ import android.util.Log;
 import com.bugsense.trace.BugSenseHandler;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /** Custom wrapper on {@link Log}. Overrides some methods to make more robust control on logging, like
  * BugSense, exclude verbose messages from release. */
@@ -45,9 +44,10 @@ public class MyLog {
 		if (ApplicationConstants.DEV_MODE) {
 			Log.e(tag, message, e);
 		} else {
-			Map<String, String> extraData = new HashMap<String, String>();
+			HashMap<String, String> extraData = new HashMap<String, String>();
 			extraData.put("Description", message);
-			BugSenseHandler.log(tag, extraData, e);
+			extraData.put("Tag", tag);
+			BugSenseHandler.sendExceptionMap(extraData, e);
 		}
 	}
 
