@@ -194,6 +194,15 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
+	public void downloadPdf(final String pdfUrl) {
+
+		Intent intent = new Intent(IntentAction.DOWNLOAD);
+		intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_PDF_FILE);
+		intent.setData(Uri.parse(pdfUrl));
+		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
+		mContext.startService(intent);
+	}
+
 	public class ActivityResultReceiver extends ResultReceiver {
 
 		public ActivityResultReceiver(final Handler handler) {

@@ -41,6 +41,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 			mServiceHelper = mService.getServiceHelper();
 			mBound = true;
 			boolean syncing = mService.getServiceHelper().isSyncing();
+			Log.d(TAG, "onServiceConnected] syncing: " + syncing);
 			setSupportProgressBarIndeterminateVisibility(syncing);
 			mServiceHelper.setOdataListener(mListener);
 			onControlServiceConnected();
@@ -136,12 +137,10 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		getSupportActionBar().setIcon(R.drawable.ic_action_home);
 	}
 
-	/** Called in <code>onCreate</code> when the fragment constituting this activity is needed. The returned
-	 * fragment's arguments will be set to the intent used to invoke this activity. */
-	// protected abstract Fragment onCreatePane();
 	@Override
 	protected void onPause() {
 
+		Log.d(TAG, "[onPause]");
 		if (mBound) {
 			mServiceHelper.setOdataListener(null);
 		}
@@ -149,9 +148,20 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	}
 
 	@Override
+	protected void onResume() {
+
+		super.onResume();
+		Log.d(TAG, "[onResume]");
+		if (mBound) {
+			mServiceHelper.setOdataListener(mListener);
+		}
+	}
+
+	@Override
 	protected void onStart() {
 
 		super.onStart();
+		Log.d(TAG, "[onStart]");
 		Intent intent = new Intent(this, ControlService.class);
 		bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 	}
@@ -160,11 +170,17 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	protected void onStop() {
 
 		super.onStop();
+		Log.d(TAG, "[onStop]");
 		// Unbind from the service
 		if (mBound) {
 			unbindService(mConnection);
 			mBound = false;
 		}
+	}
+
+	public boolean isBound() {
+
+		return mBound;
 	}
 
 	protected void showProgressDialog(final boolean shown) {

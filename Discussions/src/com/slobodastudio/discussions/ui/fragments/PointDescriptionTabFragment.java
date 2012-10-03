@@ -11,6 +11,8 @@ import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -116,7 +118,32 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			throw new IllegalArgumentException("[onActionDelete] was called with incorrect point id: "
 					+ mPointId);
 		}
-		((BaseActivity) getActivity()).getServiceHelper().deletePoint(getSelectedPoint());
+		showConfirmationDeleteDialog();
+	}
+
+	public void showConfirmationDeleteDialog() {
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.dialog_title_delete_point).setMessage(R.string.dialog_text_confirm_delete)
+				.setIcon(android.R.drawable.ic_dialog_alert).setCancelable(true).setPositiveButton(
+						android.R.string.yes, new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(final DialogInterface dialog, final int id) {
+
+								((BaseActivity) getActivity()).getServiceHelper().deletePoint(
+										getSelectedPoint());
+								getActivity().finish();
+							}
+						}).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(final DialogInterface dialog, final int id) {
+
+						dialog.cancel();
+					}
+				});
+		builder.create().show();
 	}
 
 	public void onActionSave() {
@@ -397,10 +424,12 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 						mTopicId = value.getTopicId();
 						mNameEditText.setText(value.getName());
 						mOrderNum = value.getOrderNumber();
-						getSherlockActivity().getSupportActionBar().setTitle(value.getName());
+						getActivity().setTitle(value.getName());
 						startDescriptionLoader(mPointId);
 						if (getCurrentState(getArguments()) != FragmentState.VIEW) {
-							getLoaderManager().destroyLoader(POINT_ID);
+							if (getActivity() != null) {
+								getSherlockActivity().getSupportLoaderManager().destroyLoader(POINT_ID);
+							}
 						}
 					} else {
 						Log.w(TAG, "[onLoadFinished] Cant move to first item. LOADER_POINT_ID count was: "
@@ -415,7 +444,9 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 						mDescriptionEditText.setText(description.getText());
 						mDescriptionId = description.getId();
 						if (getCurrentState(getArguments()) != FragmentState.VIEW) {
-							getLoaderManager().destroyLoader(DESCRIPTION_ID);
+							if (getActivity() != null) {
+								getSherlockActivity().getSupportLoaderManager().destroyLoader(DESCRIPTION_ID);
+							}
 						}
 					} else {
 						Log.w(TAG, "[onLoadFinished] LOADER_DESCRIPTION_ID count was: " + data.getCount());

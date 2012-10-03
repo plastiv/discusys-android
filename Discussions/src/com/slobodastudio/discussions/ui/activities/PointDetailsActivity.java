@@ -32,8 +32,6 @@ import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class PointDetailsActivity extends BaseActivity {
 
@@ -90,8 +88,8 @@ public class PointDetailsActivity extends BaseActivity {
 			descriptionTabFragment = (PointDescriptionTabFragment) getSupportFragmentManager()
 					.findFragmentByTag(FragmentTag.POINT_DESCRIPTION);
 		} else {
-			descriptionTabFragment = (PointDescriptionTabFragment) mTabsAdapter
-					.getItem(DESCRIPTION_TAB_POSITION);
+			descriptionTabFragment = (PointDescriptionTabFragment) getSupportFragmentManager()
+					.findFragmentByTag(makeFragmentName(mViewPager.getId(), DESCRIPTION_TAB_POSITION));
 		}
 		switch (item.getItemId()) {
 			case R.id.menu_save:
@@ -103,7 +101,7 @@ public class PointDetailsActivity extends BaseActivity {
 				return true;
 			case R.id.menu_delete:
 				descriptionTabFragment.onActionDelete();
-				finish();
+				// finish();
 				return true;
 			case R.id.menu_change_topic:
 				showChangeTopicDialog(descriptionTabFragment);
@@ -114,6 +112,11 @@ public class PointDetailsActivity extends BaseActivity {
 			default:
 				return super.onOptionsItemSelected(item);
 		}
+	}
+
+	private static String makeFragmentName(final int viewId, final int index) {
+
+		return "android:switcher:" + viewId + ":" + index;
 	}
 
 	@Override
@@ -328,6 +331,11 @@ public class PointDetailsActivity extends BaseActivity {
 		builder.create().show();
 	}
 
+	private String getFragmentTag(final int pos) {
+
+		return "android:switcher:" + R.id.viewpager + ":" + pos;
+	}
+
 	/** This is a helper class that implements the management of tabs and all details of connecting a ViewPager
 	 * with associated TabHost. It relies on a trick. Normally a tab host has a simple API for supplying a
 	 * View or Intent that each tab will show. This is not sufficient for switching between pages. So instead
@@ -337,7 +345,6 @@ public class PointDetailsActivity extends BaseActivity {
 	public static class TabsAdapter extends FragmentPagerAdapter implements ActionBar.TabListener,
 			ViewPager.OnPageChangeListener {
 
-		private final Map<String, Fragment> fragments = new HashMap<String, Fragment>();
 		private final ActionBar mActionBar;
 		private final Context mContext;
 		private final ArrayList<TabInfo> mTabs = new ArrayList<TabInfo>();
@@ -371,11 +378,7 @@ public class PointDetailsActivity extends BaseActivity {
 		public Fragment getItem(final int position) {
 
 			TabInfo info = mTabs.get(position);
-			Fragment fragment = fragments.get(info.tag);
-			if (fragment == null) {
-				fragment = Fragment.instantiate(mContext, info.clss.getName(), info.args);
-				fragments.put(info.tag, fragment);
-			}
+			Fragment fragment = Fragment.instantiate(mContext, info.clss.getName(), info.args);
 			return fragment;
 		}
 

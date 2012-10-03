@@ -146,7 +146,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 				case PICK_IMAGE_REQUEST:
 					if ((data.getData() != null)) {
 						newAttachment = new NewAttachment(PICK_IMAGE_REQUEST, data.getData());
-						if (((BaseActivity) getActivity()).getServiceHelper() != null) {
+						if (((BaseActivity) getActivity()).isBound()) {
 							onServiceConnected();
 						}
 					} else {
@@ -156,7 +156,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 				case PICK_PDF_REQUEST:
 					if ((data.getData() != null)) {
 						newAttachment = new NewAttachment(PICK_PDF_REQUEST, data.getData());
-						if (((BaseActivity) getActivity()).getServiceHelper() != null) {
+						if (((BaseActivity) getActivity()).isBound()) {
 							onServiceConnected();
 						}
 					} else {

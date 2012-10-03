@@ -24,6 +24,7 @@ import com.slobodastudio.discussions.utils.lazylist.ImageLoader;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.ResultReceiver;
 import android.text.TextUtils;
 import android.util.Log;
@@ -41,6 +42,7 @@ public class DownloadService extends IntentService {
 	public static final int TYPE_ALL = 0x0;
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
 	public static final int TYPE_UPDATE_POINT = 0x7;
+	public static final int TYPE_PDF_FILE = 0x8;
 	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
 	private static final String TAG = DownloadService.class.getSimpleName();
 	private ResultReceiver activityReceiver;
@@ -64,6 +66,8 @@ public class DownloadService extends IntentService {
 				return "updated point";
 			case TYPE_POINT_FROM_TOPIC:
 				return "points for topic";
+			case TYPE_PDF_FILE:
+				return "pdf files";
 			default:
 				throw new IllegalArgumentException("Illegal type id: " + typeId);
 		}
@@ -128,6 +132,9 @@ public class DownloadService extends IntentService {
 					break;
 				case TYPE_POINT_FROM_TOPIC:
 					downloadPointsFromTopic(intent);
+					break;
+				case TYPE_PDF_FILE:
+					downloadPdfFile(intent);
 					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: " + getTypeFromExtra(intent));
@@ -309,5 +316,15 @@ public class DownloadService extends IntentService {
 		OdataReadClientWithBatchTransactions odata = new OdataReadClientWithBatchTransactions(this);
 		odata.updatePoint(pointId);
 		odata.applyBatchOperations();
+	}
+
+	private void downloadPdfFile(final Intent intent) {
+
+		Uri uri = intent.getData();
+		String pdfUrl = uri.getEncodedPath();
+		logd("[downloadPdfFile] url: " + pdfUrl);
+		String fileName = uri.getLastPathSegment();
+		logd("[dowloadPdfFile] fileName: " + fileName);
+		FileDownloader.downloadFromUrl(pdfUrl, fileName);
 	}
 }

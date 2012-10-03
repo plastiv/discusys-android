@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,7 +64,6 @@ public class DiscussionInfoFragment extends SherlockFragment {
 		// setup layout
 		View layout = inflater.inflate(R.layout.fragment_discussion_description, container, false);
 		discussionText = (TextView) layout.findViewById(R.id.tv_discussion_description);
-		discussionText.setMovementMethod(new ScrollingMovementMethod());
 		return layout;
 	}
 
@@ -112,7 +110,9 @@ public class DiscussionInfoFragment extends SherlockFragment {
 					discussionText.setText("");
 					break;
 				case DISCUSSION_ID:
-					getSherlockActivity().getSupportActionBar().setTitle("");
+					if (getActivity() != null) {
+						getActivity().setTitle("");
+					}
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());

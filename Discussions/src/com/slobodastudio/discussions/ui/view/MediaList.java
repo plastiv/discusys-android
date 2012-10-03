@@ -3,6 +3,9 @@ package com.slobodastudio.discussions.ui.view;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments.AttachmentType;
+import com.slobodastudio.discussions.service.DownloadService;
+import com.slobodastudio.discussions.service.ServiceExtraKeys;
+import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.lazylist.ImageLoaderSingleton;
 
 import android.content.Context;
@@ -87,6 +90,8 @@ public class MediaList extends ListView {
 						fireYoutubeIntent(cursor);
 						break;
 					case AttachmentType.PDF:
+						// firePdfDownloadIntent(cursor);
+						// break;
 					case AttachmentType.GENERAL_WEB_LINK:
 					case AttachmentType.NONE:
 						Log.d(TAG, "[onItemClick] clicked on format: " + attachmentFormat);
@@ -96,6 +101,17 @@ public class MediaList extends ListView {
 						break;
 				}
 			}
+		}
+
+		private void firePdfDownloadIntent(final Cursor cursor) {
+
+			int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
+			final int valueId = cursor.getInt(idColumn);
+			String pdfUrl = Attachments.getAttachmentDownloadLink(mContext, valueId);
+			Intent intent = new Intent(IntentAction.DOWNLOAD);
+			intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_PDF_FILE);
+			intent.setData(Uri.parse(pdfUrl));
+			mContext.startService(intent);
 		}
 
 		private void fireFullImageIntent(final Cursor cursor) {

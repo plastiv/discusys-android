@@ -26,10 +26,10 @@ import java.util.concurrent.Executors;
 
 public class ImageLoader {
 
-	ExecutorService executorService;
-	FileCache fileCache;
-	MemoryCache memoryCache = new MemoryCache();
-	final int stub_id = R.drawable.stub;
+	private final ExecutorService executorService;
+	private final FileCache fileCache;
+	private final MemoryCache memoryCache = new MemoryCache();
+	private final int stub_id = R.drawable.stub;
 	private final Map<ImageView, String> imageViews = Collections
 			.synchronizedMap(new WeakHashMap<ImageView, String>());
 	private boolean scaled = true;

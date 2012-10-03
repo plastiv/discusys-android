@@ -175,7 +175,7 @@ public class PointCommentsTabFragment extends SherlockFragment {
 				Context.LAYOUT_INFLATER_SERVICE);
 		LinearLayout addCommentLayout = (LinearLayout) layoutInflater.inflate(
 				R.layout.layout_comments_footer, null, false);
-		mCommentsList.addFooterView(addCommentLayout);
+		mCommentsList.addFooterView(addCommentLayout, null, false);
 		Button addCommentButton = (Button) addCommentLayout.findViewById(R.id.btn_add_comment);
 		mCommentEditText = (EditText) addCommentLayout.findViewById(R.id.et_point_comment);
 		addCommentButton.setOnClickListener(new OnClickListener() {
@@ -200,7 +200,7 @@ public class PointCommentsTabFragment extends SherlockFragment {
 				Context.LAYOUT_INFLATER_SERVICE);
 		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
 		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
-		mCommentsList.addHeaderView(headerView);
+		mCommentsList.addHeaderView(headerView, null, false);
 	}
 
 	private void initCommentsLoader() {
