@@ -169,6 +169,13 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		return mCommentsList;
 	}
 
+	@Override
+	public void onActivityCreated(final Bundle savedInstanceState) {
+
+		super.onActivityCreated(savedInstanceState);
+		populateSavedInstanceState(savedInstanceState);
+	}
+
 	private void addCommentsFooter() {
 
 		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
@@ -225,6 +232,31 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		}
 		mSelectedPoint = arguments.getParcelable(ExtraKey.SELECTED_POINT);
 		mLoggedInPersonId = arguments.getInt(ExtraKey.ORIGIN_PERSON_ID, Integer.MIN_VALUE);
+	}
+
+	@Override
+	public void onSaveInstanceState(final Bundle outState) {
+
+		super.onSaveInstanceState(outState);
+		outState.putString(ExtraKey.COMMENT_TEXT, getCommentText());
+	}
+
+	private String getCommentText() {
+
+		if (mCommentEditText != null) {
+			if (mCommentEditText.getText() != null) {
+				return mCommentEditText.getText().toString();
+			}
+		}
+		return "";
+	}
+
+	private void populateSavedInstanceState(final Bundle savedInstanceState) {
+
+		if (savedInstanceState != null) {
+			String comment = savedInstanceState.getString(ExtraKey.COMMENT_TEXT);
+			mCommentEditText.setText(comment);
+		}
 	}
 
 	private void insertComment(final String comment) {

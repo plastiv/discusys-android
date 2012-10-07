@@ -188,7 +188,6 @@ public class DownloadService extends IntentService {
 		ActivityResultHelper.sendStatusStartWithCount(activityReceiver, totalCount);
 		ActivityResultHelper.sendProgress(activityReceiver,
 				getString(R.string.progress_downloading_sessions), downloadedCount);
-		// OdataReadClient odataClient = new OdataReadClient(this);
 		OdataReadClientWithBatchTransactions odataClient = new OdataReadClientWithBatchTransactions(this);
 		//
 		odataClient.refreshSessions();
@@ -245,7 +244,7 @@ public class DownloadService extends IntentService {
 		downloadedCount += sourcesCount;
 		ActivityResultHelper.sendProgress(activityReceiver,
 				getString(R.string.progress_downloading_finished), downloadedCount);
-		Log.v(TAG, "[downloadAll] load time: " + (System.currentTimeMillis() - startTime));
+		logd("[downloadAll] load time: " + (System.currentTimeMillis() - startTime));
 		SharedPreferenceHelper.setUpdatedTime(this, System.currentTimeMillis());
 	}
 
@@ -315,6 +314,18 @@ public class DownloadService extends IntentService {
 		logd("[updatePoint] point id: " + pointId);
 		OdataReadClientWithBatchTransactions odata = new OdataReadClientWithBatchTransactions(this);
 		odata.updatePoint(pointId);
+		odata.applyBatchOperations();
+	}
+
+	private void downloadPerSession(final Intent intent) {
+
+		int sessionId = getValueIdFromExtra(intent);
+		if (sessionId < 0) {
+			throw new IllegalArgumentException("Illegal point id for download: " + sessionId);
+		}
+		logd("[updatePoint] point id: " + sessionId);
+		OdataReadClientWithBatchTransactions odata = new OdataReadClientWithBatchTransactions(this);
+		odata.updatePoint(sessionId);
 		odata.applyBatchOperations();
 	}
 

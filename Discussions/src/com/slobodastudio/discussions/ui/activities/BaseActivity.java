@@ -169,13 +169,13 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	@Override
 	protected void onStop() {
 
-		super.onStop();
 		Log.d(TAG, "[onStop]");
 		// Unbind from the service
 		if (mBound) {
 			unbindService(mConnection);
 			mBound = false;
 		}
+		super.onStop();
 	}
 
 	public boolean isBound() {

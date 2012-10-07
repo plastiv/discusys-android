@@ -97,7 +97,7 @@ public class ServiceHelper {
 
 	public void insertAttachment(final Attachment attachment, final SelectedPoint selectedPoint) {
 
-		Log.d(TAG, "[insertAttachment]" + attachment.getTitle());
+		logd("[insertAttachment]" + attachment.getTitle());
 		Intent intent = new Intent(IntentAction.UPLOAD);
 		intent.putExtra(ServiceExtraKeys.TYPE_ID, UploadService.TYPE_INSERT_ATTACHMENT);
 		intent.putExtra(ServiceExtraKeys.VALUE, attachment);
@@ -109,7 +109,7 @@ public class ServiceHelper {
 
 	public void insertAttachment(final Attachment attachment, final SelectedPoint selectedPoint, final Uri uri) {
 
-		Log.d(TAG, "[insertAttachment]" + attachment.getTitle());
+		logd("[insertAttachment]" + attachment.getTitle());
 		Intent intent = new Intent(IntentAction.UPLOAD);
 		intent.putExtra(ServiceExtraKeys.TYPE_ID, UploadService.TYPE_INSERT_ATTACHMENT);
 		intent.putExtra(ServiceExtraKeys.VALUE, attachment);
@@ -236,6 +236,13 @@ public class ServiceHelper {
 			if (mOdataListener != null) {
 				mOdataListener.updateSyncStatus(mOdataSyncing);
 			}
+		}
+	}
+
+	private static void logd(final String message) {
+
+		if (DEBUG) {
+			Log.d(TAG, message);
 		}
 	}
 }

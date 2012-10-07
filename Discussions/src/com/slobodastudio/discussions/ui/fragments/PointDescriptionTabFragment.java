@@ -163,9 +163,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		Point point = new Point();
 		point.setPersonId(mPersonId);
 		point.setName(mNameEditText.getText().toString());
-		// point.setSharedToPublic(mSharedToPublicCheckBox.isChecked());
 		point.setSharedToPublic(true);
-		// point.setSideCode(getSelectedSideCodeId());
 		point.setSideCode(Points.SideCode.NEUTRAL);
 		point.setTopicId(topicId);
 		if (mPointId != INVALID_POINT_ID) {
@@ -188,6 +186,15 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			values.putAll(description.toBundle());
 			((BaseActivity) getActivity()).getServiceHelper().insertPointAndDescription(values,
 					getSelectedPoint());
+		}
+	}
+
+	@Override
+	public void onCreate(final Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+		if (savedInstanceState != null) {
+			populateFromSavedInstanceState(savedInstanceState);
 		}
 	}
 
@@ -238,16 +245,10 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 
 		super.onSaveInstanceState(outState);
 		if (!isEmpty()) {
-			if (mNameEditText.getText() != null) {
-				outState.putString(ExtraKey.POINT_NAME, mNameEditText.getText().toString());
-			}
 			outState.putInt(ExtraKey.PERSON_ID, mPersonId);
 			outState.putInt(ExtraKey.TOPIC_ID, mTopicId);
 			outState.putInt(ExtraKey.POINT_ID, mPointId);
 			outState.putInt(ExtraKey.DESCRIPTION_ID, mDescriptionId);
-			if (mDescriptionEditText.getText() != null) {
-				outState.putString(ExtraKey.DESCRIPTION_TEXT, mDescriptionEditText.getText().toString());
-			}
 		}
 	}
 
@@ -336,26 +337,16 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		if (!savedInstanceState.containsKey(ExtraKey.TOPIC_ID)) {
 			throw new IllegalStateException("SavedInstanceState doesnt contain topic id");
 		}
-		if (!savedInstanceState.containsKey(ExtraKey.POINT_NAME)) {
-			throw new IllegalStateException("SavedInstanceState doesnt contain point name");
-		}
-		if (!savedInstanceState.containsKey(ExtraKey.DESCRIPTION_TEXT)) {
-			throw new IllegalStateException("SavedInstanceState doesnt contain description text");
-		}
 		mPointId = savedInstanceState.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
 		mPersonId = savedInstanceState.getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 		mTopicId = savedInstanceState.getInt(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
-		mNameEditText.setText(savedInstanceState.getString(ExtraKey.POINT_NAME));
-		mDescriptionEditText.setText(savedInstanceState.getString(ExtraKey.DESCRIPTION_TEXT));
+		mDescriptionId = savedInstanceState.getInt(ExtraKey.DESCRIPTION_ID, Integer.MIN_VALUE);
 	}
 
 	private void setViewsEnabled(final boolean enabled) {
 
-		if (!enabled) {
-			mDescriptionEditText.setEnabled(false);
-			mNameEditText.setEnabled(false);
-			mDescriptionEditText.setEnabled(false);
-		}
+		mDescriptionEditText.setEnabled(enabled);
+		mNameEditText.setEnabled(enabled);
 	}
 
 	private enum FragmentState {

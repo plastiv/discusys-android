@@ -15,6 +15,7 @@ import com.slobodastudio.discussions.ui.PointsListPagerAdaptor;
 import com.slobodastudio.discussions.ui.fragments.AllOtherUserPointListFragment;
 import com.slobodastudio.discussions.ui.fragments.OtherUserPointListFragment;
 import com.slobodastudio.discussions.ui.fragments.UserPointListFragment;
+import com.slobodastudio.discussions.utils.fragmentasynctask.SyncStatusUpdaterFragment;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -22,6 +23,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -47,6 +49,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 	private int mTopicId;
 	private ViewPager pager;
 	PagerTitleStrip pagerTitleStrip;
+	private SyncStatusUpdaterFragment mSyncStatusUpdaterFragment;
 
 	@Override
 	public void onArgPointChanged(final ArgPointChanged argPointChanged) {
@@ -170,6 +173,13 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 		pagerTitleStrip.setPadding(5, 10, 10, 5);
 		getSupportLoaderManager().initLoader(PersonsCursorLoader.LOADER_TOPIC_PERSONS, null,
 				new PersonsCursorLoader());
+		FragmentManager fm = getSupportFragmentManager();
+		mSyncStatusUpdaterFragment = (SyncStatusUpdaterFragment) fm
+				.findFragmentByTag(SyncStatusUpdaterFragment.TAG);
+		if (mSyncStatusUpdaterFragment == null) {
+			mSyncStatusUpdaterFragment = new SyncStatusUpdaterFragment();
+			fm.beginTransaction().add(mSyncStatusUpdaterFragment, SyncStatusUpdaterFragment.TAG).commit();
+		}
 	}
 
 	private void connectPhoton() {

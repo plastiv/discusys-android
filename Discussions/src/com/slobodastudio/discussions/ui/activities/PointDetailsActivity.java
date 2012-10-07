@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointDescriptionTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointMediaTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointSourcesTabFragment;
+import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -84,12 +85,12 @@ public class PointDetailsActivity extends BaseActivity {
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		PointDescriptionTabFragment descriptionTabFragment;
+		MyLog.tempv("[onOptionsItemSelected] mtabsAdapter null " + (mTabsAdapter == null));
 		if (mTabsAdapter == null) {
 			descriptionTabFragment = (PointDescriptionTabFragment) getSupportFragmentManager()
 					.findFragmentByTag(FragmentTag.POINT_DESCRIPTION);
 		} else {
-			descriptionTabFragment = (PointDescriptionTabFragment) getSupportFragmentManager()
-					.findFragmentByTag(makeFragmentName(mViewPager.getId(), DESCRIPTION_TAB_POSITION));
+			descriptionTabFragment = (PointDescriptionTabFragment) getFragment(DESCRIPTION_TAB_POSITION);
 		}
 		switch (item.getItemId()) {
 			case R.id.menu_save:
@@ -114,22 +115,17 @@ public class PointDetailsActivity extends BaseActivity {
 		}
 	}
 
-	private static String makeFragmentName(final int viewId, final int index) {
-
-		return "android:switcher:" + viewId + ":" + index;
-	}
-
 	@Override
 	protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode == Activity.RESULT_OK) {
-			Fragment sourceTabFragment = mTabsAdapter.getItem(SOURCE_TAB_POSITION);
+			Fragment sourceTabFragment = getFragment(SOURCE_TAB_POSITION);
 			Log.d(TAG, "[onActivityResult] source tab fragment not null " + (sourceTabFragment != null));
 			if ((sourceTabFragment != null)) {
 				sourceTabFragment.onActivityResult(requestCode, resultCode, data);
 			}
-			Fragment mediaTabFragment = mTabsAdapter.getItem(MEDIA_TAB_POSITION);
+			Fragment mediaTabFragment = getFragment(MEDIA_TAB_POSITION);
 			Log.d(TAG, "[onActivityResult] media tab fragment not null " + (mediaTabFragment != null));
 			if ((mediaTabFragment != null)) {
 				mediaTabFragment.onActivityResult(requestCode, resultCode, data);
@@ -141,13 +137,7 @@ public class PointDetailsActivity extends BaseActivity {
 	protected void onControlServiceConnected() {
 
 		connectPhoton();
-		PointMediaTabFragment mediaTabFragment;
-		if (mTabsAdapter == null) {
-			mediaTabFragment = (PointMediaTabFragment) getSupportFragmentManager().findFragmentByTag(
-					FragmentTag.POINT_MEDIA);
-		} else {
-			mediaTabFragment = (PointMediaTabFragment) mTabsAdapter.getItem(MEDIA_TAB_POSITION);
-		}
+		PointMediaTabFragment mediaTabFragment = (PointMediaTabFragment) getFragment(MEDIA_TAB_POSITION);
 		if ((mediaTabFragment != null)) {
 			mediaTabFragment.onServiceConnected();
 		}
@@ -331,9 +321,14 @@ public class PointDetailsActivity extends BaseActivity {
 		builder.create().show();
 	}
 
-	private String getFragmentTag(final int pos) {
+	private Fragment getFragment(final int position) {
 
-		return "android:switcher:" + R.id.viewpager + ":" + pos;
+		return getSupportFragmentManager().findFragmentByTag(makeFragmentName(mViewPager.getId(), position));
+	}
+
+	private static String makeFragmentName(final int viewId, final int index) {
+
+		return "android:switcher:" + viewId + ":" + index;
 	}
 
 	/** This is a helper class that implements the management of tabs and all details of connecting a ViewPager
@@ -342,7 +337,7 @@ public class PointDetailsActivity extends BaseActivity {
 	 * we make the content part of the tab host 0dp high (it is not shown) and the TabsAdapter supplies its
 	 * own dummy view to show as the tab content. It listens to changes in tabs, and takes care of switch to
 	 * the correct paged in the ViewPager whenever the selected tab changes. */
-	public static class TabsAdapter extends FragmentPagerAdapter implements ActionBar.TabListener,
+	public class TabsAdapter extends FragmentPagerAdapter implements ActionBar.TabListener,
 			ViewPager.OnPageChangeListener {
 
 		private final ActionBar mActionBar;
@@ -378,7 +373,11 @@ public class PointDetailsActivity extends BaseActivity {
 		public Fragment getItem(final int position) {
 
 			TabInfo info = mTabs.get(position);
-			Fragment fragment = Fragment.instantiate(mContext, info.clss.getName(), info.args);
+			Fragment fragment = getFragment(position);
+			if (fragment == null) {
+				fragment = Fragment.instantiate(mContext, info.clss.getName(), info.args);
+				// fragment.setRetainInstance(true);
+			}
 			return fragment;
 		}
 
@@ -415,7 +414,7 @@ public class PointDetailsActivity extends BaseActivity {
 
 		}
 
-		static final class TabInfo {
+		private final class TabInfo {
 
 			private final Bundle args;
 			private final Class<?> clss;

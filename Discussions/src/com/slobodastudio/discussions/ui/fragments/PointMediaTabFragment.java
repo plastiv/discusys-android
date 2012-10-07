@@ -164,17 +164,27 @@ public class PointMediaTabFragment extends SherlockFragment {
 					}
 					break;
 				case PICK_YOUTUBE_REQUEST:
-					if ((data.getData() != null)) {
-						newAttachment = new NewAttachment(PICK_YOUTUBE_REQUEST, data.getData());
-					} else {
-						newAttachment = null;
-					}
+					handleYoutubeResult(data);
 					break;
 				default:
 					break;
 			}
 		}
 		getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+	}
+
+	private void handleYoutubeResult(final Intent intent) {
+
+		Uri uri = intent.getData();
+		Log.d(TAG, "[handleYoutubeResult] data null: " + (uri == null));
+		if ((uri != null)) {
+			newAttachment = new NewAttachment(PICK_YOUTUBE_REQUEST, uri);
+			if (((BaseActivity) getActivity()).isBound()) {
+				onServiceConnected();
+			}
+		} else {
+			newAttachment = null;
+		}
 	}
 
 	public static void requestYoutubeAttachment(final Activity activity) {
@@ -225,8 +235,9 @@ public class PointMediaTabFragment extends SherlockFragment {
 
 	public void onServiceConnected() {
 
-		Log.d(TAG, "onServiceConnected()");
+		logd("[onServiceConnected] new attachemtn null: " + (newAttachment == null));
 		if (newAttachment != null) {
+			logd("[onServiceConnected] new attachemtn type: " + newAttachment.type);
 			switch (newAttachment.type) {
 				case PICK_CAMERA_PHOTO:
 					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.JPG);
@@ -269,8 +280,14 @@ public class PointMediaTabFragment extends SherlockFragment {
 
 		if (data == null) {
 			newAttachment = new NewAttachment(PICK_CAMERA_PHOTO, tempCameraFileUri);
+			if (((BaseActivity) getActivity()).isBound()) {
+				onServiceConnected();
+			}
 		} else if (data.getData() != null) {
 			newAttachment = new NewAttachment(PICK_CAMERA_PHOTO, data.getData());
+			if (((BaseActivity) getActivity()).isBound()) {
+				onServiceConnected();
+			}
 		} else {
 			newAttachment = null;
 		}
@@ -544,6 +561,13 @@ public class PointMediaTabFragment extends SherlockFragment {
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
 			}
+		}
+	}
+
+	private static void logd(final String message) {
+
+		if (DEBUG) {
+			Log.d(TAG, message);
 		}
 	}
 

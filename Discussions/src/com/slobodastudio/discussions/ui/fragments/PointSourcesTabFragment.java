@@ -145,7 +145,7 @@ public class PointSourcesTabFragment extends SherlockFragment {
 				Context.LAYOUT_INFLATER_SERVICE);
 		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
 		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
-		mSourcesList.addHeaderView(headerView);
+		mSourcesList.addHeaderView(headerView, null, false);
 	}
 
 	private void initFromArguments() {

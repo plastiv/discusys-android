@@ -64,4 +64,9 @@ public class MyLog {
 			Log.v(tag, message);
 		}
 	}
+
+	public static void tempv(final String message) {
+
+		v("Temp", message);
+	}
 }
