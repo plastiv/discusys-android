@@ -15,7 +15,6 @@ import com.slobodastudio.discussions.ui.view.MediaList;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -111,10 +110,25 @@ public class PointMediaTabFragment extends SherlockFragment {
 	}
 
 	@Override
+	public void onCreate(final Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+		initFromArguments();
+	}
+
+	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
 		mediaList = (MediaList) inflater.inflate(R.layout.tab_fragment_point_media, container, false);
+		registerForContextMenu(mediaList);
+		mediaList.setAdapter(null);
+		addAttachmentsHeader(inflater);
+		if (footerButtonsEnabled) {
+			addAttachmentsFooter(inflater);
+		}
+		mediaList.setPositionOffset(1);
+		mediaList.setAttachmentsAdapter();
 		return mediaList;
 	}
 
@@ -122,22 +136,36 @@ public class PointMediaTabFragment extends SherlockFragment {
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
-		registerForContextMenu(mediaList);
-		initFromArguments();
-		mediaList.setAdapter(null);
-		addAttachmentsHeader();
-		if (footerButtonsEnabled) {
-			addAttachmentsFooter();
-		}
-		mediaList.setPositionOffset(1);
-		mediaList.setAttachmentsAdapter();
 		initAttachmentsLoader();
+	}
+
+	@Override
+	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+
+		super.onCreateContextMenu(menu, v, menuInfo);
+		AdapterContextMenuInfo info = castAdapterContextMenuInfo(menuInfo);
+		Cursor cursor = (Cursor) mediaList.getAdapter().getItem(info.position - 1);
+		int textIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.TITLE);
+		menu.setHeaderTitle(cursor.getString(textIndex));
+		android.view.MenuInflater inflater = getActivity().getMenuInflater();
+		inflater.inflate(R.menu.context_attachments, menu);
+	}
+
+	@Override
+	public boolean onContextItemSelected(final MenuItem item) {
+
+		switch (item.getItemId()) {
+			case R.id.menu_delete:
+				onActionDeleteAttachment(item);
+				return true;
+			default:
+				return super.onContextItemSelected(item);
+		}
 	}
 
 	@Override
 	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
-		Log.d(TAG, "[onActivityresult] requestCode: " + requestCode);
 		if (Activity.RESULT_OK == resultCode) {
 			switch (requestCode) {
 				case PICK_CAMERA_PHOTO:
@@ -173,10 +201,48 @@ public class PointMediaTabFragment extends SherlockFragment {
 		getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 	}
 
+	private void initFromArguments() {
+
+		Bundle arguments = getArguments();
+		if (arguments == null) {
+			throw new NullPointerException("You are trying to instantiate fragment without arguments");
+		}
+		if (!arguments.containsKey(ExtraKey.SELECTED_POINT)) {
+			throw new IllegalStateException("fragment was called without selected point extra");
+		}
+		if (!arguments.containsKey(ExtraKey.VIEW_ENABLED)) {
+			throw new IllegalStateException("fragment was called without view enabled extra");
+		}
+		mSelectedPoint = arguments.getParcelable(ExtraKey.SELECTED_POINT);
+		footerButtonsEnabled = arguments.getBoolean(ExtraKey.VIEW_ENABLED);
+	}
+
+	private void addAttachmentsFooter(final LayoutInflater layoutInflater) {
+
+		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
+		setSelectAttachClickListener(footerView);
+		mediaList.addFooterView(footerView);
+	}
+
+	private void addAttachmentsHeader(final LayoutInflater inflater) {
+
+		View headerView = inflater.inflate(R.layout.list_header_point_name, null, false);
+		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
+		mediaList.addHeaderView(headerView);
+	}
+
+	private void initAttachmentsLoader() {
+
+		Bundle args = new Bundle();
+		args.putInt(ExtraKey.POINT_ID, mSelectedPoint.getPointId());
+		getLoaderManager().initLoader(AttachmentsCursorLoader.ATTACHMENTS_ID, args, mAttachmentsCursorLoader);
+		getLoaderManager().initLoader(AttachmentsCursorLoader.POINT_NAME_ID, args, mAttachmentsCursorLoader);
+	}
+
 	private void handleYoutubeResult(final Intent intent) {
 
 		Uri uri = intent.getData();
-		Log.d(TAG, "[handleYoutubeResult] data null: " + (uri == null));
+		logd("[handleYoutubeResult] data null: " + (uri == null));
 		if ((uri != null)) {
 			newAttachment = new NewAttachment(PICK_YOUTUBE_REQUEST, uri);
 			if (((BaseActivity) getActivity()).isBound()) {
@@ -209,30 +275,6 @@ public class PointMediaTabFragment extends SherlockFragment {
 		return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
 	}
 
-	@Override
-	public boolean onContextItemSelected(final MenuItem item) {
-
-		switch (item.getItemId()) {
-			case R.id.menu_delete:
-				onActionDeleteAttachment(item);
-				return true;
-			default:
-				return super.onContextItemSelected(item);
-		}
-	}
-
-	@Override
-	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
-
-		super.onCreateContextMenu(menu, v, menuInfo);
-		AdapterContextMenuInfo info = castAdapterContextMenuInfo(menuInfo);
-		Cursor cursor = (Cursor) mediaList.getAdapter().getItem(info.position - 1);
-		int textIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.TITLE);
-		menu.setHeaderTitle(cursor.getString(textIndex));
-		android.view.MenuInflater inflater = getActivity().getMenuInflater();
-		inflater.inflate(R.menu.context_attachments, menu);
-	}
-
 	public void onServiceConnected() {
 
 		logd("[onServiceConnected] new attachemtn null: " + (newAttachment == null));
@@ -258,24 +300,6 @@ public class PointMediaTabFragment extends SherlockFragment {
 		}
 	}
 
-	private void addAttachmentsFooter() {
-
-		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE);
-		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
-		setSelectAttachClickListener(footerView);
-		mediaList.addFooterView(footerView);
-	}
-
-	private void addAttachmentsHeader() {
-
-		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE);
-		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
-		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
-		mediaList.addHeaderView(headerView);
-	}
-
 	private void handleCameraResult(final Intent data) {
 
 		if (data == null) {
@@ -291,30 +315,6 @@ public class PointMediaTabFragment extends SherlockFragment {
 		} else {
 			newAttachment = null;
 		}
-	}
-
-	private void initAttachmentsLoader() {
-
-		Bundle args = new Bundle();
-		args.putInt(ExtraKey.POINT_ID, mSelectedPoint.getPointId());
-		getLoaderManager().initLoader(AttachmentsCursorLoader.ATTACHMENTS_ID, args, mAttachmentsCursorLoader);
-		getLoaderManager().initLoader(AttachmentsCursorLoader.POINT_NAME_ID, args, mAttachmentsCursorLoader);
-	}
-
-	private void initFromArguments() {
-
-		Bundle arguments = getArguments();
-		if (arguments == null) {
-			throw new NullPointerException("You are trying to instantiate fragment without arguments");
-		}
-		if (!arguments.containsKey(ExtraKey.SELECTED_POINT)) {
-			throw new IllegalStateException("fragment was called without selected point extra");
-		}
-		if (!arguments.containsKey(ExtraKey.VIEW_ENABLED)) {
-			throw new IllegalStateException("fragment was called without view enabled extra");
-		}
-		mSelectedPoint = arguments.getParcelable(ExtraKey.SELECTED_POINT);
-		footerButtonsEnabled = arguments.getBoolean(ExtraKey.VIEW_ENABLED);
 	}
 
 	private boolean isIntentAvailable(final Intent intent) {

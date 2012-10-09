@@ -1,6 +1,8 @@
 package com.slobodastudio.discussions.utils.fragmentasynctask;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.ui.OnDownloadCompleteListener;
+import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -8,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.widget.Toast;
 
 /** A non-UI fragment, retained across configuration changes, that updates its activity's UI when sync status
@@ -23,6 +24,7 @@ public class SyncStatusUpdaterFragment extends Fragment implements DetachableRes
 	private boolean mSyncing = false;
 	private String resultMessage = null;
 	private int resultProgress;
+	private OnDownloadCompleteListener downloadCompleteListener;
 
 	public ResultReceiver getReceiver() {
 
@@ -79,6 +81,7 @@ public class SyncStatusUpdaterFragment extends Fragment implements DetachableRes
 			}
 			case ResultCodes.STATUS_FINISHED: {
 				mSyncing = false;
+				notifyDownloadComplete();
 				break;
 			}
 			case ResultCodes.STATUS_ERROR: {
@@ -116,7 +119,7 @@ public class SyncStatusUpdaterFragment extends Fragment implements DetachableRes
 	private void showLongToast(final String text) {
 
 		if (getActivity() == null) {
-			Log.d(TAG, "Drop toast text on the floor, no activity attached: " + text);
+			MyLog.d(TAG, "Drop toast text on the floor, no activity attached: " + text);
 			return;
 		}
 		Toast.makeText(getActivity(), text, Toast.LENGTH_LONG).show();
@@ -142,5 +145,21 @@ public class SyncStatusUpdaterFragment extends Fragment implements DetachableRes
 			resultMessage = "";
 			resultProgress = 0;
 		}
+	}
+
+	public void setDownloadCompleteListener(final OnDownloadCompleteListener downloadCompleteListener) {
+
+		this.downloadCompleteListener = downloadCompleteListener;
+	}
+
+	private void notifyDownloadComplete() {
+
+		if (getActivity() == null) {
+			return;
+		}
+		if (downloadCompleteListener == null) {
+			return;
+		}
+		downloadCompleteListener.onDownloadComplete();
 	}
 }

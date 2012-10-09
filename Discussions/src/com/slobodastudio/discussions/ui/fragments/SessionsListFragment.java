@@ -1,11 +1,9 @@
 package com.slobodastudio.discussions.ui.fragments;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
-import com.slobodastudio.discussions.ui.ExtraKey;
+import com.slobodastudio.discussions.ui.activities.SessionsActivity;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,7 +12,6 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
@@ -34,9 +31,8 @@ public class SessionsListFragment extends SherlockListFragment implements
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
-		Log.v(TAG, "[onActivityCreared] saved state: " + savedInstanceState);
 		// Give some text to display if there is no data.
-		setEmptyText(getResources().getString(EMPTY_STRING_RES_ID));
+		setEmptyText(getString(EMPTY_STRING_RES_ID));
 		// We have a menu item to show in action bar.
 		setHasOptionsMenu(true);
 		mAdapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null,
@@ -66,9 +62,9 @@ public class SessionsListFragment extends SherlockListFragment implements
 	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
 
 		super.onListItemClick(l, v, position, id);
-		Intent intent = new Intent(Intent.ACTION_VIEW, Seats.CONTENT_URI);
-		intent.putExtra(ExtraKey.SESSION_ID, getItemId(position));
-		startActivity(intent);
+		int sessionId = getItemId(position);
+		SessionsActivity activity = (SessionsActivity) getActivity();
+		activity.triggerDownloadPerSession(sessionId);
 	}
 
 	@Override

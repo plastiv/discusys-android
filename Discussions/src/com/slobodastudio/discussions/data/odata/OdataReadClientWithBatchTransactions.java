@@ -50,7 +50,7 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 		super(context);
 	}
 
-	private static int getAsInt(final OEntity entity, final String valueColumn) {
+	public static int getAsInt(final OEntity entity, final String valueColumn) {
 
 		return (Integer) entity.getProperty(valueColumn).getValue();
 	}
@@ -118,6 +118,18 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 		logd("[refreshAttachments] attachments was inserted: " + attachments.count());
 	}
 
+	public void refreshAttachments(final String personSelection, final String discussionSelection) {
+
+		logd("[refreshAttachments]");
+		deleteAllValues(Attachments.CONTENT_URI);
+		Enumerable<OEntity> attachments = getAttachmentsEntitiesFromPerson(personSelection,
+				discussionSelection);
+		for (OEntity attachment : attachments) {
+			insertAttachment(attachment);
+		}
+		logd("[refreshAttachments] attachments was inserted: " + attachments.count());
+	}
+
 	public void refreshComments() {
 
 		logd("[refreshComments]");
@@ -128,6 +140,17 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 		} else {
 			comments = getFilteredCommentsEntities();
 		}
+		for (OEntity comment : comments) {
+			insertComment(comment);
+		}
+		logd("[refreshComments] comments was inserted: " + comments.count());
+	}
+
+	public void refreshCommentsFromPerson(final String selection) {
+
+		logd("[refreshComments]");
+		deleteAllValues(Comments.CONTENT_URI);
+		Enumerable<OEntity> comments = getCommentsEntitiesFromPerson(selection);
 		for (OEntity comment : comments) {
 			insertComment(comment);
 		}
@@ -145,7 +168,7 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 		logd("[refreshDescriptions] descriptions was inserted: " + descriptions.count());
 	}
 
-	public void refreshDiscussions() {
+	public Enumerable<OEntity> refreshDiscussions() {
 
 		logd("[refreshDiscussions]");
 		deleteAllValues(Discussions.CONTENT_URI);
@@ -155,6 +178,7 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 			insertValues(Discussions.CONTENT_URI, cv);
 		}
 		logd("[refreshDiscussions] discussions was inserted: " + discussions.count());
+		return discussions;
 	}
 
 	public void refreshPersons() {
@@ -169,11 +193,35 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 		logd("[refreshPersons] persons was inserted: " + persons.count());
 	}
 
+	public Enumerable<OEntity> refreshPersonsFromSession(final int sessionId) {
+
+		logd("[refreshPersonsFromSession] sessionId: " + sessionId);
+		deleteAllValues(Persons.CONTENT_URI);
+		Enumerable<OEntity> persons = getPersonsEntities(sessionId);
+		for (OEntity person : persons) {
+			ContentValues cv = OEntityToContentValue(person);
+			insertValues(Persons.CONTENT_URI, cv);
+		}
+		logd("[refreshPersonsFromSession] persons was inserted: " + persons.count());
+		return persons;
+	}
+
 	public void refreshPoints() {
 
 		logd("[refreshPoints]");
 		deleteAllValues(Points.CONTENT_URI);
 		Enumerable<OEntity> points = getPointsEntities();
+		for (OEntity point : points) {
+			insertPoint(point);
+		}
+		logd("[refreshPoints] points was inserted: " + points.count());
+	}
+
+	public void refreshPointsFromPerson(final String selection) {
+
+		logd("[refreshPoints]");
+		deleteAllValues(Points.CONTENT_URI);
+		Enumerable<OEntity> points = getPointsEntitiesFromPerson(selection);
 		for (OEntity point : points) {
 			insertPoint(point);
 		}
@@ -270,6 +318,15 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 				"ArgPoint/Id ne null or Discussion/Id ne null").execute();
 	}
 
+	private Enumerable<OEntity> getAttachmentsEntitiesFromPerson(final String personSelection,
+			final String discussionSelection) {
+
+		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(
+				Points.TABLE_NAME + "," + Discussions.TABLE_NAME).filter(
+				"(ArgPoint/Id ne null and (" + personSelection + ")) or (" + discussionSelection + ")")
+				.execute();
+	}
+
 	private Enumerable<OEntity> getAttachmentsEntities(final int pointId) {
 
 		return mConsumer.getEntities(Attachments.TABLE_NAME).expand(Points.TABLE_NAME).filter(
@@ -303,16 +360,29 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 						"ArgPoint/Id ne null and Person/Id ne null").execute();
 	}
 
+	private Enumerable<OEntity> getCommentsEntitiesFromPerson(final String selection) {
+
+		return mConsumer.getEntities(Comments.TABLE_NAME)
+				.expand(Points.TABLE_NAME + "," + Persons.TABLE_NAME).filter(
+						"ArgPoint/Id ne null and (" + selection + ")").execute();
+	}
+
 	private Enumerable<OEntity> getPointsEntities() {
 
 		return mConsumer.getEntities(Points.TABLE_NAME).expand(Topics.TABLE_NAME + "," + Persons.TABLE_NAME)
 				.filter("Topic/Id ne null and Person/Id ne null").execute();
 	}
 
-	private Enumerable<OEntity> getPointsEntities(final int topicId) {
+	private Enumerable<OEntity> getPointsEntitiesFromPerson(final String selection) {
 
 		return mConsumer.getEntities(Points.TABLE_NAME).expand(Topics.TABLE_NAME + "," + Persons.TABLE_NAME)
-				.filter("Topic/Id eq " + String.valueOf(topicId)).execute();
+				.filter("Topic/Id ne null and ( " + selection + ")").execute();
+	}
+
+	private Enumerable<OEntity> getPersonsEntities(final int sessionId) {
+
+		return mConsumer.getEntities(Persons.TABLE_NAME).filter(
+				Sessions.TABLE_NAME + "/Id eq " + String.valueOf(sessionId)).execute();
 	}
 
 	private Enumerable<OEntity> getSourcesEntities() {

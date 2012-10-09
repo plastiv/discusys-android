@@ -86,6 +86,23 @@ public class ServiceHelper {
 		mContext.startService(intent);
 	}
 
+	public void downloadAllPerSession(final ResultReceiver dialogReceiver, final int sessionId) {
+
+		final Intent intent = new Intent(IntentAction.DOWNLOAD);
+		intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_ALL_PER_SESSION);
+		intent.putExtra(ServiceExtraKeys.VALUE_ID, sessionId);
+		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, dialogReceiver);
+		mContext.startService(intent);
+	}
+
+	public void downloadSessions() {
+
+		final Intent intent = new Intent(IntentAction.DOWNLOAD);
+		intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_SESSIONS);
+		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
+		mContext.startService(intent);
+	}
+
 	public void downloadPointsFromTopic(final int topicId) {
 
 		Intent intent = new Intent(IntentAction.DOWNLOAD);

@@ -1,7 +1,11 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.provider.DiscussionsContract.Seats;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
+import com.slobodastudio.discussions.ui.ExtraKey;
+import com.slobodastudio.discussions.ui.OnDownloadCompleteListener;
+import com.slobodastudio.discussions.utils.MyLog;
 import com.slobodastudio.discussions.utils.fragmentasynctask.SyncStatusUpdaterFragment;
 
 import android.content.Intent;
@@ -14,12 +18,13 @@ import android.widget.Toast;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
-public class SessionsActivity extends BaseActivity {
+public class SessionsActivity extends BaseActivity implements OnDownloadCompleteListener {
 
 	private static final String TAG = SessionsActivity.class.getSimpleName();
 	private boolean mIsActivityCreated;
 	// TODO: separate same with PersonsActivity code to one BaseMainActivity
 	private SyncStatusUpdaterFragment mSyncStatusUpdaterFragment;
+	private int sessionIdPending = Integer.MIN_VALUE;
 
 	public SessionsActivity() {
 
@@ -31,7 +36,7 @@ public class SessionsActivity extends BaseActivity {
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
 
 		MenuInflater menuInflater = getSupportMenuInflater();
-		menuInflater.inflate(R.menu.actionbar_refresh, menu);
+		menuInflater.inflate(R.menu.actionbar_main_activity, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -41,9 +46,14 @@ public class SessionsActivity extends BaseActivity {
 		switch (item.getItemId()) {
 			case R.id.menu_refresh:
 				triggerRefresh();
-				break;
+				return true;
+			case R.id.menu_settings:
+				Intent preferenceIntent = new Intent(this, DiscusysPreferenceActivity.class);
+				startActivity(preferenceIntent);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -66,7 +76,7 @@ public class SessionsActivity extends BaseActivity {
 		if (DEBUG) {
 			Log.d(TAG, "[onCreate] action main: " + getIntent().getAction().equals(Intent.ACTION_MAIN));
 		}
-		if (getIntent().getAction().equals(Intent.ACTION_MAIN)) {
+		if (Intent.ACTION_MAIN.equals(getIntent().getAction())) {
 			Intent intent = new Intent(Intent.ACTION_VIEW, Sessions.CONTENT_URI);
 			setIntent(intent);
 			if (savedInstanceState == null) {
@@ -93,17 +103,35 @@ public class SessionsActivity extends BaseActivity {
 
 	private void showCurrentVersionInToast() {
 
-		String versionName;
 		try {
-			versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+			String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+			Toast.makeText(this, getString(R.string.toast_version, versionName), Toast.LENGTH_SHORT).show();
 		} catch (NameNotFoundException e) {
-			throw new RuntimeException();
+			MyLog.e(TAG, "Failed to get package info name", e);
 		}
-		Toast.makeText(this, getString(R.string.toast_version, versionName), Toast.LENGTH_SHORT).show();
 	}
 
 	private void triggerRefresh() {
 
-		mServiceHelper.downloadAll(mSyncStatusUpdaterFragment.getReceiver());
+		if (mBound) {
+			mServiceHelper.downloadSessions();
+		}
+	}
+
+	public void triggerDownloadPerSession(final int sessionId) {
+
+		if (mBound) {
+			sessionIdPending = sessionId;
+			mSyncStatusUpdaterFragment.setDownloadCompleteListener(this);
+			mServiceHelper.downloadAllPerSession(mSyncStatusUpdaterFragment.getReceiver(), sessionId);
+		}
+	}
+
+	@Override
+	public void onDownloadComplete() {
+
+		Intent intent = new Intent(Intent.ACTION_VIEW, Seats.CONTENT_URI);
+		intent.putExtra(ExtraKey.SESSION_ID, sessionIdPending);
+		startActivity(intent);
 	}
 }

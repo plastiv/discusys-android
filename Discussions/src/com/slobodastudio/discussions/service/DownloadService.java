@@ -33,6 +33,8 @@ import com.sun.jersey.api.client.ClientHandlerException;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
+import org.core4j.Enumerable;
+import org.odata4j.core.OEntity;
 
 import java.io.IOException;
 
@@ -43,6 +45,8 @@ public class DownloadService extends IntentService {
 	public static final int TYPE_POINT_FROM_TOPIC = 0x2;
 	public static final int TYPE_UPDATE_POINT = 0x7;
 	public static final int TYPE_PDF_FILE = 0x8;
+	public static final int TYPE_SESSIONS = 0x9;
+	public static final int TYPE_ALL_PER_SESSION = 0x10;
 	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
 	private static final String TAG = DownloadService.class.getSimpleName();
 	private ResultReceiver activityReceiver;
@@ -68,6 +72,10 @@ public class DownloadService extends IntentService {
 				return "points for topic";
 			case TYPE_PDF_FILE:
 				return "pdf files";
+			case TYPE_SESSIONS:
+				return "session";
+			case TYPE_ALL_PER_SESSION:
+				return "all per session";
 			default:
 				throw new IllegalArgumentException("Illegal type id: " + typeId);
 		}
@@ -93,7 +101,7 @@ public class DownloadService extends IntentService {
 	private static void validateIntent(final Intent intent) {
 
 		if (!IntentAction.DOWNLOAD.equals(intent.getAction())) {
-			throw new IllegalArgumentException("Service was started with unknown intent: "
+			throw new IllegalArgumentException("Service was started with unknown intent action: "
 					+ intent.getAction());
 		}
 		if (intent.getExtras() == null) {
@@ -135,6 +143,12 @@ public class DownloadService extends IntentService {
 					break;
 				case TYPE_PDF_FILE:
 					downloadPdfFile(intent);
+					break;
+				case TYPE_SESSIONS:
+					downloadSessions(intent);
+					break;
+				case TYPE_ALL_PER_SESSION:
+					downloadPerSession(intent);
 					break;
 				default:
 					throw new IllegalArgumentException("Illegal type id: " + getTypeFromExtra(intent));
@@ -270,14 +284,14 @@ public class DownloadService extends IntentService {
 		try {
 			return Integer.valueOf(count);
 		} catch (NumberFormatException e) {
-			Log.e(TAG, "Failed to parse string as integer: " + count, e);
+			MyLog.e(TAG, "Failed to parse string as integer: " + count, e);
 		}
 		return 0;
 	}
 
 	private boolean isConnected() {
 
-		boolean connected;
+		boolean connected = false;
 		if (ApplicationConstants.DEV_MODE) {
 			connected = true;
 		} else {
@@ -321,11 +335,126 @@ public class DownloadService extends IntentService {
 
 		int sessionId = getValueIdFromExtra(intent);
 		if (sessionId < 0) {
-			throw new IllegalArgumentException("Illegal point id for download: " + sessionId);
+			throw new IllegalArgumentException("Illegal session id for download: " + sessionId);
 		}
-		logd("[updatePoint] point id: " + sessionId);
+		logd("[downloadPerSession] session id: " + sessionId);
+		long startTime = System.currentTimeMillis();
+		if (!testConnection()) {
+			return;
+		}
+		// TODO: delete all rows in all tables, clean cache here
+		// TODO: only download new (without delete in odata service)
+		// TODO: progress download sessions
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_calculate_count), 0);
+		int downloadedCount = 0;
+		//
+		int seatsCount = 10;
+		int personsCount = 10;
+		int discussionsCount = 10;
+		int pointsCount = 10;
+		int topicsCount = 10;
+		int attachmentsCount = 10;
+		int sourcesCount = 10;
+		int descriptionCount = 10;
+		int commentsCount = 10;
+		int totalCount = seatsCount + personsCount + discussionsCount + pointsCount + topicsCount
+				+ attachmentsCount + sourcesCount + descriptionCount + commentsCount;
+		ActivityResultHelper.sendStatusStartWithCount(activityReceiver, totalCount);
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_seats),
+				downloadedCount);
+		OdataReadClientWithBatchTransactions odataClient = new OdataReadClientWithBatchTransactions(this);
+		//
+		odataClient.refreshSeats();
+		logd("[downloadPerSession] seats completed");
+		downloadedCount += seatsCount;
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_persons),
+				downloadedCount);
+		//
+		Enumerable<OEntity> discussions = odataClient.refreshDiscussions();
+		logd("[downloadPerSession] discussions completed");
+		downloadedCount += discussionsCount;
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_topics),
+				downloadedCount);
+		//
+		Enumerable<OEntity> persons = odataClient.refreshPersonsFromSession(sessionId);
+		logd("[downloadPerSession] persons completed");
+		downloadedCount += personsCount;
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_discussions), downloadedCount);
+		//
+		odataClient.refreshTopics();
+		logd("[downloadPerSession] topics completed");
+		downloadedCount += topicsCount;
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_points),
+				downloadedCount);
+		//
+		StringBuilder sb = new StringBuilder();
+		int index = 0;
+		for (OEntity person : persons) {
+			if (index > 0) {
+				sb.append(" or ");
+			}
+			sb.append("Person/Id eq ");
+			int personId = OdataReadClientWithBatchTransactions.getAsInt(person, Persons.Columns.ID);
+			sb.append(personId);
+			index++;
+		}
+		String personSelection = sb.toString();
+		MyLog.tempv("person selection: " + personSelection);
+		odataClient.refreshPointsFromPerson(personSelection);
+		logd("[downloadPerSession] points completed");
+		downloadedCount += pointsCount;
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_descriptions), downloadedCount);
+		//
+		odataClient.refreshDescriptions();
+		logd("[downloadPerSession] descriptions completed");
+		downloadedCount += descriptionCount;
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_comments), downloadedCount);
+		//
+		odataClient.refreshCommentsFromPerson(personSelection);
+		logd("[downloadPerSession] comments completed");
+		downloadedCount += commentsCount;
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_attachments), downloadedCount);
+		//
+		index = 0;
+		sb = new StringBuilder();
+		for (OEntity discussion : discussions) {
+			if (index > 0) {
+				
+				sb.append(" or ");
+			}
+			sb.append("Discussion/Id eq ");
+			int discussionId = OdataReadClientWithBatchTransactions.getAsInt(discussion,
+					Discussions.Columns.ID);
+			sb.append(discussionId);
+			index ++;
+		}
+		MyLog.tempv("attachment select: " + sb.toString());
+		odataClient.refreshAttachments(personSelection, sb.toString());
+		// TODO: download discussion attachments
+		logd("[downloadPerSession] attachments completed");
+		downloadedCount += attachmentsCount;
+		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_downloading_sources),
+				downloadedCount);
+		//
+		odataClient.refreshSources();
+		logd("[downloadPerSession] sources completed");
+		odataClient.applyBatchOperations();
+		downloadedCount += sourcesCount;
+		ActivityResultHelper.sendProgress(activityReceiver,
+				getString(R.string.progress_downloading_finished), downloadedCount);
+		logd("[downloadPerSession] load time: " + (System.currentTimeMillis() - startTime));
+		SharedPreferenceHelper.setUpdatedTime(this, System.currentTimeMillis());
+	}
+
+	private void downloadSessions(final Intent intent) {
+
+		logd("[downloadSessions]");
 		OdataReadClientWithBatchTransactions odata = new OdataReadClientWithBatchTransactions(this);
-		odata.updatePoint(sessionId);
+		odata.refreshSessions();
 		odata.applyBatchOperations();
 	}
 
