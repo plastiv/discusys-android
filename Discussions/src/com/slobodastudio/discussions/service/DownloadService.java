@@ -423,14 +423,13 @@ public class DownloadService extends IntentService {
 		sb = new StringBuilder();
 		for (OEntity discussion : discussions) {
 			if (index > 0) {
-				
 				sb.append(" or ");
 			}
 			sb.append("Discussion/Id eq ");
 			int discussionId = OdataReadClientWithBatchTransactions.getAsInt(discussion,
 					Discussions.Columns.ID);
 			sb.append(discussionId);
-			index ++;
+			index++;
 		}
 		MyLog.tempv("attachment select: " + sb.toString());
 		odataClient.refreshAttachments(personSelection, sb.toString());

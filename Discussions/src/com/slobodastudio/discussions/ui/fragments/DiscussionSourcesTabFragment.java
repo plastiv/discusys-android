@@ -16,6 +16,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -85,8 +86,28 @@ public class DiscussionSourcesTabFragment extends SherlockFragment {
 
 	private void setSourcesAdapter() {
 
-		mSourcesAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_source, null,
-				new String[] { Sources.Columns.LINK }, new int[] { R.id.text_source_link }, 0);
+		mSourcesAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_source_2, null,
+				new String[] { Sources.Columns.LINK, Sources.Columns.ID }, new int[] { R.id.text_source_link,
+						R.id.textSourceNumber }, 0);
+		mSourcesAdapter.setViewBinder(new ViewBinder() {
+
+			@Override
+			public boolean setViewValue(final View view, final Cursor data, final int columnId) {
+
+				switch (view.getId()) {
+					case R.id.text_source_link:
+						String link = data.getString(columnId);
+						((TextView) view).setText(link);
+						return true;
+					case R.id.textSourceNumber:
+						int currentNumber = data.getPosition() + 1;
+						((TextView) view).setText(String.valueOf(currentNumber));
+						return true;
+					default:
+						return false;
+				}
+			}
+		});
 		mSourcesList.setAdapter(mSourcesAdapter);
 		mSourcesList.setOnItemClickListener(new OnItemClickListener() {
 
@@ -120,7 +141,8 @@ public class DiscussionSourcesTabFragment extends SherlockFragment {
 					int descriptionId = arguments.getInt(ExtraKey.DESCRIPTION_ID, Integer.MIN_VALUE);
 					String where = Sources.Columns.DESCRIPTION_ID + "=?";
 					String[] args = new String[] { String.valueOf(descriptionId) };
-					return new CursorLoader(getActivity(), Sources.CONTENT_URI, null, where, args, null);
+					String sortOrder = Sources.Columns.ID + " ASC";
+					return new CursorLoader(getActivity(), Sources.CONTENT_URI, null, where, args, sortOrder);
 				}
 				case DESCRIPTION_ID: {
 					Uri uri = arguments.getParcelable(ExtraKey.URI);
