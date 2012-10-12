@@ -19,31 +19,31 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-public class MediaList extends ListView {
+public class MediaGridView extends GridView {
 
-	private static final String TAG = MediaList.class.getSimpleName();
+	private static final String TAG = MediaGridView.class.getSimpleName();
 	private final ImageLoader imageLoader;
 	private SimpleCursorAdapter mAttachmentsAdapter;
 	private final Context mContext;
 	private int postionOffset = 0;
 
-	public MediaList(final Context context) {
+	public MediaGridView(final Context context) {
 
 		this(context, null);
 	}
 
-	public MediaList(final Context context, final AttributeSet attrs) {
+	public MediaGridView(final Context context, final AttributeSet attrs) {
 
-		this(context, attrs, android.R.attr.listViewStyle);
+		this(context, attrs, android.R.attr.gridViewStyle);
 	}
 
-	public MediaList(final Context context, final AttributeSet attrs, final int defStyle) {
+	public MediaGridView(final Context context, final AttributeSet attrs, final int defStyle) {
 
 		super(context, attrs, defStyle);
 		mContext = context;
@@ -59,9 +59,9 @@ public class MediaList extends ListView {
 
 	public void setAttachmentsAdapter() {
 
-		mAttachmentsAdapter = new SimpleCursorAdapter(mContext, R.layout.list_item_media, null, new String[] {
-				Attachments.Columns.TITLE, Attachments.Columns.ID, Attachments.Columns.FORMAT }, new int[] {
-				R.id.text_attachment_name, R.id.image_attachment_preview, R.id.image_attachment_filetype }, 0);
+		mAttachmentsAdapter = new SimpleCursorAdapter(mContext, R.layout.grid_item_media, null, new String[] {
+				Attachments.Columns.TITLE, Attachments.Columns.ID }, new int[] { R.id.text_attachment_name,
+				R.id.image_attachment_preview }, 0);
 		mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
 		setAdapter(mAttachmentsAdapter);
 	}

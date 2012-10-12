@@ -8,12 +8,11 @@ import com.slobodastudio.discussions.data.model.Source;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Descriptions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
+import com.slobodastudio.discussions.ui.ActivityHelper;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
-import com.slobodastudio.discussions.ui.activities.WebViewActivity;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -31,24 +30,24 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
-public class PointSourcesTabFragment extends SherlockFragment {
+public class PointSourcesTabFragment extends SherlockFragment implements OnItemClickListener, OnClickListener {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int PICK_URL_REQUEST = 0x01;
 	private static final String TAG = PointSourcesTabFragment.class.getSimpleName();
-	private boolean footerButtonsEnabled;
+	private boolean mFooterButtonsEnabled;
 	private int mDescriptionId;
 	private TextView mPointNameTextView;
 	private SelectedPoint mSelectedPoint;
 	private SimpleCursorAdapter mSourcesAdapter;
 	private final SourcesCursorLoader mSourcesCursorLoader;
 	private ListView mSourcesList;
+	private String mDescriptionLink;
 
 	public PointSourcesTabFragment() {
 
@@ -92,21 +91,39 @@ public class PointSourcesTabFragment extends SherlockFragment {
 		return arguments;
 	}
 
-	public static void requestUrlAttachment(final Activity activity) {
+	@Override
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+			final Bundle savedInstanceState) {
 
-		Intent intent = new Intent(activity, WebViewActivity.class);
-		activity.startActivityForResult(intent, PICK_URL_REQUEST);
+		initFromArguments();
+		View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_sources, container, false);
+		mSourcesList = (ListView) attachmentsView.findViewById(R.id.listview_sources);
+		addSourcesHeader(inflater);
+		if (mFooterButtonsEnabled) {
+			addSourcesFooter(inflater);
+		}
+		return attachmentsView;
+	}
+
+	@Override
+	public void onActivityCreated(final Bundle savedInstanceState) {
+
+		super.onActivityCreated(savedInstanceState);
+		setSourcesAdapter();
+		initSourcesLoader();
 	}
 
 	@Override
 	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
-		Log.d(TAG, "[onActivityresult]");
 		switch (requestCode) {
 			case PICK_URL_REQUEST:
 				if (resultCode == Activity.RESULT_OK) {
-					String description = data.getStringExtra(ExtraKey.BINARY_DATA_DESCRIPTION);
-					onAttachSourceAdded(description);
+					mDescriptionLink = data.getDataString();
+					logd("[onActivityresult] isBound: " + ((BaseActivity) getActivity()).isBound());
+					if (((BaseActivity) getActivity()).isBound()) {
+						onAttachSourceAdded();
+					}
 				}
 				break;
 			default:
@@ -115,37 +132,35 @@ public class PointSourcesTabFragment extends SherlockFragment {
 	}
 
 	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-			final Bundle savedInstanceState) {
+	public void onClick(final View v) {
 
-		initFromArguments();
-		View attachmentsView = inflater.inflate(R.layout.tab_fragment_point_sources, container, false);
-		mSourcesList = (ListView) attachmentsView.findViewById(R.id.listview_sources);
-		addSourcesHeader();
-		if (footerButtonsEnabled) {
-			addSourcesFooter();
+		switch (v.getId()) {
+			case R.id.btn_attach_url:
+				ActivityHelper.startSearchWebActivityForResult(getActivity(), PICK_URL_REQUEST);
+				break;
+			default:
+				break;
 		}
-		setSourcesAdapter();
-		initSourcesLoader();
-		return attachmentsView;
 	}
 
-	private void addSourcesFooter() {
+	@Override
+	public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
 
-		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE);
-		View footerView = layoutInflater.inflate(R.layout.layout_source_footer, null, false);
-		setAttachUrlListener(footerView);
-		mSourcesList.addFooterView(footerView);
+		TextView linkTextView = (TextView) view.findViewById(R.id.text_source_link);
+		CharSequence urlSequence = linkTextView.getText();
+		if (!TextUtils.isEmpty(urlSequence)) {
+			Uri uri = Uri.parse(urlSequence.toString());
+			Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+			startActivity(intent);
+		}
 	}
 
-	private void addSourcesHeader() {
+	public void onServiceConnected() {
 
-		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE);
-		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
-		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
-		mSourcesList.addHeaderView(headerView, null, false);
+		if (mDescriptionLink != null) {
+			onAttachSourceAdded();
+			mDescriptionLink = null;
+		}
 	}
 
 	private void initFromArguments() {
@@ -161,7 +176,31 @@ public class PointSourcesTabFragment extends SherlockFragment {
 			throw new IllegalStateException("fragment was called without view enabled extra");
 		}
 		mSelectedPoint = arguments.getParcelable(ExtraKey.SELECTED_POINT);
-		footerButtonsEnabled = arguments.getBoolean(ExtraKey.VIEW_ENABLED);
+		mFooterButtonsEnabled = arguments.getBoolean(ExtraKey.VIEW_ENABLED);
+	}
+
+	private void addSourcesFooter(final LayoutInflater inflater) {
+
+		View footerView = inflater.inflate(R.layout.layout_source_footer, null, false);
+		footerView.findViewById(R.id.btn_attach_url).setOnClickListener(this);
+		mSourcesList.addFooterView(footerView);
+	}
+
+	private void addSourcesHeader(final LayoutInflater inflater) {
+
+		View headerView = inflater.inflate(R.layout.list_header_point_name, null, false);
+		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
+		mSourcesList.addHeaderView(headerView, null, false);
+	}
+
+	private void setSourcesAdapter() {
+
+		if (mSourcesList.getAdapter() == null) {
+			mSourcesAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_source, null,
+					new String[] { Sources.Columns.LINK }, new int[] { R.id.text_source_link }, 0);
+			mSourcesList.setAdapter(mSourcesAdapter);
+		}
+		mSourcesList.setOnItemClickListener(this);
 	}
 
 	private void initSourcesLoader() {
@@ -172,46 +211,12 @@ public class PointSourcesTabFragment extends SherlockFragment {
 		getLoaderManager().initLoader(SourcesCursorLoader.DESCRIPTION_ID, args, mSourcesCursorLoader);
 	}
 
-	private void onAttachSourceAdded(final String sourceLink) {
+	private void onAttachSourceAdded() {
 
 		Source source = new Source();
-		source.setLink(sourceLink);
+		source.setLink(mDescriptionLink);
 		source.setDescriptionId(mDescriptionId);
 		((BaseActivity) getActivity()).getServiceHelper().insertSource(source, mSelectedPoint);
-	}
-
-	private void setAttachUrlListener(final View container) {
-
-		Button attachUrlButton = (Button) container.findViewById(R.id.btn_attach_url);
-		attachUrlButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(final View v) {
-
-				requestUrlAttachment(getActivity());
-			}
-		});
-	}
-
-	private void setSourcesAdapter() {
-
-		mSourcesAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_source, null,
-				new String[] { Sources.Columns.LINK }, new int[] { R.id.text_source_link }, 0);
-		mSourcesList.setAdapter(mSourcesAdapter);
-		mSourcesList.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(final AdapterView<?> parent, final View view, final int position,
-					final long id) {
-
-				TextView linkTextView = (TextView) view.findViewById(R.id.text_source_link);
-				if (!TextUtils.isEmpty(linkTextView.getText())) {
-					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkTextView.getText()
-							.toString()));
-					startActivity(intent);
-				}
-			}
-		});
 	}
 
 	private class SourcesCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -306,6 +311,13 @@ public class PointSourcesTabFragment extends SherlockFragment {
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
 			}
+		}
+	}
+
+	private static void logd(final String message) {
+
+		if (DEBUG) {
+			Log.d(TAG, message);
 		}
 	}
 }

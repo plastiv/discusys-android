@@ -24,6 +24,7 @@ public class ExtraKey {
 	public static final String TOPIC_ID = "extra_topic_id";
 	public static final String URI = "extra_uri";
 	public static final String VIEW_ENABLED = "extra_view_enabled";
+	public static final String URL = "extra_url";
 
 	/** A public Constructor prevents class from instantiating. */
 	private ExtraKey() {

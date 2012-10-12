@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.R;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -18,6 +19,8 @@ import com.actionbarsherlock.view.MenuItem;
 public class YoutubeActivity extends BaseActivity {
 
 	private WebView mWebView;
+	private boolean loadingFinished = true;
+	private boolean redirect = false;
 
 	@Override
 	public void onCreate(final Bundle savedInstanceState) {
@@ -30,6 +33,42 @@ public class YoutubeActivity extends BaseActivity {
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.getSettings().setBuiltInZoomControls(true);
 		mWebView.requestFocus();
+		mWebView.setWebViewClient(new WebViewClient() {
+
+			@Override
+			public boolean shouldOverrideUrlLoading(final WebView view, final String urlNewString) {
+
+				if (!loadingFinished) {
+					redirect = true;
+				}
+				loadingFinished = false;
+				mWebView.loadUrl(urlNewString);
+				return true;
+			}
+
+			@Override
+			public void onPageStarted(final WebView view, final String url, final Bitmap favicon) {
+
+				super.onPageStarted(view, url, favicon);
+				loadingFinished = false;
+				// SHOW LOADING IF IT ISNT ALREADY VISIBLE
+				setSupportProgressBarIndeterminateVisibility(true);
+			}
+
+			@Override
+			public void onPageFinished(final WebView view, final String url) {
+
+				if (!redirect) {
+					loadingFinished = true;
+				}
+				if (loadingFinished && !redirect) {
+					// HIDE LOADING IT HAS FINISHED
+					setSupportProgressBarIndeterminateVisibility(false);
+				} else {
+					redirect = false;
+				}
+			}
+		});
 		mWebView.loadUrl("http://m.youtube.com");
 	}
 

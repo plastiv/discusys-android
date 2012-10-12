@@ -8,6 +8,7 @@ import android.app.Application;
 import android.os.StrictMode;
 
 import com.bugsense.trace.BugSenseHandler;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
@@ -19,7 +20,11 @@ public class DiscussionsApplication extends Application {
 
 		super.onCreate();
 		ImageLoader imageLoader = ImageLoader.getInstance();
-		imageLoader.init(ImageLoaderConfiguration.createDefault(this));
+		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder().cacheInMemory()
+				.resetViewBeforeLoading().cacheOnDisc().build();
+		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+				.defaultDisplayImageOptions(defaultOptions).build();
+		imageLoader.init(config);
 		if (ApplicationConstants.DEV_MODE) {
 			StrictMode
 					.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());

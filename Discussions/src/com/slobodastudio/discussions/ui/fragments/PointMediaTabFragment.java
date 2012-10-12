@@ -7,6 +7,7 @@ import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Comments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
+import com.slobodastudio.discussions.ui.ActivityHelper;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 import com.slobodastudio.discussions.ui.activities.YoutubeActivity;
@@ -21,6 +22,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -45,6 +47,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -57,6 +62,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 	private static final int PICK_CAMERA_PHOTO = 0x03;
 	private static final int PICK_IMAGE_REQUEST = 0x02;
 	private static final int PICK_PDF_REQUEST = 0x04;
+	private static final int PICK_IMAGE_SEARCH_REQUEST = 0x06;
 	private static final int PICK_YOUTUBE_REQUEST = 0x05;
 	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
 	private boolean footerButtonsEnabled;
@@ -166,6 +172,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 	@Override
 	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
+		logd("[onACtivityResult] requestCode: " + requestCode);
 		if (Activity.RESULT_OK == resultCode) {
 			switch (requestCode) {
 				case PICK_CAMERA_PHOTO:
@@ -193,6 +200,9 @@ public class PointMediaTabFragment extends SherlockFragment {
 					break;
 				case PICK_YOUTUBE_REQUEST:
 					handleYoutubeResult(data);
+					break;
+				case PICK_IMAGE_SEARCH_REQUEST:
+					handleImageSearchResult(data);
 					break;
 				default:
 					break;
@@ -253,6 +263,49 @@ public class PointMediaTabFragment extends SherlockFragment {
 		}
 	}
 
+	private void handleImageSearchResult(final Intent intent) {
+
+		final Uri uri = intent.getData();
+		logd("[handleImageSearchResult] data null: " + (uri == null));
+		if (uri != null) {
+			newAttachment = null;
+			ImageLoader imageLoader = ImageLoader.getInstance();
+			logd("[handleImageSearchResult] uri: " + intent.getDataString());
+			imageLoader.loadImage(getActivity(), uri.toString(), new ImageLoadingListener() {
+
+				@Override
+				public void onLoadingComplete(final Bitmap loadedImage) {
+
+					logd("[handleImageSearchResult] loading complete");
+					newAttachment = new NewAttachment(PICK_IMAGE_SEARCH_REQUEST, uri);
+					if (((BaseActivity) getActivity()).isBound()) {
+						onServiceConnected();
+					}
+				}
+
+				@Override
+				public void onLoadingStarted() {
+
+					logd("[handleImageSearchResult] onLoadingStarted");
+				}
+
+				@Override
+				public void onLoadingFailed(final FailReason failReason) {
+
+					logd("[handleImageSearchResult] onLoadingFailed: " + failReason.name());
+				}
+
+				@Override
+				public void onLoadingCancelled() {
+
+					logd("[handleImageSearchResult] onLoadingCancelled");
+				}
+			});
+		} else {
+			newAttachment = null;
+		}
+	}
+
 	public static void requestYoutubeAttachment(final Activity activity) {
 
 		Intent intent = new Intent(activity, YoutubeActivity.class);
@@ -292,6 +345,12 @@ public class PointMediaTabFragment extends SherlockFragment {
 					break;
 				case PICK_YOUTUBE_REQUEST:
 					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.YOUTUBE);
+					break;
+				case PICK_IMAGE_SEARCH_REQUEST:
+					Uri originalUri = newAttachment.uri;
+					File savedFile = ImageLoader.getInstance().getDiscCache().get(originalUri.toString());
+					Uri uri = Uri.fromFile(savedFile);
+					onAttachSourceAdded(uri, Attachments.AttachmentType.JPG);
 					break;
 				default:
 					break;
@@ -395,6 +454,11 @@ public class PointMediaTabFragment extends SherlockFragment {
 		}
 	}
 
+	private void requestPictureSearchAttachment(final Activity activity) {
+
+		ActivityHelper.startSearchPictureActivityForResult(activity, PICK_IMAGE_SEARCH_REQUEST);
+	}
+
 	private void setSelectAttachClickListener(final View container) {
 
 		Button attachPdfButton = (Button) container.findViewById(R.id.btn_select_attach);
@@ -425,9 +489,12 @@ public class PointMediaTabFragment extends SherlockFragment {
 						requestCameraPhoto(getActivity());
 						break;
 					case 2:
-						requestPdfAttachment(getActivity());
+						requestPictureSearchAttachment(getActivity());
 						break;
 					case 3:
+						requestPdfAttachment(getActivity());
+						break;
+					case 4:
 						requestYoutubeAttachment(getActivity());
 						break;
 					default:
@@ -506,9 +573,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 				throw new IllegalArgumentException("Loader was called without point id");
 			}
 			int myPointId = arguments.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
-			if (DEBUG) {
-				Log.d(TAG, "[onCreateLoader] point id: " + myPointId);
-			}
+			logd("[onCreateLoader] point id: " + myPointId);
 			switch (loaderId) {
 				case ATTACHMENTS_ID: {
 					String where = Attachments.Columns.POINT_ID + "=?";
@@ -544,9 +609,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 		@Override
 		public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
 
-			if (DEBUG) {
-				Log.d(TAG, "[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
-			}
+			logd("[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
 			switch (loader.getId()) {
 				case ATTACHMENTS_ID:
 					mediaList.getAdapter().swapCursor(data);

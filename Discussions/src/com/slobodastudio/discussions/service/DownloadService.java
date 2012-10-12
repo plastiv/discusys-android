@@ -20,7 +20,6 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
-import com.slobodastudio.discussions.utils.lazylist.ImageLoader;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -29,6 +28,7 @@ import android.os.ResultReceiver;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.sun.jersey.api.client.ClientHandlerException;
 
 import org.apache.http.client.ClientProtocolException;
@@ -184,7 +184,7 @@ public class DownloadService extends IntentService {
 		// TODO: only download new (without delete in odata service)
 		// TODO: progress download sessions
 		ActivityResultHelper.sendProgress(activityReceiver, getString(R.string.progress_calculate_count), 0);
-		new ImageLoader(getApplicationContext()).clearCache();
+		ImageLoader.getInstance().clearDiscCache();
 		int downloadedCount = 0;
 		//
 		int sessionCount = getTableCount(Sessions.TABLE_NAME);

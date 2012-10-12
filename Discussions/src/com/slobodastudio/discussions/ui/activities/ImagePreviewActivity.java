@@ -3,7 +3,6 @@ package com.slobodastudio.discussions.ui.activities;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.ui.view.TouchImageView;
-import com.slobodastudio.discussions.utils.lazylist.ImageLoader;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -16,6 +15,7 @@ import android.widget.Toast;
 
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class ImagePreviewActivity extends BaseActivity {
 
@@ -58,12 +58,11 @@ public class ImagePreviewActivity extends BaseActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image_preview);
 		imageView = (TouchImageView) findViewById(R.id.iv_full_image);
-		imageLoader = new ImageLoader(getApplicationContext());
+		imageLoader = ImageLoader.getInstance();
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
 			String attachmentId = Attachments.getValueId(getIntent().getData());
 			String uriString = Attachments.getAttachmentDownloadLink(this, attachmentId);
-			imageLoader.setScaled(false);
-			imageLoader.DisplayImage(uriString, imageView);
+			imageLoader.displayImage(uriString, imageView);
 			startAttachmentImageLoader();
 		}
 		getSupportActionBar().setDisplayShowHomeEnabled(false);

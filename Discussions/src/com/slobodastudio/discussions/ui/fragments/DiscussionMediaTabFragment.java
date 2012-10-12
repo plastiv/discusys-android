@@ -4,7 +4,7 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Discussions;
 import com.slobodastudio.discussions.ui.ExtraKey;
-import com.slobodastudio.discussions.ui.view.MediaList;
+import com.slobodastudio.discussions.ui.view.MediaGridView;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -23,7 +23,8 @@ public class DiscussionMediaTabFragment extends SherlockFragment {
 
 	private static final String TAG = DiscussionMediaTabFragment.class.getSimpleName();
 	private final AttachmentsCursorLoader mAttachmentsCursorLoader;
-	private MediaList mediaList;
+	// private MediaList mediaList;
+	private MediaGridView mediaList;
 
 	public DiscussionMediaTabFragment() {
 
@@ -62,7 +63,8 @@ public class DiscussionMediaTabFragment extends SherlockFragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
-		mediaList = (MediaList) inflater.inflate(R.layout.tab_fragment_point_media, container, false);
+		mediaList = (MediaGridView) inflater.inflate(R.layout.fragment_discussion_media_grid_view, container,
+				false);
 		return mediaList;
 	}
 

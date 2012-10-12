@@ -19,8 +19,9 @@
         <item>Sergii development</item>
     </string-array>
     <string-array name="add_attachemt_types">
-        <item>Pictures</item>
+        <item>Picture files</item>
         <item>Capture pictures</item>
+        <item>Search pictures</item>
         <item>Pdf files</item>
         <item>Youtube videos</item>
     </string-array>

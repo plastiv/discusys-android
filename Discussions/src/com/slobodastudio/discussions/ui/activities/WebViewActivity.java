@@ -1,9 +1,10 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
-import com.slobodastudio.discussions.ui.ExtraKey;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
@@ -18,7 +19,9 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class WebViewActivity extends BaseActivity {
 
-	WebView mWebView;
+	private WebView mWebView;
+	private boolean loadingFinished = true;
+	private boolean redirect = false;
 
 	@Override
 	public void onCreate(final Bundle savedInstanceState) {
@@ -27,7 +30,6 @@ public class WebViewActivity extends BaseActivity {
 		setContentView(R.layout.activity_webview);
 		mWebView = (WebView) findViewById(R.id.webview);
 		mWebView.getSettings().setJavaScriptEnabled(true);
-		mWebView.loadUrl("http://www.google.com");
 		mWebView.getSettings().setBuiltInZoomControls(true);
 		final EditText urlEditText = (EditText) findViewById(R.id.edittext_url);
 		urlEditText.setOnEditorActionListener(new OnEditorActionListener() {
@@ -51,14 +53,51 @@ public class WebViewActivity extends BaseActivity {
 		mWebView.setWebViewClient(new WebViewClient() {
 
 			@Override
-			public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
+			public boolean shouldOverrideUrlLoading(final WebView view, final String urlNewString) {
 
-				urlEditText.setText(url);
-				mWebView.loadUrl(url);
+				if (!loadingFinished) {
+					redirect = true;
+				}
+				loadingFinished = false;
+				urlEditText.setText(urlNewString);
+				mWebView.loadUrl(urlNewString);
 				return true;
+			}
+
+			@Override
+			public void onPageStarted(final WebView view, final String url, final Bitmap favicon) {
+
+				super.onPageStarted(view, url, favicon);
+				loadingFinished = false;
+				// SHOW LOADING IF IT ISNT ALREADY VISIBLE
+				setSupportProgressBarIndeterminateVisibility(true);
+			}
+
+			@Override
+			public void onPageFinished(final WebView view, final String url) {
+
+				if (!redirect) {
+					loadingFinished = true;
+				}
+				if (loadingFinished && !redirect) {
+					// HIDE LOADING IT HAS FINISHED
+					setSupportProgressBarIndeterminateVisibility(false);
+				} else {
+					redirect = false;
+				}
 			}
 		});
 		mWebView.requestFocus();
+		populateView();
+	}
+
+	private void populateView() {
+
+		Uri uri = getIntent().getData();
+		if (uri != null) {
+			String url = uri.toString();
+			mWebView.loadUrl(url);
+		}
 	}
 
 	@Override
@@ -106,7 +145,8 @@ public class WebViewActivity extends BaseActivity {
 	private void onActionSave() {
 
 		Intent intent = getIntent();
-		intent.putExtra(ExtraKey.BINARY_DATA_DESCRIPTION, mWebView.getUrl());
+		Uri uri = Uri.parse(mWebView.getUrl());
+		intent.setData(uri);
 		setMyResult(RESULT_OK, intent);
 		finish();
 	}

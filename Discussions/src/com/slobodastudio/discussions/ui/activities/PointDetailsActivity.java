@@ -141,6 +141,10 @@ public class PointDetailsActivity extends BaseActivity {
 		if ((mediaTabFragment != null)) {
 			mediaTabFragment.onServiceConnected();
 		}
+		PointSourcesTabFragment sourceTabFragment = (PointSourcesTabFragment) getFragment(SOURCE_TAB_POSITION);
+		if ((sourceTabFragment != null)) {
+			sourceTabFragment.onServiceConnected();
+		}
 	}
 
 	@Override
