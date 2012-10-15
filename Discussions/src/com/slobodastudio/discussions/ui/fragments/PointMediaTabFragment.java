@@ -277,6 +277,7 @@ public class PointMediaTabFragment extends SherlockFragment {
 				public void onLoadingComplete(final Bitmap loadedImage) {
 
 					logd("[handleImageSearchResult] loading complete");
+					getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
 					newAttachment = new NewAttachment(PICK_IMAGE_SEARCH_REQUEST, uri);
 					if (((BaseActivity) getActivity()).isBound()) {
 						onServiceConnected();
@@ -287,17 +288,20 @@ public class PointMediaTabFragment extends SherlockFragment {
 				public void onLoadingStarted() {
 
 					logd("[handleImageSearchResult] onLoadingStarted");
+					getSherlockActivity().setSupportProgressBarIndeterminateVisibility(true);
 				}
 
 				@Override
 				public void onLoadingFailed(final FailReason failReason) {
 
+					getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
 					logd("[handleImageSearchResult] onLoadingFailed: " + failReason.name());
 				}
 
 				@Override
 				public void onLoadingCancelled() {
 
+					getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
 					logd("[handleImageSearchResult] onLoadingCancelled");
 				}
 			});

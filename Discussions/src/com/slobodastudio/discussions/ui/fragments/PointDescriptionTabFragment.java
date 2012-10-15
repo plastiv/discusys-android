@@ -10,6 +10,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
+import com.slobodastudio.discussions.utils.EditTextUtils;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -45,6 +46,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	private final PointCursorLoader mPointCursorLoader;
 	private int mPointId;
 	private int mTopicId;
+	private String mSavedDescriptionText = "";
+	private String mSavedNameText = "";
 
 	public PointDescriptionTabFragment() {
 
@@ -156,13 +159,14 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		// description is first because notify server by point change
 		if (mDescriptionId != Integer.MIN_VALUE) {
 			// update description
-			Description description = new Description(mDescriptionId, mDescriptionEditText.getText()
-					.toString(), null, mPointId);
+			String descriptionText = EditTextUtils.toString(mDescriptionEditText, mSavedDescriptionText);
+			Description description = new Description(mDescriptionId, descriptionText, null, mPointId);
 			((BaseActivity) getActivity()).getServiceHelper().updateDescription(description.toBundle());
 		}
 		Point point = new Point();
 		point.setPersonId(mPersonId);
-		point.setName(mNameEditText.getText().toString());
+		String nameText = EditTextUtils.toString(mNameEditText, mSavedNameText);
+		point.setName(nameText);
 		point.setSharedToPublic(true);
 		point.setSideCode(Points.SideCode.NEUTRAL);
 		point.setTopicId(topicId);
@@ -193,6 +197,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	public void onCreate(final Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
+		logd("[onCreate] savedInstanceState is null: " + (savedInstanceState == null));
 		if (savedInstanceState != null) {
 			populateFromSavedInstanceState(savedInstanceState);
 		}
@@ -202,10 +207,9 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
+		logd("[onCreateView] savedInstanceState is null: " + (savedInstanceState == null));
 		if (isEmpty() || (container == null) || (getArguments() == null)) {
-			if (DEBUG) {
-				Log.d(TAG, "[onCreateView] show empty fragment");
-			}
+			logd("[onCreateView] show empty fragment");
 			TextView text = (TextView) inflater.inflate(R.layout.fragment_empty, null);
 			text.setText(getActivity().getString(R.string.text_select_point));
 			return text;
@@ -218,9 +222,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			// at this point we are expected to show point details
 			throw new IllegalArgumentException("Fragment was called without arguments");
 		}
-		if (DEBUG) {
-			Log.d(TAG, "[onCreateView] arguments: " + getArguments().toString());
-		}
+		logd("[onCreateView] arguments: " + getArguments().toString());
 		return layout;
 	}
 
@@ -228,6 +230,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
+		logd("[onActivityCreated] savedInstanceState is null: " + (savedInstanceState == null));
 		String action = getArguments().getString(ExtraKey.ACTION);
 		if (Intent.ACTION_EDIT.equals(action)) {
 			onActionEdit(savedInstanceState);
@@ -244,11 +247,15 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 	public void onSaveInstanceState(final Bundle outState) {
 
 		super.onSaveInstanceState(outState);
+		logd("[onSaveInstanceState]");
 		if (!isEmpty()) {
 			outState.putInt(ExtraKey.PERSON_ID, mPersonId);
 			outState.putInt(ExtraKey.TOPIC_ID, mTopicId);
 			outState.putInt(ExtraKey.POINT_ID, mPointId);
 			outState.putInt(ExtraKey.DESCRIPTION_ID, mDescriptionId);
+			outState.putString(ExtraKey.POINT_NAME, EditTextUtils.toString(mNameEditText, mSavedNameText));
+			outState.putString(ExtraKey.DESCRIPTION_TEXT, EditTextUtils.toString(mDescriptionEditText,
+					mSavedDescriptionText));
 		}
 	}
 
@@ -341,6 +348,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		mPersonId = savedInstanceState.getInt(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
 		mTopicId = savedInstanceState.getInt(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
 		mDescriptionId = savedInstanceState.getInt(ExtraKey.DESCRIPTION_ID, Integer.MIN_VALUE);
+		mSavedDescriptionText = savedInstanceState.getString(ExtraKey.DESCRIPTION_TEXT);
+		mSavedNameText = savedInstanceState.getString(ExtraKey.POINT_NAME);
 	}
 
 	private void setViewsEnabled(final boolean enabled) {
@@ -365,9 +374,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 				throw new IllegalArgumentException("Loader was called without point id");
 			}
 			int myPointId = arguments.getInt(ExtraKey.POINT_ID, Integer.MIN_VALUE);
-			if (DEBUG) {
-				Log.d(TAG, "[onCreateLoader] point id: " + myPointId);
-			}
+			logd("[onCreateLoader] point id: " + myPointId);
 			switch (loaderId) {
 				case POINT_ID: {
 					String where = Points.Columns.ID + "=?";
@@ -402,9 +409,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		@Override
 		public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
 
-			if (DEBUG) {
-				Log.d(TAG, "[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
-			}
+			logd("[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
 			switch (loader.getId()) {
 				case POINT_ID: {
 					if (data.moveToFirst()) {
@@ -423,7 +428,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 							}
 						}
 					} else {
-						Log.w(TAG, "[onLoadFinished] Cant move to first item. LOADER_POINT_ID count was: "
+						logd("[onLoadFinished] Cant move to first item. LOADER_POINT_ID count was: "
 								+ data.getCount());
 					}
 					break;
@@ -440,7 +445,7 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 							}
 						}
 					} else {
-						Log.w(TAG, "[onLoadFinished] LOADER_DESCRIPTION_ID count was: " + data.getCount());
+						logd("[onLoadFinished] LOADER_DESCRIPTION_ID count was: " + data.getCount());
 					}
 					break;
 				default:
@@ -453,6 +458,13 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			Bundle args = new Bundle();
 			args.putInt(ExtraKey.POINT_ID, pointId);
 			getLoaderManager().initLoader(DESCRIPTION_ID, args, this);
+		}
+	}
+
+	private static void logd(final String message) {
+
+		if (DEBUG) {
+			Log.d(TAG, message);
 		}
 	}
 }

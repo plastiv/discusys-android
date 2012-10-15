@@ -4,11 +4,17 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments.AttachmentType;
 import com.slobodastudio.discussions.service.DownloadService;
+import com.slobodastudio.discussions.service.FileDownloader;
 import com.slobodastudio.discussions.service.ServiceExtraKeys;
 import com.slobodastudio.discussions.ui.IntentAction;
+import com.slobodastudio.discussions.ui.IntentHelper;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -24,6 +30,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
+
+import java.util.List;
 
 public class MediaList extends ListView {
 
@@ -91,8 +99,8 @@ public class MediaList extends ListView {
 						fireYoutubeIntent(cursor);
 						break;
 					case AttachmentType.PDF:
-						// firePdfDownloadIntent(cursor);
-						// break;
+						firePdfDownloadIntent(cursor);
+						break;
 					case AttachmentType.GENERAL_WEB_LINK:
 					case AttachmentType.NONE:
 						Log.d(TAG, "[onItemClick] clicked on format: " + attachmentFormat);
@@ -106,13 +114,33 @@ public class MediaList extends ListView {
 
 		private void firePdfDownloadIntent(final Cursor cursor) {
 
-			int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
-			final int valueId = cursor.getInt(idColumn);
-			String pdfUrl = Attachments.getAttachmentDownloadLink(mContext, valueId);
-			Intent intent = new Intent(IntentAction.DOWNLOAD);
-			intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_PDF_FILE);
-			intent.setData(Uri.parse(pdfUrl));
-			mContext.startService(intent);
+			Intent testPdfIntent = IntentHelper.getViewPdfIntent("test.pdf");
+			if (isIntentAvailable(testPdfIntent)) {
+				int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
+				final int valueId = cursor.getInt(idColumn);
+				String pdfUrl = Attachments.getAttachmentDownloadLink(mContext, valueId);
+				Uri uri = Uri.parse(pdfUrl);
+				String fileName = uri.getLastPathSegment();
+				if (FileDownloader.hasFileDownloaded(fileName)) {
+					Intent intent = IntentHelper.getViewPdfIntent(fileName);
+					mContext.startActivity(intent);
+				} else {
+					Intent intent = new Intent(IntentAction.DOWNLOAD);
+					intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_PDF_FILE);
+					intent.setData(Uri.parse(pdfUrl));
+					mContext.startService(intent);
+				}
+			} else {
+				showPdfViewerNeedToBeInstalledDialog();
+			}
+		}
+
+		private boolean isIntentAvailable(final Intent intent) {
+
+			final PackageManager packageManager = mContext.getPackageManager();
+			List<ResolveInfo> list = packageManager.queryIntentActivities(intent,
+					PackageManager.MATCH_DEFAULT_ONLY);
+			return list.size() > 0;
 		}
 
 		private void fireFullImageIntent(final Cursor cursor) {
@@ -129,6 +157,33 @@ public class MediaList extends ListView {
 			final String youtubeLink = cursor.getString(youtubeVideoColumn);
 			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(youtubeLink));
 			mContext.startActivity(intent);
+		}
+
+		private void showPdfViewerNeedToBeInstalledDialog() {
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+			builder.setMessage(R.string.dialog_text_pdf_viewer_need_install_first).setCancelable(true)
+					.setPositiveButton(R.string.button_title_go_to_market,
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(final DialogInterface dialog, final int id) {
+
+									String marketUrl = "market://search?q=pdf+reader&c=apps";
+									Intent market = new Intent(Intent.ACTION_VIEW, Uri.parse(marketUrl));
+									market.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+									mContext.startActivity(market);
+								}
+							}).setNegativeButton(R.string.button_title_cancel,
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(final DialogInterface dialog, final int id) {
+
+									dialog.cancel();
+								}
+							});
+			builder.create().show();
 		}
 	}
 

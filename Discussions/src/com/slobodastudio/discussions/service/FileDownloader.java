@@ -14,16 +14,16 @@ import java.nio.channels.ReadableByteChannel;
 
 public class FileDownloader {
 
-	private final String DIRECTORY = Environment.DIRECTORY_DOWNLOADS;
+	private static final String DIRECTORY = Environment.DIRECTORY_DOWNLOADS;
 
-	private static File createFile(final String fileName) {
+	public static File createFile(final String fileName) {
 
 		// Create a path where we will place our picture in the user's
 		// public pictures directory. Note that you should be careful about
 		// what you place here, since the user often manages these files. For
 		// pictures and other media owned by the application, consider
 		// Context.getExternalMediaDir().
-		File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+		File path = Environment.getExternalStoragePublicDirectory(DIRECTORY);
 		if (path.exists() == false) {
 			path.mkdirs();
 		}
@@ -40,7 +40,7 @@ public class FileDownloader {
 		file.delete();
 	}
 
-	private boolean hasFileDownloaded(final String fileName) {
+	public static boolean hasFileDownloaded(final String fileName) {
 
 		// Create a path where we will place our picture in the user's
 		// public pictures directory and check if the file exists. If

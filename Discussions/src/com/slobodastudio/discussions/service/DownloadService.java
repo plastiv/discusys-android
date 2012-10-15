@@ -18,6 +18,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sessions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Topics;
 import com.slobodastudio.discussions.ui.IntentAction;
+import com.slobodastudio.discussions.ui.IntentHelper;
 import com.slobodastudio.discussions.utils.ConnectivityUtil;
 import com.slobodastudio.discussions.utils.MyLog;
 
@@ -465,5 +466,8 @@ public class DownloadService extends IntentService {
 		String fileName = uri.getLastPathSegment();
 		logd("[dowloadPdfFile] fileName: " + fileName);
 		FileDownloader.downloadFromUrl(pdfUrl, fileName);
+		Intent pdfViewIntent = IntentHelper.getViewPdfIntent(fileName);
+		pdfViewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(pdfViewIntent);
 	}
 }
