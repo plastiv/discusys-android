@@ -3,7 +3,6 @@ package com.slobodastudio.discussions.service;
 import com.slobodastudio.discussions.utils.MyLog;
 
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,7 +26,11 @@ public class FileDownloader {
 		if (path.exists() == false) {
 			path.mkdirs();
 		}
-		return new File(path, fileName);
+		File directory = new File(path, "Discussions");
+		if (directory.exists() == false) {
+			directory.mkdir();
+		}
+		return new File(directory, fileName);
 	}
 
 	private void deleteFile(final String fileName) {
@@ -46,8 +49,7 @@ public class FileDownloader {
 		// public pictures directory and check if the file exists. If
 		// external storage is not currently mounted this will think the
 		// picture doesn't exist.
-		File path = Environment.getExternalStoragePublicDirectory(DIRECTORY);
-		File file = new File(path, fileName);
+		File file = createFile(fileName);
 		return file.exists();
 	}
 
@@ -55,7 +57,6 @@ public class FileDownloader {
 
 		try {
 			URL website = new URL(downloadUrl);
-			Log.d("Downloader", "[DonwloadFile] path: " + website.getPath());
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
 			File file = createFile(fileName);
 			FileOutputStream fos = new FileOutputStream(file);

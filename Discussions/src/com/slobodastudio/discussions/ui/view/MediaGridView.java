@@ -60,8 +60,8 @@ public class MediaGridView extends GridView {
 	public void setAttachmentsAdapter() {
 
 		mAttachmentsAdapter = new SimpleCursorAdapter(mContext, R.layout.grid_item_media, null, new String[] {
-				Attachments.Columns.TITLE, Attachments.Columns.ID }, new int[] { R.id.text_attachment_name,
-				R.id.image_attachment_preview }, 0);
+				Attachments.Columns.TITLE, Attachments.Columns.ID, Attachments.Columns.FORMAT }, new int[] {
+				R.id.text_attachment_name, R.id.image_attachment_preview, R.id.image_attachment_filetype }, 0);
 		mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
 		setAdapter(mAttachmentsAdapter);
 	}
@@ -162,16 +162,16 @@ public class MediaGridView extends GridView {
 				case AttachmentType.JPG:
 				case AttachmentType.PNG:
 				case AttachmentType.BMP:
-					imageView.setImageResource(R.drawable.ic_filetype_image);
+					imageView.setImageResource(R.drawable.ic_filetype_image_white);
 					break;
 				case AttachmentType.PNG_SCREENSHOT:
-					imageView.setImageResource(R.drawable.ic_filetype_screenshot);
+					imageView.setImageResource(R.drawable.ic_filetype_screenshot_white);
 					break;
 				case AttachmentType.YOUTUBE:
-					imageView.setImageResource(R.drawable.ic_filetype_youtube);
+					imageView.setImageResource(R.drawable.ic_filetype_youtube_white);
 					break;
 				case AttachmentType.PDF:
-					imageView.setImageResource(R.drawable.ic_filetype_pdf);
+					imageView.setImageResource(R.drawable.ic_filetype_pdf_white);
 					break;
 				case AttachmentType.GENERAL_WEB_LINK:
 				case AttachmentType.NONE:

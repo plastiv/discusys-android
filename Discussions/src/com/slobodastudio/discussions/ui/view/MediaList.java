@@ -1,15 +1,14 @@
 package com.slobodastudio.discussions.ui.view;
 
+import com.slobodastudio.discussions.ApplicationConstants;
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments.AttachmentType;
-import com.slobodastudio.discussions.service.DownloadService;
 import com.slobodastudio.discussions.service.FileDownloader;
-import com.slobodastudio.discussions.service.ServiceExtraKeys;
-import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.IntentHelper;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,6 +18,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.AttributeSet;
@@ -35,6 +35,7 @@ import java.util.List;
 
 public class MediaList extends ListView {
 
+	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = MediaList.class.getSimpleName();
 	private final ImageLoader imageLoader;
 	private SimpleCursorAdapter mAttachmentsAdapter;
@@ -114,21 +115,21 @@ public class MediaList extends ListView {
 
 		private void firePdfDownloadIntent(final Cursor cursor) {
 
+			logd("[firePdfDownloadIntent]");
 			Intent testPdfIntent = IntentHelper.getViewPdfIntent("test.pdf");
 			if (isIntentAvailable(testPdfIntent)) {
 				int idColumn = cursor.getColumnIndexOrThrow(Attachments.Columns.ID);
 				final int valueId = cursor.getInt(idColumn);
 				String pdfUrl = Attachments.getAttachmentDownloadLink(mContext, valueId);
+				logd("[firePdfDownloadIntent] pdfUrl: " + pdfUrl);
 				Uri uri = Uri.parse(pdfUrl);
-				String fileName = uri.getLastPathSegment();
+				String fileName = Attachments.getPdfAttachmentFileName(uri);
+				logd("[firePdfDownloadIntent] fileName: " + fileName);
 				if (FileDownloader.hasFileDownloaded(fileName)) {
 					Intent intent = IntentHelper.getViewPdfIntent(fileName);
 					mContext.startActivity(intent);
 				} else {
-					Intent intent = new Intent(IntentAction.DOWNLOAD);
-					intent.putExtra(ServiceExtraKeys.TYPE_ID, DownloadService.TYPE_PDF_FILE);
-					intent.setData(Uri.parse(pdfUrl));
-					mContext.startService(intent);
+					new DownloadPdfTask().execute(pdfUrl);
 				}
 			} else {
 				showPdfViewerNeedToBeInstalledDialog();
@@ -283,6 +284,48 @@ public class MediaList extends ListView {
 					imageView.setImageResource(R.drawable.stub);
 					break;
 			}
+		}
+	}
+
+	private class DownloadPdfTask extends AsyncTask<String, Void, Intent> {
+
+		ProgressDialog dialog;
+
+		@Override
+		protected void onPreExecute() {
+
+			super.onPreExecute();
+			dialog = ProgressDialog.show(mContext, "", "Downloading file...", true);
+			dialog.show();
+		}
+
+		@Override
+		protected Intent doInBackground(final String... params) {
+
+			String pdfUrl = params[0];
+			Uri uri = Uri.parse(pdfUrl);
+			logd("[downloadPdfFile] url: " + uri.toString());
+			String fileName = Attachments.getPdfAttachmentFileName(uri);
+			logd("[dowloadPdfFile] fileName: " + fileName);
+			FileDownloader.downloadFromUrl(uri.toString(), fileName);
+			Intent pdfViewIntent = IntentHelper.getViewPdfIntent(fileName);
+			return pdfViewIntent;
+		}
+
+		@Override
+		protected void onPostExecute(final Intent result) {
+
+			super.onPostExecute(result);
+			dialog.dismiss();
+			logd(result.getAction());
+			mContext.startActivity(result);
+		}
+	}
+
+	private static void logd(final String message) {
+
+		if (DEBUG) {
+			Log.d(TAG, message);
 		}
 	}
 }

@@ -7,6 +7,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import java.util.List;
+
 /** Contract class for interacting with {@link DiscussionsProvider}. Unless otherwise noted, all time-based
  * fields are milliseconds since epoch and can be compared against {@link System#currentTimeMillis()}.
  * <p>
@@ -96,6 +98,16 @@ public final class DiscussionsContract {
 			sb.append(id);
 			sb.append(")/$value");
 			return sb.toString();
+		}
+
+		public static String getPdfAttachmentFileName(final Uri uri) {
+
+			List<String> pathSegments = uri.getPathSegments();
+			int size = pathSegments.size();
+			if (size > 2) {
+				return pathSegments.get(size - 2) + ".pdf";
+			}
+			return uri.getEncodedPath() + ".pdf";
 		}
 
 		/** Read {@link Columns#_ID} from this table {@link Uri}.
