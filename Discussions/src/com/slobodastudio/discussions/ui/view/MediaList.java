@@ -33,6 +33,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.List;
 
+@Deprecated
 public class MediaList extends ListView {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;

@@ -1,16 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:layout_height="match_parent" >
 
-    <ListView
-        android:id="@+id/listview_attachments"
+    <TextView
+        android:id="@+id/textAttachmentsHeader"
+        style="@style/ListItemTextSingleLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp"
-        android:transcriptMode="normal" />
+        android:layout_alignParentTop="true" />
 
-</LinearLayout>
+    <Button
+        android:id="@+id/buttonAttachmentsFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="4dip"
+        android:text="@string/button_title_select_attach" />
+
+    <com.slobodastudio.discussions.ui.view.MediaGridView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/gridview"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/buttonAttachmentsFooter"
+        android:layout_below="@id/textAttachmentsHeader"
+        android:columnWidth="140dip"
+        android:gravity="center"
+        android:horizontalSpacing="10dp"
+        android:numColumns="auto_fit"
+        android:padding="10dip"
+        android:stretchMode="spacingWidth"
+        android:verticalSpacing="10dp" />
+
+</RelativeLayout>

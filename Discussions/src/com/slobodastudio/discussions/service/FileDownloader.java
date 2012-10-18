@@ -4,9 +4,14 @@ import com.slobodastudio.discussions.utils.MyLog;
 
 import android.os.Environment;
 
+import com.nostra13.universalimageloader.utils.FileUtils;
+
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -53,7 +58,7 @@ public class FileDownloader {
 		return file.exists();
 	}
 
-	public static void downloadFromUrl(final String downloadUrl, final String fileName) {
+	public static void downloadFromUrlMultiThread(final String downloadUrl, final String fileName) {
 
 		try {
 			URL website = new URL(downloadUrl);
@@ -63,6 +68,33 @@ public class FileDownloader {
 			fos.getChannel().transferFrom(rbc, 0, 1 << 24);
 		} catch (IOException e) {
 			MyLog.e("FileDownloader", "Failed to download file: " + downloadUrl, e);
+		} catch (OutOfMemoryError e) {
+			MyLog.e("FileDownloader", "Failed to download file: " + downloadUrl, new RuntimeException(e));
+		}
+	}
+
+	public static void downloadFromUrl(final String downloadUrl, final String fileName) {
+
+		// If previous compression wasn't needed or failed
+		// Download and save original image
+		try {
+			URL website = new URL(downloadUrl);
+			InputStream is = website.openStream();
+			try {
+				File file = createFile(fileName);
+				OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+				try {
+					FileUtils.copyStream(is, os);
+				} finally {
+					os.close();
+				}
+			} finally {
+				is.close();
+			}
+		} catch (IOException e) {
+			MyLog.e("FileDownloader", "Failed to download file: " + downloadUrl, e);
+		} catch (OutOfMemoryError e) {
+			MyLog.e("FileDownloader", "Failed to download file: " + downloadUrl, new RuntimeException(e));
 		}
 	}
 }

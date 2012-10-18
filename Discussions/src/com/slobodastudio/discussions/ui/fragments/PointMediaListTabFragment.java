@@ -11,7 +11,7 @@ import com.slobodastudio.discussions.ui.ActivityHelper;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 import com.slobodastudio.discussions.ui.activities.YoutubeActivity;
-import com.slobodastudio.discussions.ui.view.MediaGridView;
+import com.slobodastudio.discussions.ui.view.MediaList;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -31,7 +31,6 @@ import android.provider.MediaStore;
 import android.provider.MediaStore.Images.ImageColumns;
 import android.provider.MediaStore.Images.Media;
 import android.provider.MediaStore.MediaColumns;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -57,25 +56,25 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class PointMediaTabFragment extends SherlockFragment implements OnClickListener {
+@Deprecated
+public class PointMediaListTabFragment extends SherlockFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int PICK_CAMERA_PHOTO = 0x03;
 	private static final int PICK_IMAGE_REQUEST = 0x02;
-	private static final int PICK_IMAGE_SEARCH_REQUEST = 0x06;
 	private static final int PICK_PDF_REQUEST = 0x04;
-	private static final int PICK_PDF_SEARCH_REQUEST = 0x07;
+	private static final int PICK_IMAGE_SEARCH_REQUEST = 0x06;
 	private static final int PICK_YOUTUBE_REQUEST = 0x05;
-	private static final String TAG = PointMediaTabFragment.class.getSimpleName();
+	private static final String TAG = PointMediaListTabFragment.class.getSimpleName();
 	private boolean footerButtonsEnabled;
 	private final AttachmentsCursorLoader mAttachmentsCursorLoader;
-	private MediaGridView mediaGrid;
+	private MediaList mediaList;
 	private TextView mPointNameTextView;
 	private SelectedPoint mSelectedPoint;
 	private NewAttachment newAttachment;
 	private Uri tempCameraFileUri;
 
-	public PointMediaTabFragment() {
+	public PointMediaListTabFragment() {
 
 		mAttachmentsCursorLoader = new AttachmentsCursorLoader();
 	}
@@ -128,22 +127,16 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
 			final Bundle savedInstanceState) {
 
-		View rootContainer = inflater.inflate(R.layout.tab_fragment_point_attachments, container, false);
-		mediaGrid = (MediaGridView) rootContainer.findViewById(R.id.gridview);
-		registerForContextMenu(mediaGrid);
-		mPointNameTextView = (TextView) rootContainer.findViewById(R.id.textAttachmentsHeader);
-		mediaGrid.setAdapter(null);
-		// addAttachmentsHeader(inflater);
-		Button attachPdfButton = (Button) rootContainer.findViewById(R.id.buttonAttachmentsFooter);
+		mediaList = (MediaList) inflater.inflate(R.layout.tab_fragment_point_media, container, false);
+		registerForContextMenu(mediaList);
+		mediaList.setAdapter(null);
+		addAttachmentsHeader(inflater);
 		if (footerButtonsEnabled) {
-			attachPdfButton.setOnClickListener(this);
-			// addAttachmentsFooter(inflater);
-		} else {
-			attachPdfButton.setVisibility(View.GONE);
+			addAttachmentsFooter(inflater);
 		}
-		// mediaGrid.setPositionOffset(1);
-		mediaGrid.setAttachmentsAdapter();
-		return rootContainer;
+		mediaList.setPositionOffset(1);
+		mediaList.setAttachmentsAdapter();
+		return mediaList;
 	}
 
 	@Override
@@ -158,7 +151,7 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 
 		super.onCreateContextMenu(menu, v, menuInfo);
 		AdapterContextMenuInfo info = castAdapterContextMenuInfo(menuInfo);
-		Cursor cursor = (Cursor) mediaGrid.getAdapter().getItem(info.position);
+		Cursor cursor = (Cursor) mediaList.getAdapter().getItem(info.position - 1);
 		int textIndex = cursor.getColumnIndexOrThrow(Attachments.Columns.TITLE);
 		menu.setHeaderTitle(cursor.getString(textIndex));
 		android.view.MenuInflater inflater = getActivity().getMenuInflater();
@@ -212,9 +205,6 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 				case PICK_IMAGE_SEARCH_REQUEST:
 					handleImageSearchResult(data);
 					break;
-				case PICK_PDF_SEARCH_REQUEST:
-					handlePdfSearchResult(data);
-					break;
 				default:
 					break;
 			}
@@ -240,16 +230,16 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 
 	private void addAttachmentsFooter(final LayoutInflater layoutInflater) {
 
-		// View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
-		// setSelectAttachClickListener(footerView);
-		// mediaGrid.addFooterView(footerView);
+		View footerView = layoutInflater.inflate(R.layout.layout_media_footer, null, false);
+		setSelectAttachClickListener(footerView);
+		mediaList.addFooterView(footerView);
 	}
 
 	private void addAttachmentsHeader(final LayoutInflater inflater) {
 
-		// View headerView = inflater.inflate(R.layout.list_header_point_name, null, false);
-		// mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
-		// mediaGrid.addHeaderView(headerView);
+		View headerView = inflater.inflate(R.layout.list_header_point_name, null, false);
+		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
+		mediaList.addHeaderView(headerView);
 	}
 
 	private void initAttachmentsLoader() {
@@ -266,20 +256,6 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 		logd("[handleYoutubeResult] data null: " + (uri == null));
 		if ((uri != null)) {
 			newAttachment = new NewAttachment(PICK_YOUTUBE_REQUEST, uri);
-			if (((BaseActivity) getActivity()).isBound()) {
-				onServiceConnected();
-			}
-		} else {
-			newAttachment = null;
-		}
-	}
-
-	private void handlePdfSearchResult(final Intent data) {
-
-		Uri uri = data.getData();
-		logd("[handlePdfSearchResult] data null: " + (uri == null));
-		if ((uri != null)) {
-			newAttachment = new NewAttachment(PICK_PDF_SEARCH_REQUEST, uri);
 			if (((BaseActivity) getActivity()).isBound()) {
 				onServiceConnected();
 			}
@@ -362,7 +338,6 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 		logd("[onServiceConnected] new attachemtn null: " + (newAttachment == null));
 		if (newAttachment != null) {
 			logd("[onServiceConnected] new attachemtn type: " + newAttachment.type);
-			logd("[onServiceConnected] new attachemtn uri: " + newAttachment.uri.toString());
 			switch (newAttachment.type) {
 				case PICK_CAMERA_PHOTO:
 					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.JPG);
@@ -382,8 +357,6 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 					Uri uri = Uri.fromFile(savedFile);
 					onAttachSourceAdded(uri, Attachments.AttachmentType.JPG);
 					break;
-				case PICK_PDF_SEARCH_REQUEST:
-					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.PDF);
 				default:
 					break;
 			}
@@ -419,7 +392,7 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 	private void onActionDeleteAttachment(final MenuItem item) {
 
 		AdapterContextMenuInfo info = castAdapterContextMenuInfo(item.getMenuInfo());
-		Cursor cursor = (Cursor) mediaGrid.getAdapter().getItem(info.position - 1);
+		Cursor cursor = (Cursor) mediaList.getAdapter().getItem(info.position - 1);
 		int columnIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
 		int attachmentId = cursor.getInt(columnIndex);
 		((BaseActivity) getActivity()).getServiceHelper().deleteAttachment(attachmentId, mSelectedPoint);
@@ -432,49 +405,6 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 		attachment.setPointId(mSelectedPoint.getPointId());
 		attachment.setFormat(attachmentType);
 		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mSelectedPoint, uri);
-	}
-
-	@Override
-	public void onClick(final View v) {
-
-		showAddAttachmentSelection();
-	}
-
-	private void showAddAttachmentSelection() {
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setTitle(R.string.dialog_title_attach);
-		builder.setItems(R.array.add_attachemt_types, new DialogInterface.OnClickListener() {
-
-			@Override
-			public void onClick(final DialogInterface dialog, final int item) {
-
-				switch (item) {
-					case 0:
-						requestImageAttachment(getActivity());
-						break;
-					case 1:
-						requestCameraPhoto(getActivity());
-						break;
-					case 2:
-						requestPictureSearchAttachment(getActivity());
-						break;
-					case 3:
-						requestPdfAttachment(getActivity());
-						break;
-					case 4:
-						requestPdfSearchAttachment(getActivity());
-						break;
-					case 5:
-						requestYoutubeAttachment(getActivity());
-						break;
-					default:
-						break;
-				}
-			}
-		});
-		AlertDialog alert = builder.create();
-		alert.show();
 	}
 
 	private void requestCameraPhoto(final Activity activity) {
@@ -529,14 +459,56 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 		}
 	}
 
-	private void requestPdfSearchAttachment(final FragmentActivity activity) {
-
-		ActivityHelper.startSearchPdfActivityForResult(activity, PICK_PDF_SEARCH_REQUEST);
-	}
-
 	private void requestPictureSearchAttachment(final Activity activity) {
 
 		ActivityHelper.startSearchPictureActivityForResult(activity, PICK_IMAGE_SEARCH_REQUEST);
+	}
+
+	private void setSelectAttachClickListener(final View container) {
+
+		Button attachPdfButton = (Button) container.findViewById(R.id.btn_select_attach);
+		attachPdfButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(final View v) {
+
+				showAddAttachmentSelection();
+			}
+		});
+	}
+
+	private void showAddAttachmentSelection() {
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.dialog_title_attach);
+		builder.setItems(R.array.add_attachemt_types, new DialogInterface.OnClickListener() {
+
+			@Override
+			public void onClick(final DialogInterface dialog, final int item) {
+
+				switch (item) {
+					case 0:
+						requestImageAttachment(getActivity());
+						break;
+					case 1:
+						requestCameraPhoto(getActivity());
+						break;
+					case 2:
+						requestPictureSearchAttachment(getActivity());
+						break;
+					case 3:
+						requestPdfAttachment(getActivity());
+						break;
+					case 4:
+						requestYoutubeAttachment(getActivity());
+						break;
+					default:
+						break;
+				}
+			}
+		});
+		AlertDialog alert = builder.create();
+		alert.show();
 	}
 
 	private void showCameraNeedToBeInstalledDialog() {
@@ -629,7 +601,7 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 
 			switch (loader.getId()) {
 				case ATTACHMENTS_ID:
-					mediaGrid.getAdapter().swapCursor(null);
+					mediaList.getAdapter().swapCursor(null);
 					break;
 				case POINT_NAME_ID:
 					mPointNameTextView.setText("");
@@ -645,7 +617,7 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 			logd("[onLoadFinished] cursor count: " + data.getCount() + ", id: " + loader.getId());
 			switch (loader.getId()) {
 				case ATTACHMENTS_ID:
-					mediaGrid.getAdapter().swapCursor(data);
+					mediaList.getAdapter().swapCursor(data);
 					break;
 				case POINT_NAME_ID:
 					if (data.moveToFirst()) {

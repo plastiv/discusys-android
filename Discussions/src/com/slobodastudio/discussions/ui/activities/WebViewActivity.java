@@ -1,14 +1,22 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.utils.MyLog;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
+import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.WebView;
+import android.webkit.WebView.HitTestResult;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -17,11 +25,15 @@ import android.widget.TextView.OnEditorActionListener;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
-public class WebViewActivity extends BaseActivity {
+public class WebViewActivity extends BaseActivity implements OnMenuItemClickListener {
 
+	private static final int ID_SAVE_IMAGE = 0x01;
+	private static final int ID_VIEW_IMAGE = 0x02;
+	private static final int ID_SAVE_LINK = 0x03;
 	private WebView mWebView;
 	private boolean loadingFinished = true;
 	private boolean redirect = false;
+	private String savedUrl = "";
 
 	@Override
 	public void onCreate(final Bundle savedInstanceState) {
@@ -29,6 +41,7 @@ public class WebViewActivity extends BaseActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_webview);
 		mWebView = (WebView) findViewById(R.id.webview);
+		registerForContextMenu(mWebView);
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.getSettings().setBuiltInZoomControls(true);
 		final EditText urlEditText = (EditText) findViewById(R.id.edittext_url);
@@ -60,7 +73,11 @@ public class WebViewActivity extends BaseActivity {
 				}
 				loadingFinished = false;
 				urlEditText.setText(urlNewString);
-				mWebView.loadUrl(urlNewString);
+				if (urlNewString.endsWith(".pdf")) {
+					showSaveConfirmationDialog(urlNewString);
+				} else {
+					mWebView.loadUrl(urlNewString);
+				}
 				return true;
 			}
 
@@ -142,10 +159,57 @@ public class WebViewActivity extends BaseActivity {
 		// TODO: this activity doesn't react with service
 	}
 
+	@Override
+	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+
+		super.onCreateContextMenu(menu, v, menuInfo);
+		HitTestResult result = mWebView.getHitTestResult();
+		if ((result.getType() == HitTestResult.IMAGE_TYPE)
+				|| (result.getType() == HitTestResult.SRC_IMAGE_ANCHOR_TYPE)) {
+			// Menu options for an image.
+			// set the header title to the image url
+			savedUrl = result.getExtra();
+			menu.setHeaderTitle(result.getExtra());
+			menu.add(0, ID_SAVE_IMAGE, 0, "Save Image").setOnMenuItemClickListener(this);
+			menu.add(0, ID_VIEW_IMAGE, 0, "View Image").setOnMenuItemClickListener(this);
+		} else if ((result.getType() == HitTestResult.ANCHOR_TYPE)
+				|| (result.getType() == HitTestResult.SRC_ANCHOR_TYPE)) {
+			// Menu options for a hyperlink.
+			// set the header title to the link url
+			savedUrl = result.getExtra();
+			menu.setHeaderTitle(result.getExtra());
+			menu.add(0, ID_SAVE_LINK, 0, "Save Link").setOnMenuItemClickListener(this);
+		}
+	}
+
+	@Override
+	public boolean onMenuItemClick(final android.view.MenuItem item) {
+
+		switch (item.getItemId()) {
+			case ID_SAVE_IMAGE:
+				onActionSave(savedUrl);
+				return true;
+			case ID_VIEW_IMAGE:
+				mWebView.loadUrl(savedUrl);
+				return true;
+			case ID_SAVE_LINK:
+				onActionSave(savedUrl);
+				return true;
+			default:
+				return false;
+		}
+	}
+
 	private void onActionSave() {
 
+		onActionSave(mWebView.getUrl());
+	}
+
+	private void onActionSave(final String url) {
+
+		MyLog.tempv("[onActionSave] url: " + url);
 		Intent intent = getIntent();
-		Uri uri = Uri.parse(mWebView.getUrl());
+		Uri uri = Uri.parse(url);
 		intent.setData(uri);
 		setMyResult(RESULT_OK, intent);
 		finish();
@@ -158,5 +222,28 @@ public class WebViewActivity extends BaseActivity {
 		} else {
 			getParent().setResult(code, intent);
 		}
+	}
+
+	private void showSaveConfirmationDialog(final String url) {
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Save it?").setMessage(url).setCancelable(true).setPositiveButton(
+				android.R.string.ok, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(final DialogInterface dialog, final int id) {
+
+						onActionSave(url);
+					}
+				}).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+
+			@Override
+			public void onClick(final DialogInterface dialog, final int id) {
+
+				dialog.cancel();
+				mWebView.loadUrl(url);
+			}
+		});
+		builder.create().show();
 	}
 }

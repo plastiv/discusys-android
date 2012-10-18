@@ -34,6 +34,8 @@ import android.util.Log;
 
 import org.odata4j.core.OEntity;
 
+import java.io.File;
+
 /** Background {@link Service} that synchronizes data living in {@link ScheduleProvider}. */
 public class UploadService extends IntentService {
 
@@ -200,7 +202,7 @@ public class UploadService extends IntentService {
 		Uri attachmentUri = getUriFromExtra(intent);
 		int attachmentId;
 		switch (attachment.getFormat()) {
-			case Attachments.AttachmentType.JPG:
+			case Attachments.AttachmentType.JPG: {
 				String scheme = attachmentUri.getScheme();
 				if ("content".equals(scheme)) {
 					attachment.setTitle(MediaStoreHelper.getTitleFromUri(this, attachmentUri));
@@ -210,9 +212,25 @@ public class UploadService extends IntentService {
 				attachmentId = HttpUtil.insertImageAttachment(this, attachmentUri);
 				PhotonHelper.sendStatsEvent(StatsEvent.IMAGE_ADDED, selectedPoint, photonReceiver);
 				break;
+			}
 			case Attachments.AttachmentType.PDF:
-				attachment.setTitle(attachmentUri.getLastPathSegment());
-				attachmentId = HttpUtil.insertPdfAttachment(this, attachmentUri);
+				String pdfFileName = attachmentUri.getLastPathSegment();
+				attachment.setTitle(pdfFileName.replace(".pdf", ""));
+				String scheme = attachmentUri.getScheme();
+				logd("[insertAttachment] pdf uri: " + attachmentUri.toString());
+				Uri pdfUploadUri;
+				if ("http".equals(scheme)) {
+					String fileName = Attachments.getPdfAttachmentFileName(attachmentUri);
+					FileDownloader.downloadFromUrl(attachmentUri.toString(), fileName);
+					File file = FileDownloader.createFile(fileName);
+					pdfUploadUri = Uri.fromFile(file);
+				} else if ("file".equals(scheme)) {
+					pdfUploadUri = attachmentUri;
+				} else {
+					pdfUploadUri = null;
+				}
+				logd("[insertAttachment] upload pdf uri: " + pdfUploadUri.toString());
+				attachmentId = HttpUtil.insertPdfAttachment(this, pdfUploadUri);
 				PhotonHelper.sendStatsEvent(StatsEvent.PDF_ADDED, selectedPoint, photonReceiver);
 				break;
 			case Attachments.AttachmentType.YOUTUBE:
