@@ -9,7 +9,6 @@ import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointDescriptionTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointMediaTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointSourcesTabFragment;
-import com.slobodastudio.discussions.utils.MyLog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -85,7 +84,6 @@ public class PointDetailsActivity extends BaseActivity {
 	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		PointDescriptionTabFragment descriptionTabFragment;
-		MyLog.tempv("[onOptionsItemSelected] mtabsAdapter null " + (mTabsAdapter == null));
 		if (mTabsAdapter == null) {
 			descriptionTabFragment = (PointDescriptionTabFragment) getSupportFragmentManager()
 					.findFragmentByTag(FragmentTag.POINT_DESCRIPTION);
@@ -121,12 +119,10 @@ public class PointDetailsActivity extends BaseActivity {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode == Activity.RESULT_OK) {
 			Fragment sourceTabFragment = getFragment(SOURCE_TAB_POSITION);
-			Log.d(TAG, "[onActivityResult] source tab fragment not null " + (sourceTabFragment != null));
 			if ((sourceTabFragment != null)) {
 				sourceTabFragment.onActivityResult(requestCode, resultCode, data);
 			}
 			Fragment mediaTabFragment = getFragment(MEDIA_TAB_POSITION);
-			Log.d(TAG, "[onActivityResult] media tab fragment not null " + (mediaTabFragment != null));
 			if ((mediaTabFragment != null)) {
 				mediaTabFragment.onActivityResult(requestCode, resultCode, data);
 			}
@@ -159,7 +155,6 @@ public class PointDetailsActivity extends BaseActivity {
 			@Override
 			public void onPageSelected(final int position) {
 
-				Log.d(TAG, "[onPageSelected] position: " + position);
 				// When swiping between pages, select the
 				// corresponding tab.
 				getSupportActionBar().setSelectedNavigationItem(position);
@@ -288,7 +283,6 @@ public class PointDetailsActivity extends BaseActivity {
 
 		ActionBar bar = getSupportActionBar();
 		bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		// bar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_TITLE);
 		bar.setDisplayHomeAsUpEnabled(true);
 		if (isLandscape()) {
 			if (isScreenSizeNormal() || isScreenSizeSmall()) {

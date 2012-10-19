@@ -3,3 +3,4 @@ Photon
 Odata4j
 BugSense
 ActionBarSherlock
+UniversalImageLoader

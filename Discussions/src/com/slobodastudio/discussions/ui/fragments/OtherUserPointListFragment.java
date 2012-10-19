@@ -6,7 +6,6 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -16,7 +15,6 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -28,11 +26,10 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = OtherUserPointListFragment.class.getSimpleName();
+	private SimpleCursorAdapter mOtherPointsAdapter;
 	private int mDiscussionId;
 	private int mOriginPersonId;
-	private SimpleCursorAdapter mOtherPointsAdapter;
 	private int mPersonId;
-	private TextView mPointListTitleTextView;
 	private int mTopicId;
 
 	@Override
@@ -40,8 +37,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 
 		super.onActivityCreated(savedInstanceState);
 		initFromIntentExtra();
-		// setListAdapter(null);
-		// addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
 		mOtherPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_point, null,
 				new String[] { Points.Columns.NAME, Persons.Columns.COLOR, Points.Columns.ORDER_NUMBER },
@@ -74,8 +69,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 		// Prepare the loader. Either re-connect with an existing one, or start a new one.
 		getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_OTHER_POINTS_ID, null,
 				new OtherUserPointsCursorLoader());
-		// getLoaderManager().initLoader(OtherUserPointsCursorLoader.LOADER_PERSON_ID, null,
-		// new OtherUserPointsCursorLoader());
 	}
 
 	@Override
@@ -83,27 +76,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 
 		super.onListItemClick(l, v, position, id);
 		onActionView(position);
-	}
-
-	private void addListHeader() {
-
-		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE);
-		View headerView = layoutInflater.inflate(R.layout.view_point_list_header, null, false);
-		mPointListTitleTextView = (TextView) headerView.findViewById(R.id.points_listview_header);
-		mPointListTitleTextView.setText(R.string.text_other_users_points);
-		getListView().addHeaderView(headerView);
-	}
-
-	private Intent createViewPointIntent(final int pointId) {
-
-		Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(pointId));
-		intent.putExtra(ExtraKey.POINT_ID, pointId);
-		intent.putExtra(ExtraKey.ORIGIN_PERSON_ID, mOriginPersonId);
-		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
-		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
-		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
-		return intent;
 	}
 
 	private void initFromIntentExtra() {
@@ -144,10 +116,20 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 		}
 	}
 
+	private Intent createViewPointIntent(final int pointId) {
+
+		Intent intent = new Intent(Intent.ACTION_VIEW, Points.buildTableUri(pointId));
+		intent.putExtra(ExtraKey.POINT_ID, pointId);
+		intent.putExtra(ExtraKey.ORIGIN_PERSON_ID, mOriginPersonId);
+		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
+		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
+		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
+		return intent;
+	}
+
 	private class OtherUserPointsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
 		private static final int LOADER_OTHER_POINTS_ID = 1;
-		private static final int LOADER_PERSON_ID = 2;
 
 		@Override
 		public Loader<Cursor> onCreateLoader(final int id, final Bundle arguments) {
@@ -161,10 +143,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 					return new CursorLoader(getActivity(), Points.CONTENT_AND_PERSON_URI, null, where, args,
 							sortOrder);
 				}
-				case LOADER_PERSON_ID: {
-					return new CursorLoader(getActivity(), Persons.buildTableUri(mPersonId), null, null,
-							null, null);
-				}
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + id);
 			}
@@ -177,9 +155,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 				case LOADER_OTHER_POINTS_ID:
 					mOtherPointsAdapter.swapCursor(null);
 					break;
-				case LOADER_PERSON_ID:
-					mPointListTitleTextView.setText(R.string.text_other_users_points);
-					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());
 			}
@@ -191,14 +166,6 @@ public class OtherUserPointListFragment extends SherlockListFragment {
 			switch (loader.getId()) {
 				case LOADER_OTHER_POINTS_ID:
 					mOtherPointsAdapter.swapCursor(data);
-					break;
-				case LOADER_PERSON_ID:
-					if (data.moveToFirst()) {
-						int nameIndex = data.getColumnIndexOrThrow(Persons.Columns.NAME);
-						String name = data.getString(nameIndex);
-						mPointListTitleTextView.setText(getString(R.string.text_other_users_points_format,
-								name));
-					}
 					break;
 				default:
 					throw new IllegalArgumentException("Unknown loader id: " + loader.getId());

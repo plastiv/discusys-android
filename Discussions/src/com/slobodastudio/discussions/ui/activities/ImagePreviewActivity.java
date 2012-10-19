@@ -1,11 +1,14 @@
 package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
+import com.slobodastudio.discussions.data.model.SelectedPoint;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
+import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.view.TouchImageView;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -16,18 +19,24 @@ import android.widget.Toast;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
 
 public class ImagePreviewActivity extends BaseActivity {
 
 	private static final String EXTRA_URI = "EXTRA_URI";
 	private ImageLoader imageLoader;
 	private TouchImageView imageView;
+	private SelectedPoint mSelectedPoint;
+	private int mAttachmentId;
 
 	@Override
 	public boolean onCreateOptionsMenu(final com.actionbarsherlock.view.Menu menu) {
 
-		MenuInflater menuInflater = getSupportMenuInflater();
-		menuInflater.inflate(R.menu.actionbar_image_preview, menu);
+		if (Intent.ACTION_EDIT.equals(getIntent().getAction())) {
+			MenuInflater menuInflater = getSupportMenuInflater();
+			menuInflater.inflate(R.menu.actionbar_image_preview, menu);
+		}
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -39,7 +48,7 @@ public class ImagePreviewActivity extends BaseActivity {
 				finish();
 				return true;
 			case R.id.menu_delete:
-				Toast.makeText(this, "Not implemented yet", Toast.LENGTH_SHORT).show();
+				getServiceHelper().deleteAttachment(mAttachmentId, mSelectedPoint);
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -59,13 +68,41 @@ public class ImagePreviewActivity extends BaseActivity {
 		setContentView(R.layout.activity_image_preview);
 		imageView = (TouchImageView) findViewById(R.id.iv_full_image);
 		imageLoader = ImageLoader.getInstance();
-		if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
-			String attachmentId = Attachments.getValueId(getIntent().getData());
-			String uriString = Attachments.getAttachmentDownloadLink(this, attachmentId);
-			imageLoader.displayImage(uriString, imageView);
-			startAttachmentImageLoader();
+		if (Intent.ACTION_EDIT.equals(getIntent().getAction())) {
+			mSelectedPoint = getIntent().getParcelableExtra(ExtraKey.SELECTED_POINT);
 		}
 		getSupportActionBar().setDisplayShowHomeEnabled(false);
+		startAttachmentImageLoader();
+		String attachmentId = Attachments.getValueId(getIntent().getData());
+		mAttachmentId = Integer.parseInt(attachmentId);
+		String uriString = Attachments.getAttachmentDownloadLink(this, attachmentId);
+		imageLoader.displayImage(uriString, imageView, new ImageLoadingListener() {
+
+			@Override
+			public void onLoadingStarted() {
+
+				// TODO Auto-generated method stub
+			}
+
+			@Override
+			public void onLoadingFailed(final FailReason failReason) {
+
+				Toast.makeText(ImagePreviewActivity.this, "Failed to load image: " + failReason.name(),
+						Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void onLoadingComplete(final Bitmap loadedImage) {
+
+				// TODO Auto-generated method stub
+			}
+
+			@Override
+			public void onLoadingCancelled() {
+
+				// TODO Auto-generated method stub
+			}
+		});
 	}
 
 	private void startAttachmentImageLoader() {

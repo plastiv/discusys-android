@@ -22,7 +22,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -48,9 +47,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -293,43 +289,49 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 		final Uri uri = intent.getData();
 		logd("[handleImageSearchResult] data null: " + (uri == null));
 		if (uri != null) {
-			newAttachment = null;
-			ImageLoader imageLoader = ImageLoader.getInstance();
-			logd("[handleImageSearchResult] uri: " + intent.getDataString());
-			imageLoader.loadImage(getActivity(), uri.toString(), new ImageLoadingListener() {
-
-				@Override
-				public void onLoadingComplete(final Bitmap loadedImage) {
-
-					logd("[handleImageSearchResult] loading complete");
-					getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
-					newAttachment = new NewAttachment(PICK_IMAGE_SEARCH_REQUEST, uri);
-					if (((BaseActivity) getActivity()).isBound()) {
-						onServiceConnected();
-					}
-				}
-
-				@Override
-				public void onLoadingStarted() {
-
-					logd("[handleImageSearchResult] onLoadingStarted");
-					getSherlockActivity().setSupportProgressBarIndeterminateVisibility(true);
-				}
-
-				@Override
-				public void onLoadingFailed(final FailReason failReason) {
-
-					getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
-					logd("[handleImageSearchResult] onLoadingFailed: " + failReason.name());
-				}
-
-				@Override
-				public void onLoadingCancelled() {
-
-					getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
-					logd("[handleImageSearchResult] onLoadingCancelled");
-				}
-			});
+			newAttachment = new NewAttachment(PICK_IMAGE_SEARCH_REQUEST, uri);
+			if (((BaseActivity) getActivity()).isBound()) {
+				onServiceConnected();
+			}
+			// newAttachment = null;
+			// ImageLoader imageLoader = ImageLoader.getInstance();
+			// logd("[handleImageSearchResult] uri: " + intent.getDataString());
+			// imageLoader.loadImage(getActivity(), uri.toString(), new ImageLoadingListener() {
+			//
+			// @Override
+			// public void onLoadingComplete(final Bitmap loadedImage) {
+			//
+			// logd("[handleImageSearchResult] loading complete");
+			// getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
+			// newAttachment = new NewAttachment(PICK_IMAGE_SEARCH_REQUEST, uri);
+			// if (((BaseActivity) getActivity()).isBound()) {
+			// onServiceConnected();
+			// }
+			// }
+			//
+			// @Override
+			// public void onLoadingStarted() {
+			//
+			// logd("[handleImageSearchResult] onLoadingStarted");
+			// getSherlockActivity().setSupportProgressBarIndeterminateVisibility(true);
+			// }
+			//
+			// @Override
+			// public void onLoadingFailed(final FailReason failReason) {
+			//
+			// getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
+			// logd("[handleImageSearchResult] onLoadingFailed: " + failReason.name());
+			// Toast.makeText(getActivity(), "Picture download failed: " + failReason.name(),
+			// Toast.LENGTH_SHORT).show();
+			// }
+			//
+			// @Override
+			// public void onLoadingCancelled() {
+			//
+			// getSherlockActivity().setSupportProgressBarIndeterminateVisibility(false);
+			// logd("[handleImageSearchResult] onLoadingCancelled");
+			// }
+			// });
 		} else {
 			newAttachment = null;
 		}
@@ -378,12 +380,15 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 					break;
 				case PICK_IMAGE_SEARCH_REQUEST:
 					Uri originalUri = newAttachment.uri;
-					File savedFile = ImageLoader.getInstance().getDiscCache().get(originalUri.toString());
-					Uri uri = Uri.fromFile(savedFile);
-					onAttachSourceAdded(uri, Attachments.AttachmentType.JPG);
+					String fileName = originalUri.getLastPathSegment();
+					String title = fileName.replace(".jpg", "");
+					// File savedFile = ImageLoader.getInstance().getDiscCache().get(originalUri.toString());
+					// Uri uri = Uri.fromFile(savedFile);
+					onAttachSourceAdded(originalUri, Attachments.AttachmentType.JPG, title);
 					break;
 				case PICK_PDF_SEARCH_REQUEST:
 					onAttachSourceAdded(newAttachment.uri, Attachments.AttachmentType.PDF);
+					break;
 				default:
 					break;
 			}
@@ -419,7 +424,7 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 	private void onActionDeleteAttachment(final MenuItem item) {
 
 		AdapterContextMenuInfo info = castAdapterContextMenuInfo(item.getMenuInfo());
-		Cursor cursor = (Cursor) mediaGrid.getAdapter().getItem(info.position - 1);
+		Cursor cursor = (Cursor) mediaGrid.getAdapter().getItem(info.position);
 		int columnIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
 		int attachmentId = cursor.getInt(columnIndex);
 		((BaseActivity) getActivity()).getServiceHelper().deleteAttachment(attachmentId, mSelectedPoint);
@@ -427,9 +432,15 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 
 	private void onAttachSourceAdded(final Uri uri, final int attachmentType) {
 
+		onAttachSourceAdded(uri, attachmentType, "");
+	}
+
+	private void onAttachSourceAdded(final Uri uri, final int attachmentType, final String title) {
+
 		Attachment attachment = new Attachment();
 		attachment.setPersonId(mSelectedPoint.getPersonId());
 		attachment.setPointId(mSelectedPoint.getPointId());
+		attachment.setTitle(title);
 		attachment.setFormat(attachmentType);
 		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mSelectedPoint, uri);
 	}

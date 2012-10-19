@@ -5,7 +5,6 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -15,7 +14,6 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -27,19 +25,16 @@ public class UserPointListFragment extends SherlockListFragment {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = UserPointListFragment.class.getSimpleName();
-	private View headerView;
+	private SimpleCursorAdapter mUserPointsAdapter;
 	private int mDiscussionId;
 	private int mPersonId;
 	private int mTopicId;
-	private SimpleCursorAdapter mUserPointsAdapter;
 
 	@Override
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
 		initFromIntentExtra();
-		// setListAdapter(null);
-		// addListHeader();
 		// Create an empty adapter we will use to display the loaded data.
 		mUserPointsAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_point, null,
 				new String[] { Points.Columns.NAME, Points.Columns.ID, Points.Columns.ORDER_NUMBER },
@@ -82,26 +77,6 @@ public class UserPointListFragment extends SherlockListFragment {
 		onActionEdit(position);
 	}
 
-	private void addListHeader() {
-
-		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE);
-		headerView = layoutInflater.inflate(R.layout.view_point_list_header, null, false);
-		TextView mPointListTitleTextView = (TextView) headerView.findViewById(R.id.points_listview_header);
-		mPointListTitleTextView.setText(R.string.text_current_user_points);
-		getListView().addHeaderView(headerView);
-	}
-
-	private Intent createEditPointIntent(final int pointId) {
-
-		Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(pointId));
-		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
-		intent.putExtra(ExtraKey.POINT_ID, pointId);
-		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
-		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
-		return intent;
-	}
-
 	private void initFromIntentExtra() {
 
 		if (!getActivity().getIntent().hasExtra(ExtraKey.PERSON_ID)) {
@@ -132,9 +107,19 @@ public class UserPointListFragment extends SherlockListFragment {
 		}
 	}
 
+	private Intent createEditPointIntent(final int pointId) {
+
+		Intent intent = new Intent(Intent.ACTION_EDIT, Points.buildTableUri(pointId));
+		intent.putExtra(ExtraKey.DISCUSSION_ID, mDiscussionId);
+		intent.putExtra(ExtraKey.POINT_ID, pointId);
+		intent.putExtra(ExtraKey.PERSON_ID, mPersonId);
+		intent.putExtra(ExtraKey.TOPIC_ID, mTopicId);
+		return intent;
+	}
+
 	private class UserPointsCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
-		private static final int LOADER_USER_POINTS_ID = 0;
+		private static final int LOADER_USER_POINTS_ID = 0x05;
 
 		@Override
 		public Loader<Cursor> onCreateLoader(final int id, final Bundle arguments) {

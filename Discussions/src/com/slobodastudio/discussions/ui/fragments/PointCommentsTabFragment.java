@@ -8,8 +8,8 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
+import com.slobodastudio.discussions.utils.EditTextUtils;
 
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -32,25 +32,24 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
-public class PointCommentsTabFragment extends SherlockFragment {
+public class PointCommentsTabFragment extends SherlockFragment implements OnClickListener,
+		OnItemClickListener {
 
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = PointCommentsTabFragment.class.getSimpleName();
-	private EditText mCommentEditText;
-	private SimpleCursorAdapter mCommentsAdapter;
-	private ListView mCommentsList;
-	private int mLoggedInPersonId;
-	private final PointCursorLoader mPointCursorLoader;
 	private TextView mPointNameTextView;
+	private EditText mCommentEditText;
+	private ListView mCommentsList;
+	private SimpleCursorAdapter mCommentsAdapter;
+	private final PointCursorLoader mPointCursorLoader;
+	private int mLoggedInPersonId;
 	private SelectedPoint mSelectedPoint;
 
 	public PointCommentsTabFragment() {
@@ -59,53 +58,47 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		mPointCursorLoader = new PointCursorLoader();
 	}
 
-	/** Converts an intent into a {@link Bundle} suitable for use as fragment arguments. */
-	public static Bundle intentToFragmentArguments(final Intent intent) {
+	@Override
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+			final Bundle savedInstanceState) {
 
-		Bundle arguments = new Bundle();
-		if (intent == null) {
-			return arguments;
-		}
-		if (!intent.hasExtra(ExtraKey.DISCUSSION_ID)) {
-			throw new IllegalStateException("intent was without discussion id");
-		}
-		if (!intent.hasExtra(ExtraKey.POINT_ID)) {
-			throw new IllegalStateException("intent was without point id");
-		}
-		if (!intent.hasExtra(ExtraKey.PERSON_ID)) {
-			throw new IllegalStateException("intent was without person id");
-		}
-		if (!intent.hasExtra(ExtraKey.TOPIC_ID)) {
-			throw new IllegalStateException("intent was without topic id");
-		}
-		int discussionId = intent.getIntExtra(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
-		int personId = intent.getIntExtra(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
-		int topicId = intent.getIntExtra(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
-		int pointId = intent.getIntExtra(ExtraKey.POINT_ID, Integer.MIN_VALUE);
-		SelectedPoint point = new SelectedPoint();
-		point.setDiscussionId(discussionId);
-		point.setPersonId(personId);
-		point.setTopicId(topicId);
-		point.setPointId(pointId);
-		arguments.putParcelable(ExtraKey.SELECTED_POINT, point);
-		int loggedInPersonId;
-		if (intent.hasExtra(ExtraKey.ORIGIN_PERSON_ID)) {
-			loggedInPersonId = intent.getIntExtra(ExtraKey.ORIGIN_PERSON_ID, Integer.MIN_VALUE);
-		} else {
-			loggedInPersonId = personId;
-		}
-		arguments.putInt(ExtraKey.ORIGIN_PERSON_ID, loggedInPersonId);
-		return arguments;
+		mCommentsList = (ListView) inflater.inflate(R.layout.tab_fragment_point_comments, container, false);
+		mCommentsList.setOnItemClickListener(this);
+		registerForContextMenu(mCommentsList);
+		addCommentsHeader(inflater);
+		addCommentsFooter(inflater);
+		initFromArguments();
+		return mCommentsList;
 	}
 
-	private static AdapterContextMenuInfo castAdapterContextMenuInfo(final ContextMenuInfo contextMenuInfo) {
+	@Override
+	public void onActivityCreated(final Bundle savedInstanceState) {
 
-		try {
-			// Casts the incoming data object into the type for AdapterView objects.
-			return (AdapterContextMenuInfo) contextMenuInfo;
-		} catch (ClassCastException e) {
-			// If the menu object can't be cast, logs an error.
-			throw new RuntimeException("bad menuInfo: " + contextMenuInfo, e);
+		super.onActivityCreated(savedInstanceState);
+		populateSavedInstanceState(savedInstanceState);
+		setUpCommentsAdapter();
+		initCommentsLoader();
+	}
+
+	@Override
+	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+
+		super.onCreateContextMenu(menu, v, menuInfo);
+		if (mCommentsAdapter.getCount() > 0) {
+			AdapterContextMenuInfo info = castAdapterContextMenuInfo(menuInfo);
+			Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position - 1);
+			if (cursor == null) {
+				// For some reason the requested item isn't available, do nothing
+				return;
+			}
+			int textIndex = cursor.getColumnIndexOrThrow(Comments.Columns.TEXT);
+			int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
+			int personId = cursor.getInt(personIdIndex);
+			if (personId == mLoggedInPersonId) {
+				menu.setHeaderTitle(cursor.getString(textIndex)); // if your table name is name
+				android.view.MenuInflater inflater = getActivity().getMenuInflater();
+				inflater.inflate(R.menu.context_comments, menu);
+			}
 		}
 	}
 
@@ -122,92 +115,48 @@ public class PointCommentsTabFragment extends SherlockFragment {
 	}
 
 	@Override
-	public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+	public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
 
-		super.onCreateContextMenu(menu, v, menuInfo);
-		AdapterContextMenuInfo info = castAdapterContextMenuInfo(menuInfo);
-		Cursor cursor = (Cursor) mCommentsAdapter.getItem(info.position - 1);
-		if (cursor == null) {
-			// For some reason the requested item isn't available, do nothing
-			return;
-		}
-		int textIndex = cursor.getColumnIndexOrThrow(Comments.Columns.TEXT);
-		int personIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.PERSON_ID);
-		int personId = cursor.getInt(personIdIndex);
-		if (personId == mLoggedInPersonId) {
-			menu.setHeaderTitle(cursor.getString(textIndex)); // if your table name is name
-			android.view.MenuInflater inflater = getActivity().getMenuInflater();
-			inflater.inflate(R.menu.context_comments, menu);
-		}
+		Cursor cursor = (Cursor) mCommentsAdapter.getItem(position - 1);
+		int commentIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
+		int commentId = cursor.getInt(commentIdIndex);
+		Uri commentUri = Comments.buildTableUri(commentId);
+		Intent commentIntent = new Intent(Intent.ACTION_VIEW, commentUri);
+		startActivity(commentIntent);
 	}
 
 	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-			final Bundle savedInstanceState) {
+	public void onClick(final View v) {
 
-		mCommentsList = (ListView) inflater.inflate(R.layout.tab_fragment_point_comments, container, false);
-		mCommentsList.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(final AdapterView<?> parent, final View view, final int position,
-					final long id) {
-
-				Cursor cursor = (Cursor) mCommentsAdapter.getItem(position - 1);
-				int commentIdIndex = cursor.getColumnIndexOrThrow(Comments.Columns.ID);
-				int commentId = cursor.getInt(commentIdIndex);
-				Uri commentUri = Comments.buildTableUri(commentId);
-				Intent commentIntent = new Intent(Intent.ACTION_VIEW, commentUri);
-				startActivity(commentIntent);
-			}
-		});
-		registerForContextMenu(mCommentsList);
-		addCommentsHeader();
-		addCommentsFooter();
-		setUpCommentsAdapter();
-		initFromArguments();
-		initCommentsLoader();
-		return mCommentsList;
-	}
-
-	@Override
-	public void onActivityCreated(final Bundle savedInstanceState) {
-
-		super.onActivityCreated(savedInstanceState);
-		populateSavedInstanceState(savedInstanceState);
-	}
-
-	private void addCommentsFooter() {
-
-		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE);
-		LinearLayout addCommentLayout = (LinearLayout) layoutInflater.inflate(
-				R.layout.layout_comments_footer, null, false);
-		mCommentsList.addFooterView(addCommentLayout, null, false);
-		Button addCommentButton = (Button) addCommentLayout.findViewById(R.id.btn_add_comment);
-		mCommentEditText = (EditText) addCommentLayout.findViewById(R.id.et_point_comment);
-		addCommentButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(final View v) {
-
-				String comment = mCommentEditText.getText().toString();
-				if (TextUtils.isEmpty(comment)) {
-					// TODO: make disabled comment button when edit text is empty
-					return;
-				}
+		if (v.getId() == R.id.btn_add_comment) {
+			String comment = EditTextUtils.toString(mCommentEditText);
+			if (!TextUtils.isEmpty(comment)) {
 				mCommentEditText.setText("");
 				insertComment(comment);
 			}
-		});
+		}
 	}
 
-	private void addCommentsHeader() {
+	@Override
+	public void onSaveInstanceState(final Bundle outState) {
 
-		LayoutInflater layoutInflater = (LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE);
+		super.onSaveInstanceState(outState);
+		outState.putString(ExtraKey.COMMENT_TEXT, EditTextUtils.toString(mCommentEditText));
+	}
+
+	private void addCommentsHeader(final LayoutInflater layoutInflater) {
+
 		View headerView = layoutInflater.inflate(R.layout.list_header_point_name, null, false);
 		mPointNameTextView = (TextView) headerView.findViewById(R.id.list_header_point_name);
 		mCommentsList.addHeaderView(headerView, null, false);
+	}
+
+	private void addCommentsFooter(final LayoutInflater layoutInflater) {
+
+		View containerLayout = layoutInflater.inflate(R.layout.layout_comments_footer, null, false);
+		mCommentsList.addFooterView(containerLayout, null, false);
+		mCommentEditText = (EditText) containerLayout.findViewById(R.id.et_point_comment);
+		containerLayout.findViewById(R.id.btn_add_comment).setOnClickListener(this);
 	}
 
 	private void initCommentsLoader() {
@@ -232,23 +181,6 @@ public class PointCommentsTabFragment extends SherlockFragment {
 		}
 		mSelectedPoint = arguments.getParcelable(ExtraKey.SELECTED_POINT);
 		mLoggedInPersonId = arguments.getInt(ExtraKey.ORIGIN_PERSON_ID, Integer.MIN_VALUE);
-	}
-
-	@Override
-	public void onSaveInstanceState(final Bundle outState) {
-
-		super.onSaveInstanceState(outState);
-		outState.putString(ExtraKey.COMMENT_TEXT, getCommentText());
-	}
-
-	private String getCommentText() {
-
-		if (mCommentEditText != null) {
-			if (mCommentEditText.getText() != null) {
-				return mCommentEditText.getText().toString();
-			}
-		}
-		return "";
 	}
 
 	private void populateSavedInstanceState(final Bundle savedInstanceState) {
@@ -305,12 +237,61 @@ public class PointCommentsTabFragment extends SherlockFragment {
 						itemName.setText(cursor.getString(columnIndex));
 						return true;
 					default:
-						// TODO: throw exception
 						return false;
 				}
 			}
 		});
 		mCommentsList.setAdapter(mCommentsAdapter);
+	}
+
+	/** Converts an intent into a {@link Bundle} suitable for use as fragment arguments. */
+	public static Bundle intentToFragmentArguments(final Intent intent) {
+
+		Bundle arguments = new Bundle();
+		if (intent == null) {
+			return arguments;
+		}
+		if (!intent.hasExtra(ExtraKey.DISCUSSION_ID)) {
+			throw new IllegalStateException("intent was without discussion id");
+		}
+		if (!intent.hasExtra(ExtraKey.POINT_ID)) {
+			throw new IllegalStateException("intent was without point id");
+		}
+		if (!intent.hasExtra(ExtraKey.PERSON_ID)) {
+			throw new IllegalStateException("intent was without person id");
+		}
+		if (!intent.hasExtra(ExtraKey.TOPIC_ID)) {
+			throw new IllegalStateException("intent was without topic id");
+		}
+		int discussionId = intent.getIntExtra(ExtraKey.DISCUSSION_ID, Integer.MIN_VALUE);
+		int personId = intent.getIntExtra(ExtraKey.PERSON_ID, Integer.MIN_VALUE);
+		int topicId = intent.getIntExtra(ExtraKey.TOPIC_ID, Integer.MIN_VALUE);
+		int pointId = intent.getIntExtra(ExtraKey.POINT_ID, Integer.MIN_VALUE);
+		SelectedPoint point = new SelectedPoint();
+		point.setDiscussionId(discussionId);
+		point.setPersonId(personId);
+		point.setTopicId(topicId);
+		point.setPointId(pointId);
+		arguments.putParcelable(ExtraKey.SELECTED_POINT, point);
+		int loggedInPersonId;
+		if (intent.hasExtra(ExtraKey.ORIGIN_PERSON_ID)) {
+			loggedInPersonId = intent.getIntExtra(ExtraKey.ORIGIN_PERSON_ID, Integer.MIN_VALUE);
+		} else {
+			loggedInPersonId = personId;
+		}
+		arguments.putInt(ExtraKey.ORIGIN_PERSON_ID, loggedInPersonId);
+		return arguments;
+	}
+
+	private static AdapterContextMenuInfo castAdapterContextMenuInfo(final ContextMenuInfo contextMenuInfo) {
+
+		try {
+			// Casts the incoming data object into the type for AdapterView objects.
+			return (AdapterContextMenuInfo) contextMenuInfo;
+		} catch (ClassCastException e) {
+			// If the menu object can't be cast, logs an error.
+			throw new RuntimeException("bad menuInfo: " + contextMenuInfo, e);
+		}
 	}
 
 	private class PointCursorLoader implements LoaderManager.LoaderCallbacks<Cursor> {
