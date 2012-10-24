@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.OperationApplicationException;
 import android.net.Uri;
 import android.os.RemoteException;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.core4j.Enumerable;
@@ -122,12 +123,14 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 
 		logd("[refreshAttachments]");
 		deleteAllValues(Attachments.CONTENT_URI);
-		Enumerable<OEntity> attachments = getAttachmentsEntitiesFromPerson(personSelection,
-				discussionSelection);
-		for (OEntity attachment : attachments) {
-			insertAttachment(attachment);
+		if (!TextUtils.isEmpty(personSelection)) {
+			Enumerable<OEntity> attachments = getAttachmentsEntitiesFromPerson(personSelection,
+					discussionSelection);
+			for (OEntity attachment : attachments) {
+				insertAttachment(attachment);
+			}
+			logd("[refreshAttachments] attachments was inserted: " + attachments.count());
 		}
-		logd("[refreshAttachments] attachments was inserted: " + attachments.count());
 	}
 
 	public void refreshComments() {
@@ -150,11 +153,13 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 
 		logd("[refreshComments]");
 		deleteAllValues(Comments.CONTENT_URI);
-		Enumerable<OEntity> comments = getCommentsEntitiesFromPerson(selection);
-		for (OEntity comment : comments) {
-			insertComment(comment);
+		if (!TextUtils.isEmpty(selection)) {
+			Enumerable<OEntity> comments = getCommentsEntitiesFromPerson(selection);
+			for (OEntity comment : comments) {
+				insertComment(comment);
+			}
+			logd("[refreshComments] comments was inserted: " + comments.count());
 		}
-		logd("[refreshComments] comments was inserted: " + comments.count());
 	}
 
 	public void refreshDescriptions() {
@@ -221,11 +226,13 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 
 		logd("[refreshPoints]");
 		deleteAllValues(Points.CONTENT_URI);
-		Enumerable<OEntity> points = getPointsEntitiesFromPerson(selection);
-		for (OEntity point : points) {
-			insertPoint(point);
+		if (!TextUtils.isEmpty(selection)) {
+			Enumerable<OEntity> points = getPointsEntitiesFromPerson(selection);
+			for (OEntity point : points) {
+				insertPoint(point);
+			}
+			logd("[refreshPoints] points was inserted: " + points.count());
 		}
-		logd("[refreshPoints] points was inserted: " + points.count());
 	}
 
 	public void refreshSeats() {

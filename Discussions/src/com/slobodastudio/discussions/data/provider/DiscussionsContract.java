@@ -538,6 +538,9 @@ public final class DiscussionsContract {
 		public static final class Qualified {
 
 			public static final String PERSON_ID = TABLE_NAME + "." + Columns.ID;
+			static final String PERSON_NAME = TABLE_NAME + "." + Columns.NAME;
+			static final String PERSON_SESSION_ID = TABLE_NAME + "." + Columns.SESSION_ID;
+			static final String PERSON_SEAT_ID = TABLE_NAME + "." + Columns.SEAT_ID;
 		}
 	}
 
@@ -731,6 +734,12 @@ public final class DiscussionsContract {
 			return CONTENT_URI.buildUpon().appendPath(valueId).build();
 		}
 
+		public static Uri buildSeatsPersonsUri(final int sessionId) {
+
+			return CONTENT_URI.buildUpon().appendPath(String.valueOf(sessionId)).appendPath(
+					Persons.A_TABLE_PREFIX).build();
+		}
+
 		/** Read {@link Columns#_ID} from this table {@link Uri}.
 		 * 
 		 * @param uri
@@ -757,6 +766,8 @@ public final class DiscussionsContract {
 		static final class Qualified {
 
 			static final String SEAT_ID = TABLE_NAME + "." + Columns.ID;
+			static final String SEAT_NAME = TABLE_NAME + "." + Columns.NAME;
+			static final String SEAT_COLOR = TABLE_NAME + "." + Columns.COLOR;
 		}
 	}
 

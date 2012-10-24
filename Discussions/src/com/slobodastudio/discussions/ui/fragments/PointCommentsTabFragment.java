@@ -8,7 +8,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Persons;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
-import com.slobodastudio.discussions.utils.EditTextUtils;
+import com.slobodastudio.discussions.utils.TextViewUtils;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -129,7 +129,7 @@ public class PointCommentsTabFragment extends SherlockFragment implements OnClic
 	public void onClick(final View v) {
 
 		if (v.getId() == R.id.btn_add_comment) {
-			String comment = EditTextUtils.toString(mCommentEditText);
+			String comment = TextViewUtils.toString(mCommentEditText);
 			if (!TextUtils.isEmpty(comment)) {
 				mCommentEditText.setText("");
 				insertComment(comment);
@@ -141,7 +141,7 @@ public class PointCommentsTabFragment extends SherlockFragment implements OnClic
 	public void onSaveInstanceState(final Bundle outState) {
 
 		super.onSaveInstanceState(outState);
-		outState.putString(ExtraKey.COMMENT_TEXT, EditTextUtils.toString(mCommentEditText));
+		outState.putString(ExtraKey.COMMENT_TEXT, TextViewUtils.toString(mCommentEditText));
 	}
 
 	private void addCommentsHeader(final LayoutInflater layoutInflater) {

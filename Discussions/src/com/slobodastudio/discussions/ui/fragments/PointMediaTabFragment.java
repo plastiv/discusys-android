@@ -12,6 +12,7 @@ import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 import com.slobodastudio.discussions.ui.activities.YoutubeActivity;
 import com.slobodastudio.discussions.ui.view.MediaGridView;
+import com.slobodastudio.discussions.utils.TextViewUtils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -462,21 +463,24 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 
 				switch (item) {
 					case 0:
-						requestImageAttachment(getActivity());
-						break;
-					case 1:
-						requestCameraPhoto(getActivity());
-						break;
-					case 2:
 						requestPictureSearchAttachment(getActivity());
 						break;
-					case 3:
-						requestPdfAttachment(getActivity());
+					case 1:
+						requestImageAttachment(getActivity());
 						break;
-					case 4:
+					case 2:
+						requestCameraPhoto(getActivity());
+						break;
+					case 3:
 						requestPdfSearchAttachment(getActivity());
 						break;
+					case 4:
+						requestPdfScholarAttachment(getActivity());
+						break;
 					case 5:
+						requestPdfAttachment(getActivity());
+						break;
+					case 6:
 						requestYoutubeAttachment(getActivity());
 						break;
 					default:
@@ -542,12 +546,20 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 
 	private void requestPdfSearchAttachment(final FragmentActivity activity) {
 
-		ActivityHelper.startSearchPdfActivityForResult(activity, PICK_PDF_SEARCH_REQUEST);
+		ActivityHelper.startSearchPdfActivityForResult(activity, TextViewUtils.toString(mPointNameTextView),
+				PICK_PDF_SEARCH_REQUEST);
+	}
+
+	private void requestPdfScholarAttachment(final FragmentActivity activity) {
+
+		ActivityHelper.startScholarPdfActivityForResult(activity, TextViewUtils.toString(mPointNameTextView),
+				PICK_PDF_SEARCH_REQUEST);
 	}
 
 	private void requestPictureSearchAttachment(final Activity activity) {
 
-		ActivityHelper.startSearchPictureActivityForResult(activity, PICK_IMAGE_SEARCH_REQUEST);
+		ActivityHelper.startSearchPictureActivityForResult(activity, TextViewUtils
+				.toString(mPointNameTextView), PICK_IMAGE_SEARCH_REQUEST);
 	}
 
 	private void showCameraNeedToBeInstalledDialog() {

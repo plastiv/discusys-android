@@ -5,7 +5,7 @@ public class ApplicationConstants {
 
 	public static final String BUG_SENSE_API_KEY = "8b8433f6";
 	/** TODO: set up false in release .apk */
-	public static final boolean DEV_MODE = false;
+	public static final boolean DEV_MODE = true;
 	public static final boolean LOGD_SERVICE = true && DEV_MODE;
 	public static final boolean ODATA_DUMP_LOG = false && DEV_MODE;
 	/** Clean up servers database if row with null foreign key found. */

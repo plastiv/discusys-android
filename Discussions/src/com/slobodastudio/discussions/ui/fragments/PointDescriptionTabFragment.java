@@ -10,7 +10,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.IntentAction;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
-import com.slobodastudio.discussions.utils.EditTextUtils;
+import com.slobodastudio.discussions.utils.TextViewUtils;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -159,13 +159,13 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 		// description is first because notify server by point change
 		if (mDescriptionId != Integer.MIN_VALUE) {
 			// update description
-			String descriptionText = EditTextUtils.toString(mDescriptionEditText, mSavedDescriptionText);
+			String descriptionText = TextViewUtils.toString(mDescriptionEditText, mSavedDescriptionText);
 			Description description = new Description(mDescriptionId, descriptionText, null, mPointId);
 			((BaseActivity) getActivity()).getServiceHelper().updateDescription(description.toBundle());
 		}
 		Point point = new Point();
 		point.setPersonId(mPersonId);
-		String nameText = EditTextUtils.toString(mNameEditText, mSavedNameText);
+		String nameText = TextViewUtils.toString(mNameEditText, mSavedNameText);
 		point.setName(nameText);
 		point.setSharedToPublic(true);
 		point.setSideCode(Points.SideCode.NEUTRAL);
@@ -253,8 +253,8 @@ public class PointDescriptionTabFragment extends SherlockFragment {
 			outState.putInt(ExtraKey.TOPIC_ID, mTopicId);
 			outState.putInt(ExtraKey.POINT_ID, mPointId);
 			outState.putInt(ExtraKey.DESCRIPTION_ID, mDescriptionId);
-			outState.putString(ExtraKey.POINT_NAME, EditTextUtils.toString(mNameEditText, mSavedNameText));
-			outState.putString(ExtraKey.DESCRIPTION_TEXT, EditTextUtils.toString(mDescriptionEditText,
+			outState.putString(ExtraKey.POINT_NAME, TextViewUtils.toString(mNameEditText, mSavedNameText));
+			outState.putString(ExtraKey.DESCRIPTION_TEXT, TextViewUtils.toString(mDescriptionEditText,
 					mSavedDescriptionText));
 		}
 	}

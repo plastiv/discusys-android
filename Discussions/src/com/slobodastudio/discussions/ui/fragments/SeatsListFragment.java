@@ -19,11 +19,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -37,11 +39,9 @@ import org.odata4j.core.OEntity;
 
 public class SeatsListFragment extends SherlockListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-	private static final String COLUMN_ID = Seats.Columns.ID;
+	private static final String TAG = SeatsListFragment.class.getSimpleName();
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final int EMPTY_STRING_RES_ID = R.string.text_empty_seats_list;
-	private static final Uri LIST_URI = Seats.CONTENT_URI;
-	private static final String TAG = SeatsListFragment.class.getSimpleName();
 	/** This is the Adapter being used to display the list's data. */
 	private SimpleCursorAdapter mAdapter;
 
@@ -66,14 +66,13 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 	public void onActivityCreated(final Bundle savedInstanceState) {
 
 		super.onActivityCreated(savedInstanceState);
-		Log.v(TAG, "[onActivityCreared] saved state: " + savedInstanceState);
 		// Give some text to display if there is no data.
 		setEmptyText(getResources().getString(EMPTY_STRING_RES_ID));
 		// We have a menu item to show in action bar.
 		setHasOptionsMenu(true);
-		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_base, null, new String[] {
-				Seats.Columns.NAME, Seats.Columns.COLOR }, new int[] { R.id.list_item_text,
-				R.id.image_person_color }, 0);
+		mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_seat_linear, null, new String[] {
+				Seats.Columns.NAME, Seats.Columns.COLOR, Persons.Columns.NAME }, new int[] {
+				R.id.list_item_text, R.id.image_person_color, R.id.list_item_sub_text }, 0);
 		mAdapter.setViewBinder(new ViewBinder() {
 
 			@Override
@@ -81,14 +80,26 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 
 				int viewId = view.getId();
 				switch (viewId) {
-					case R.id.image_person_color:
+					case R.id.list_item_sub_text: {
+						TextView textView = (TextView) view;
+						String personName = cursor.getString(columnIndex);
+						if (TextUtils.isEmpty(personName)) {
+							textView.setText(getString(R.string.text_empty_seat_person));
+						} else {
+							textView.setText(personName);
+						}
+						return true;
+					}
+					case R.id.image_person_color: {
 						ImageView colorView = (ImageView) view;
 						colorView.setBackgroundColor(cursor.getInt(columnIndex));
 						return true;
-					case R.id.list_item_text:
+					}
+					case R.id.list_item_text: {
 						TextView itemText = (TextView) view;
 						itemText.setText(cursor.getString(columnIndex));
 						return true;
+					}
 					default:
 						return false;
 				}
@@ -103,6 +114,28 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 	}
 
 	@Override
+	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
+
+		super.onListItemClick(l, v, position, id);
+		Cursor cursor = (Cursor) getListAdapter().getItem(position);
+		if (cursor != null) {
+			int personNameColIndex = cursor.getColumnIndexOrThrow(Persons.Columns.NAME);
+			String personName = cursor.getString(personNameColIndex);
+			if (TextUtils.isEmpty(personName)) {
+				int seatId = getSeatId(position);
+				int color = getItemColor(position);
+				createExperientUser(seatId, color);
+			} else {
+				int color = getItemColor(position);
+				int personIdColIndex = cursor.getColumnIndexOrThrow(Persons.Columns.ID);
+				int personId = cursor.getInt(personIdColIndex);
+				Intent intent = createDiscussionIntent(personName, color, personId);
+				getActivity().startActivity(intent);
+			}
+		}
+	}
+
+	@Override
 	public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
 
 		// This is called when a new Loader needs to be created. This
@@ -111,16 +144,8 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 		// currently filtering.
 		// Now create and return a CursorLoader that will take care of
 		// creating a Cursor for the data being displayed.
-		return new CursorLoader(getActivity(), LIST_URI, null, null, null, null);
-	}
-
-	@Override
-	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
-
-		super.onListItemClick(l, v, position, id);
-		int seatId = getItemId(position);
-		int color = getItemColor(position);
-		createExperientUser(seatId, color);
+		Uri uri = Seats.buildSeatsPersonsUri(getSessionId());
+		return new CursorLoader(getActivity(), uri, null, null, null, null);
 	}
 
 	@Override
@@ -157,15 +182,30 @@ public class SeatsListFragment extends SherlockListFragment implements LoaderMan
 		return cursor.getInt(columnIndex);
 	}
 
-	protected int getItemId(final int position) {
+	protected int getSeatId(final int position) {
 
 		Cursor cursor = (Cursor) getListAdapter().getItem(position);
 		if (cursor == null) {
 			// For some reason the requested item isn't available, do nothing
 			return -1;
 		}
-		int columnIndex = cursor.getColumnIndexOrThrow(COLUMN_ID);
-		return cursor.getInt(columnIndex);
+		int columnIndex = cursor.getColumnIndexOrThrow(BaseColumns._ID);
+		long id = cursor.getLong(columnIndex);
+		String where = BaseColumns._ID + "=" + String.valueOf(id);
+		Cursor seat = getActivity().getContentResolver().query(Seats.CONTENT_URI, null, where, null, null);
+		int seatId = Integer.MIN_VALUE;
+		if (seat.moveToFirst()) {
+			int idColumnIndex = seat.getColumnIndexOrThrow(Seats.Columns.ID);
+			seatId = seat.getInt(idColumnIndex);
+		}
+		seat.close();
+		return seatId;
+	}
+
+	private int getSessionId() {
+
+		Bundle extras = getActivity().getIntent().getExtras();
+		return extras.getInt(ExtraKey.SESSION_ID, Integer.MIN_VALUE);
 	}
 
 	private Intent createDiscussionIntent(final String personName, final int personColor, final int personId) {

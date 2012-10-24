@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/listViewActivatedStyle"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?android:attr/listPreferredItemHeight" >
+
+    <ImageView
+        android:id="@+id/imageSeatColor"
+        android:layout_width="10dp"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true" />
+
+    <TextView
+        android:id="@+id/textSeatName"
+        style="@style/ListItemTextSingleLine"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="center_vertical"
+        android:layout_toRightOf="@id/imageSeatColor" />
+
+    <TextView
+        android:id="@+id/textPersonName"
+        style="@style/ListItemTextSingleLine"
+        android:layout_below="@id/textSeatName"
+        android:layout_gravity="center_vertical"
+        android:layout_toRightOf="@id/imageSeatColor" />
+
+</RelativeLayout>

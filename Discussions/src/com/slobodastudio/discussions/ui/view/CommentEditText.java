@@ -1,4 +1,4 @@
-package com.slobodastudio.discussions.ui;
+package com.slobodastudio.discussions.ui.view;
 
 import android.content.Context;
 import android.util.AttributeSet;

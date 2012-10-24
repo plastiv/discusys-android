@@ -2,6 +2,7 @@ package com.slobodastudio.discussions.ui.activities;
 
 import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.utils.MyLog;
+import com.slobodastudio.discussions.utils.TextViewUtils;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -31,6 +32,7 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 	private static final int ID_VIEW_IMAGE = 0x02;
 	private static final int ID_SAVE_LINK = 0x03;
 	private WebView mWebView;
+	private EditText mEditText;
 	private boolean loadingFinished = true;
 	private boolean redirect = false;
 	private String savedUrl = "";
@@ -44,18 +46,18 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 		registerForContextMenu(mWebView);
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.getSettings().setBuiltInZoomControls(true);
-		final EditText urlEditText = (EditText) findViewById(R.id.edittext_url);
-		urlEditText.setOnEditorActionListener(new OnEditorActionListener() {
+		mEditText = (EditText) findViewById(R.id.edittext_url);
+		mEditText.setOnEditorActionListener(new OnEditorActionListener() {
 
 			@Override
 			public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event) {
 
 				if (actionId == EditorInfo.IME_ACTION_GO) {
 					// search pressed and perform your functionality.
-					String enteredText = urlEditText.getText().toString();
+					String enteredText = TextViewUtils.toString(mEditText);
 					if (!enteredText.startsWith("http")) {
 						enteredText = "http://www." + enteredText;
-						urlEditText.setText(enteredText);
+						mEditText.setText(enteredText);
 					}
 					mWebView.loadUrl(enteredText);
 					return true;
@@ -66,18 +68,18 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 		mWebView.setWebViewClient(new WebViewClient() {
 
 			@Override
-			public boolean shouldOverrideUrlLoading(final WebView view, final String urlNewString) {
+			public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
 
 				if (!loadingFinished) {
 					redirect = true;
 				}
 				loadingFinished = false;
-				urlEditText.setText(urlNewString);
-				if (urlNewString.endsWith(".pdf")) {
-					showSaveConfirmationDialog(urlNewString);
-				} else {
-					mWebView.loadUrl(urlNewString);
+				if (url.endsWith(".pdf") || url.endsWith(".jpg") || url.endsWith(".png")) {
+					showSaveConfirmationDialog(url);
+					return false;
 				}
+				mWebView.loadUrl(url);
+				mEditText.setText(url);
 				return true;
 			}
 
@@ -114,6 +116,7 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 		if (uri != null) {
 			String url = uri.toString();
 			mWebView.loadUrl(url);
+			mEditText.setText(url);
 		}
 	}
 

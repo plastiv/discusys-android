@@ -12,6 +12,7 @@ import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
 import com.slobodastudio.discussions.ui.activities.YoutubeActivity;
 import com.slobodastudio.discussions.ui.view.MediaList;
+import com.slobodastudio.discussions.utils.TextViewUtils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -461,7 +462,8 @@ public class PointMediaListTabFragment extends SherlockFragment {
 
 	private void requestPictureSearchAttachment(final Activity activity) {
 
-		ActivityHelper.startSearchPictureActivityForResult(activity, PICK_IMAGE_SEARCH_REQUEST);
+		ActivityHelper.startSearchPictureActivityForResult(activity, TextViewUtils
+				.toString(mPointNameTextView), PICK_IMAGE_SEARCH_REQUEST);
 	}
 
 	private void setSelectAttachClickListener(final View container) {

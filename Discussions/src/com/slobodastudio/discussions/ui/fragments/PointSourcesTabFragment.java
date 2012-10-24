@@ -11,6 +11,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Sources;
 import com.slobodastudio.discussions.ui.ActivityHelper;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
+import com.slobodastudio.discussions.utils.TextViewUtils;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -137,7 +138,8 @@ public class PointSourcesTabFragment extends SherlockFragment implements OnItemC
 
 		switch (v.getId()) {
 			case R.id.btn_attach_url:
-				ActivityHelper.startSearchWebActivityForResult(getActivity(), PICK_URL_REQUEST);
+				ActivityHelper.startSearchWebActivityForResult(getActivity(), TextViewUtils
+						.toString(mPointNameTextView), PICK_URL_REQUEST);
 				break;
 			default:
 				break;

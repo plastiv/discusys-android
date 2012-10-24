@@ -56,6 +56,7 @@ public class DiscussionsProvider extends ContentProvider {
 	private static final int POINTS_PERSONS_DIR = 302;
 	private static final int SEATS_DIR = 801;
 	private static final int SEATS_ITEM = 800;
+	private static final int SEATS_DIR_PERSON = 802;
 	private static final int SESSIONS_DIR = 901;
 	private static final int SESSIONS_ITEM = 900;
 	private static final int SOURCES_DIR = 1201;
@@ -181,7 +182,8 @@ public class DiscussionsProvider extends ContentProvider {
 		// seat
 		matcher.addURI(authority, Seats.A_TABLE_PREFIX, SEATS_DIR);
 		matcher.addURI(authority, Seats.A_TABLE_PREFIX + "/*", SEATS_ITEM);
-		// seat
+		matcher.addURI(authority, Seats.A_TABLE_PREFIX + "/*/" + Persons.A_TABLE_PREFIX, SEATS_DIR_PERSON);
+		// session
 		matcher.addURI(authority, Sessions.A_TABLE_PREFIX, SESSIONS_DIR);
 		matcher.addURI(authority, Sessions.A_TABLE_PREFIX + "/*", SESSIONS_ITEM);
 		// attachment
@@ -274,6 +276,8 @@ public class DiscussionsProvider extends ContentProvider {
 				return Seats.CONTENT_DIR_TYPE;
 			case SEATS_ITEM:
 				return Seats.CONTENT_ITEM_TYPE;
+			case SEATS_DIR_PERSON:
+				return Seats.CONTENT_DIR_TYPE;
 			case SESSIONS_DIR:
 				return Sessions.CONTENT_DIR_TYPE;
 			case SESSIONS_ITEM:
@@ -476,6 +480,19 @@ public class DiscussionsProvider extends ContentProvider {
 						Comments.Qualified.COMMENT_ID, null, sortOrder, null);
 				notificationUri = Comments.CONTENT_URI;
 				c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+				return c;
+			}
+			case SEATS_DIR_PERSON: {
+				builder.table(
+						Seats.TABLE_NAME + " LEFT JOIN " + Persons.TABLE_NAME + " ON Seat.id=Person.seatid")
+						.mapToTable(BaseColumns._ID, Seats.TABLE_NAME).mapToTable(Seats.Columns.COLOR,
+								Seats.TABLE_NAME);
+				notificationUri = Seats.CONTENT_URI;
+				String[] columns = { BaseColumns._ID, Persons.Qualified.PERSON_ID, Seats.Qualified.SEAT_NAME,
+						Seats.Qualified.SEAT_COLOR, Persons.Qualified.PERSON_NAME,
+						Persons.Qualified.PERSON_SESSION_ID };
+				Cursor c = builder.query(db, columns, sortOrder);
+				c.setNotificationUri(getContext().getContentResolver(), uri);
 				return c;
 			}
 			default:

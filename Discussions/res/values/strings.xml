@@ -68,6 +68,7 @@
     <string name="text_empty_seats_list">No seats</string>
     <string name="text_empty_media_list">No media</string>
     <string name="text_empty_discussion_info">Disscussion info is empty</string>
+    <string name="text_empty_seat_person">&lt;seat is empty&gt;</string>
     <string name="text_select_point">Select point to see details</string>
     <string name="text_other_users_points">Other</string>
     <string name="text_other_users_points_format">%s</string>
