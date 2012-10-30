@@ -48,6 +48,7 @@ public class UploadService extends IntentService {
 	public static final int TYPE_UPDATE_POINT = 0x1;
 	private static final boolean DEBUG = true && ApplicationConstants.LOGD_SERVICE;
 	private static final String TAG = UploadService.class.getSimpleName();
+	private ResultReceiver mActivityReceiver;
 
 	public UploadService() {
 
@@ -126,12 +127,12 @@ public class UploadService extends IntentService {
 
 		logd("[onHandleIntent] intent: " + intent.toString());
 		validateIntent(intent);
-		final ResultReceiver activityReceiver = getActivityReceiverFromExtra(intent);
+		mActivityReceiver = getActivityReceiverFromExtra(intent);
 		if (isConnected()) {
-			ActivityResultHelper.sendStatusStart(activityReceiver);
+			ActivityResultHelper.sendStatusStart(mActivityReceiver);
 		} else {
 			String errorString = getString(R.string.text_error_network_off);
-			ActivityResultHelper.sendStatusError(activityReceiver, errorString);
+			ActivityResultHelper.sendStatusError(mActivityReceiver, errorString);
 			stopSelf();
 			return;
 		}
@@ -163,11 +164,11 @@ public class UploadService extends IntentService {
 			}
 		} catch (Exception e) {
 			MyLog.e(TAG, "[onHandleIntent] sync error. Intent action: " + intent.getAction(), e);
-			ActivityResultHelper.sendStatusError(activityReceiver, e.getMessage());
+			ActivityResultHelper.sendStatusError(mActivityReceiver, e.getMessage());
 			stopSelf();
 			return;
 		}
-		ActivityResultHelper.sendStatusFinished(activityReceiver);
+		ActivityResultHelper.sendStatusFinished(mActivityReceiver);
 		logd("[onHandleIntent] sync finished");
 	}
 
@@ -201,30 +202,38 @@ public class UploadService extends IntentService {
 		ResultReceiver photonReceiver = getPhotonReceiverFromExtra(intent);
 		Uri attachmentUri = getUriFromExtra(intent);
 		int attachmentId;
+		ActivityResultHelper.sendStatusStartWithCount(mActivityReceiver, 100);
 		switch (attachment.getFormat()) {
 			case Attachments.AttachmentType.JPG: {
 				String scheme = attachmentUri.getScheme();
 				if ("content".equals(scheme)) {
+					ActivityResultHelper.sendProgress(mActivityReceiver, "Loading image from sdcard", 0);
 					attachment.setTitle(MediaStoreHelper.getTitleFromUri(this, attachmentUri));
 				} else if ("file".equals(scheme)) {
+					ActivityResultHelper.sendProgress(mActivityReceiver, "Loading image from sdcard", 0);
 					attachment.setTitle(attachmentUri.getLastPathSegment());
 				} else if ("http".equals(scheme)) {
+					ActivityResultHelper.sendProgress(mActivityReceiver, "Downloading image to sdcard", 0);
 					String fileName = attachmentUri.getLastPathSegment();
 					FileDownloader.downloadFromUrl(attachmentUri.toString(), fileName);
 					File file = FileDownloader.createFile(fileName);
 					attachmentUri = Uri.fromFile(file);
 				}
+				ActivityResultHelper.sendProgress(mActivityReceiver, "Uploading image from sdcard to server",
+						30);
 				attachmentId = HttpUtil.insertImageAttachment(this, attachmentUri);
 				PhotonHelper.sendStatsEvent(StatsEvent.IMAGE_ADDED, selectedPoint, photonReceiver);
 				break;
 			}
 			case Attachments.AttachmentType.PDF:
+				ActivityResultHelper.sendProgress(mActivityReceiver, "Loading pdf from sdcard", 0);
 				String pdfFileName = attachmentUri.getLastPathSegment();
 				attachment.setTitle(pdfFileName.replace(".pdf", ""));
 				String scheme = attachmentUri.getScheme();
 				logd("[insertAttachment] pdf uri: " + attachmentUri.toString());
 				Uri pdfUploadUri;
 				if ("http".equals(scheme)) {
+					ActivityResultHelper.sendProgress(mActivityReceiver, "Loading pdf to sdcard", 0);
 					String fileName = Attachments.getPdfAttachmentFileName(attachmentUri);
 					FileDownloader.downloadFromUrl(attachmentUri.toString(), fileName);
 					File file = FileDownloader.createFile(fileName);
@@ -235,10 +244,13 @@ public class UploadService extends IntentService {
 					pdfUploadUri = null;
 				}
 				logd("[insertAttachment] upload pdf uri: " + pdfUploadUri.toString());
+				ActivityResultHelper.sendProgress(mActivityReceiver, "Uploading pdf from sdcard to server",
+						30);
 				attachmentId = HttpUtil.insertPdfAttachment(this, pdfUploadUri);
 				PhotonHelper.sendStatsEvent(StatsEvent.PDF_ADDED, selectedPoint, photonReceiver);
 				break;
 			case Attachments.AttachmentType.YOUTUBE:
+				ActivityResultHelper.sendProgress(mActivityReceiver, "Uploading youtube video to server", 30);
 				OEntity entity = odataWrite.insertAttachment(attachment);
 				attachmentId = (Integer) entity.getProperty(Attachments.Columns.ID).getValue();
 				attachment.setTitle(YoutubeHelper.getVideoTitle(attachmentUri.toString()));
@@ -254,9 +266,11 @@ public class UploadService extends IntentService {
 						"[insertAttachment] was called with unknown attachment type: "
 								+ attachment.getFormat());
 		}
+		ActivityResultHelper.sendProgress(mActivityReceiver, "Creating attachment info on server", 60);
 		attachment.setName(attachment.getTitle());
 		odataWrite.updateAttachment(attachment, attachmentId);
 		attachment.setAttachmentId(attachmentId);
+		ActivityResultHelper.sendProgress(mActivityReceiver, "Saving attachment info", 80);
 		ContentValues cv = attachment.toContentValues();
 		getContentResolver().insert(Attachments.CONTENT_URI, cv);
 		PhotonHelper.sendArgPointUpdated(selectedPoint, photonReceiver);

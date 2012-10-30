@@ -5,8 +5,10 @@ import com.slobodastudio.discussions.utils.MyLog;
 import com.slobodastudio.discussions.utils.TextViewUtils;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +17,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.WebView;
 import android.webkit.WebView.HitTestResult;
@@ -26,7 +29,7 @@ import android.widget.TextView.OnEditorActionListener;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
-public class WebViewActivity extends BaseActivity implements OnMenuItemClickListener {
+public class WebViewActivity extends BaseActivity implements OnMenuItemClickListener, OnLongClickListener {
 
 	private static final int ID_SAVE_IMAGE = 0x01;
 	private static final int ID_VIEW_IMAGE = 0x02;
@@ -43,9 +46,14 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_webview);
 		mWebView = (WebView) findViewById(R.id.webview);
-		registerForContextMenu(mWebView);
+		mWebView.setOnLongClickListener(this);
+		// registerForContextMenu(mWebView);
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.getSettings().setBuiltInZoomControls(true);
+		if (isTablet(this)) {
+			mWebView.getSettings().setUserAgentString(
+					"Mozilla/5.0 AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1");
+		}
 		mEditText = (EditText) findViewById(R.id.edittext_url);
 		mEditText.setOnEditorActionListener(new OnEditorActionListener() {
 
@@ -70,14 +78,22 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 			@Override
 			public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
 
+				MyLog.tempv("[shouldOverrideUrlLoading] url: " + url);
 				if (!loadingFinished) {
 					redirect = true;
 				}
 				loadingFinished = false;
-				if (url.endsWith(".pdf") || url.endsWith(".jpg") || url.endsWith(".png")) {
+				if (url.endsWith(".pdf") || url.endsWith(".jpg") || url.endsWith(".png")
+						|| url.endsWith(".jpeg")) {
 					showSaveConfirmationDialog(url);
+					redirect = false;
 					return false;
 				}
+				if ("about:blank".equals(url)) {
+					redirect = false;
+					return false;
+				}
+				MyLog.tempv("[shouldOverrideUrlLoading] load url");
 				mWebView.loadUrl(url);
 				mEditText.setText(url);
 				return true;
@@ -89,6 +105,7 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 				super.onPageStarted(view, url, favicon);
 				loadingFinished = false;
 				// SHOW LOADING IF IT ISNT ALREADY VISIBLE
+				// setSupportProgressBarVisibility(true);
 				setSupportProgressBarIndeterminateVisibility(true);
 			}
 
@@ -100,13 +117,29 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 				}
 				if (loadingFinished && !redirect) {
 					// HIDE LOADING IT HAS FINISHED
+					// setSupportProgressBarVisibility(false);
 					setSupportProgressBarIndeterminateVisibility(false);
 				} else {
 					redirect = false;
 				}
 			}
 		});
+		// mWebView.setWebChromeClient(new WebChromeClient() {
+		//
+		// @Override
+		// public void onProgressChanged(final WebView view, final int newProgress) {
+		//
+		// super.onProgressChanged(view, newProgress);
+		// setSupportProgress(newProgress * 100);
+		// }
+		// });
 		mWebView.requestFocus();
+	}
+
+	@Override
+	protected void onResume() {
+
+		super.onResume();
 		populateView();
 	}
 
@@ -133,9 +166,25 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 
 		if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()) {
 			mWebView.goBack();
+			mEditText.setText(mWebView.getUrl());
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public boolean onLongClick(final View arg0) {
+
+		HitTestResult result = mWebView.getHitTestResult();
+		if ((result.getType() == HitTestResult.IMAGE_TYPE)
+				|| (result.getType() == HitTestResult.SRC_IMAGE_ANCHOR_TYPE)) {
+			// Menu options for an image.
+			// set the header title to the image url
+			String url = result.getExtra();
+			showSaveConfirmationDialog(url);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -248,5 +297,12 @@ public class WebViewActivity extends BaseActivity implements OnMenuItemClickList
 			}
 		});
 		builder.create().show();
+	}
+
+	public boolean isTablet(final Context context) {
+
+		boolean xlarge = ((context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == 4);
+		boolean large = ((context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_LARGE);
+		return (xlarge || large);
 	}
 }

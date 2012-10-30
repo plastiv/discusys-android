@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointDescriptionTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointMediaTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointSourcesTabFragment;
+import com.slobodastudio.discussions.utils.fragmentasynctask.SyncStatusUpdaterFragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,8 +20,10 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
@@ -35,17 +38,18 @@ import java.util.ArrayList;
 
 public class PointDetailsActivity extends BaseActivity {
 
+	private static final String TAG = PointDetailsActivity.class.getSimpleName();
 	private static final int COMMENT_TAB_POSITION = 1;
 	private static final int DESCRIPTION_TAB_POSITION = 0;
 	private static final String EXTRA_KEY_TAB_INDEX = "extra_key_tab_index";
 	private static final int MEDIA_TAB_POSITION = 2;
 	private static final int SOURCE_TAB_POSITION = 3;
-	private static final String TAG = PointDetailsActivity.class.getSimpleName();
 	private int discussionId;
 	private TabsAdapter mTabsAdapter;
 	private ViewPager mViewPager;
 	private int personId;
 	private String personName;
+	private SyncStatusUpdaterFragment mSyncStatusUpdaterFragment;
 
 	@Override
 	public void onConfigurationChanged(final Configuration newConfig) {
@@ -173,6 +177,14 @@ public class PointDetailsActivity extends BaseActivity {
 			}
 		} else if (Intent.ACTION_VIEW.equals(action)) {
 			getSupportActionBar().setSelectedNavigationItem(COMMENT_TAB_POSITION);
+		}
+		FragmentManager fm = getSupportFragmentManager();
+		mSyncStatusUpdaterFragment = (SyncStatusUpdaterFragment) fm
+				.findFragmentByTag(SyncStatusUpdaterFragment.TAG);
+		if (mSyncStatusUpdaterFragment == null) {
+			mSyncStatusUpdaterFragment = new SyncStatusUpdaterFragment();
+			fm.beginTransaction().add(mSyncStatusUpdaterFragment, SyncStatusUpdaterFragment.TAG).commit();
+			// TODO should be called here triggerRefresh();
 		}
 	}
 
@@ -327,6 +339,11 @@ public class PointDetailsActivity extends BaseActivity {
 	private static String makeFragmentName(final int viewId, final int index) {
 
 		return "android:switcher:" + viewId + ":" + index;
+	}
+
+	public ResultReceiver getStatusResultReceiver() {
+
+		return mSyncStatusUpdaterFragment.getReceiver();
 	}
 
 	/** This is a helper class that implements the management of tabs and all details of connecting a ViewPager

@@ -10,8 +10,10 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Points;
 import com.slobodastudio.discussions.ui.ActivityHelper;
 import com.slobodastudio.discussions.ui.ExtraKey;
 import com.slobodastudio.discussions.ui.activities.BaseActivity;
+import com.slobodastudio.discussions.ui.activities.PointDetailsActivity;
 import com.slobodastudio.discussions.ui.activities.YoutubeActivity;
 import com.slobodastudio.discussions.ui.view.MediaGridView;
+import com.slobodastudio.discussions.utils.MyLog;
 import com.slobodastudio.discussions.utils.TextViewUtils;
 
 import android.app.Activity;
@@ -26,6 +28,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ResultReceiver;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.ImageColumns;
@@ -381,6 +384,7 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 					break;
 				case PICK_IMAGE_SEARCH_REQUEST:
 					Uri originalUri = newAttachment.uri;
+					MyLog.tempv("image search url: " + originalUri.toString());
 					String fileName = originalUri.getLastPathSegment();
 					String title = fileName.replace(".jpg", "");
 					// File savedFile = ImageLoader.getInstance().getDiscCache().get(originalUri.toString());
@@ -443,7 +447,9 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 		attachment.setPointId(mSelectedPoint.getPointId());
 		attachment.setTitle(title);
 		attachment.setFormat(attachmentType);
-		((BaseActivity) getActivity()).getServiceHelper().insertAttachment(attachment, mSelectedPoint, uri);
+		PointDetailsActivity activity = (PointDetailsActivity) getActivity();
+		ResultReceiver receiver = activity.getStatusResultReceiver();
+		activity.getServiceHelper().insertAttachment(attachment, mSelectedPoint, uri, receiver);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="grid_view_height">140dip</dimen>
+    <dimen name="grid_view_height">100dip</dimen>
+    <dimen name="grid_view_min_width">100dip</dimen>
 
 </resources>

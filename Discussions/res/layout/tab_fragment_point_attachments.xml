@@ -18,19 +18,12 @@
         android:layout_margin="4dip"
         android:text="@string/button_title_select_attach" />
 
-    <com.slobodastudio.discussions.ui.view.MediaGridView
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <include
         android:id="@+id/gridview"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/buttonAttachmentsFooter"
         android:layout_below="@id/textAttachmentsHeader"
-        android:columnWidth="140dip"
-        android:gravity="center"
-        android:horizontalSpacing="10dp"
-        android:numColumns="auto_fit"
-        android:padding="10dip"
-        android:stretchMode="spacingWidth"
-        android:verticalSpacing="10dp" />
+        layout="@layout/fragment_discussion_media_grid_view" />
 
 </RelativeLayout>

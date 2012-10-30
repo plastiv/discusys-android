@@ -130,6 +130,7 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 		// This has to be called before setContentView and you must use the
 		// class in com.actionbarsherlock.view and NOT android.view
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		// requestWindowFeature(Window.FEATURE_PROGRESS);
 		setSupportProgressBarIndeterminateVisibility(false);
 		getSupportActionBar().setDisplayShowHomeEnabled(false);
 		getSupportActionBar().setHomeButtonEnabled(false);
@@ -140,7 +141,9 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	@Override
 	protected void onPause() {
 
-		Log.d(TAG, "[onPause]");
+		if (DEBUG) {
+			Log.d(TAG, "[onPause]");
+		}
 		if (mBound) {
 			mServiceHelper.setOdataListener(null);
 		}
@@ -151,7 +154,9 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	protected void onResume() {
 
 		super.onResume();
-		Log.d(TAG, "[onResume]");
+		if (DEBUG) {
+			Log.d(TAG, "[onResume]");
+		}
 		if (mBound) {
 			mServiceHelper.setOdataListener(mListener);
 		}
@@ -161,7 +166,9 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	protected void onStart() {
 
 		super.onStart();
-		Log.d(TAG, "[onStart]");
+		if (DEBUG) {
+			Log.d(TAG, "[onStart]");
+		}
 		Intent intent = new Intent(this, ControlService.class);
 		bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 	}
@@ -169,7 +176,9 @@ public abstract class BaseActivity extends SherlockFragmentActivity {
 	@Override
 	protected void onStop() {
 
-		Log.d(TAG, "[onStop]");
+		if (DEBUG) {
+			Log.d(TAG, "[onStop]");
+		}
 		// Unbind from the service
 		if (mBound) {
 			unbindService(mConnection);

@@ -114,17 +114,16 @@ public class ServiceHelper {
 
 	public void insertAttachment(final Attachment attachment, final SelectedPoint selectedPoint) {
 
-		logd("[insertAttachment]" + attachment.getTitle());
-		Intent intent = new Intent(IntentAction.UPLOAD);
-		intent.putExtra(ServiceExtraKeys.TYPE_ID, UploadService.TYPE_INSERT_ATTACHMENT);
-		intent.putExtra(ServiceExtraKeys.VALUE, attachment);
-		intent.putExtra(ServiceExtraKeys.SELECTED_POINT, selectedPoint);
-		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
-		intent.putExtra(ServiceExtraKeys.PHOTON_RECEIVER, mPhotonController.getResultReceiver());
-		mContext.startService(intent);
+		insertAttachment(attachment, selectedPoint, null);
 	}
 
 	public void insertAttachment(final Attachment attachment, final SelectedPoint selectedPoint, final Uri uri) {
+
+		insertAttachment(attachment, selectedPoint, uri, mActivityReceiver);
+	}
+
+	public void insertAttachment(final Attachment attachment, final SelectedPoint selectedPoint,
+			final Uri uri, final ResultReceiver receiver) {
 
 		logd("[insertAttachment]" + attachment.getTitle());
 		Intent intent = new Intent(IntentAction.UPLOAD);
@@ -132,7 +131,7 @@ public class ServiceHelper {
 		intent.putExtra(ServiceExtraKeys.VALUE, attachment);
 		intent.putExtra(ServiceExtraKeys.URI, uri);
 		intent.putExtra(ServiceExtraKeys.SELECTED_POINT, selectedPoint);
-		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, mActivityReceiver);
+		intent.putExtra(ServiceExtraKeys.ACTIVITY_RECEIVER, receiver);
 		intent.putExtra(ServiceExtraKeys.PHOTON_RECEIVER, mPhotonController.getResultReceiver());
 		mContext.startService(intent);
 	}

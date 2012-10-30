@@ -6,6 +6,7 @@ import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachmen
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments.AttachmentType;
 import com.slobodastudio.discussions.service.FileDownloader;
 import com.slobodastudio.discussions.ui.IntentHelper;
+import com.slobodastudio.discussions.ui.adapter.MediaAdapter;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -19,7 +20,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -38,7 +39,7 @@ public class MediaGridView extends GridView {
 	private static final boolean DEBUG = true && ApplicationConstants.DEV_MODE;
 	private static final String TAG = MediaGridView.class.getSimpleName();
 	private final ImageLoader imageLoader;
-	private SimpleCursorAdapter mAttachmentsAdapter;
+	private CursorAdapter mAttachmentsAdapter;
 	private final Context mContext;
 	private int postionOffset = 0;
 
@@ -61,17 +62,19 @@ public class MediaGridView extends GridView {
 	}
 
 	@Override
-	public SimpleCursorAdapter getAdapter() {
+	public CursorAdapter getAdapter() {
 
 		return mAttachmentsAdapter;
 	}
 
 	public void setAttachmentsAdapter() {
 
-		mAttachmentsAdapter = new SimpleCursorAdapter(mContext, R.layout.grid_item_media, null, new String[] {
-				Attachments.Columns.TITLE, Attachments.Columns.ID, Attachments.Columns.FORMAT }, new int[] {
-				R.id.text_attachment_name, R.id.image_attachment_preview, R.id.image_attachment_filetype }, 0);
-		mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
+		// mAttachmentsAdapter = new SimpleCursorAdapter(mContext, R.layout.grid_item_media, null, new
+		// String[] {
+		// Attachments.Columns.TITLE, Attachments.Columns.ID, Attachments.Columns.FORMAT }, new int[] {
+		// R.id.text_attachment_name, R.id.image_attachment_preview, R.id.image_attachment_filetype }, 0);
+		// mAttachmentsAdapter.setViewBinder(new AttachmentsViewBinder());
+		mAttachmentsAdapter = new MediaAdapter(mContext, null);
 		setAdapter(mAttachmentsAdapter);
 	}
 

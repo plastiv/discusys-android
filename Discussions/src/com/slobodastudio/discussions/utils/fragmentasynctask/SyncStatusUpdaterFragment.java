@@ -40,7 +40,8 @@ public class SyncStatusUpdaterFragment extends Fragment implements DetachableRes
 		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		mProgressDialog.setTitle(getString(R.string.progress_title_download_database));
 		mProgressDialog.setMessage("Test");
-		mProgressDialog.setMax(maxProgress);
+		mProgressDialog.setIndeterminate(true);
+		// mProgressDialog.setMax(maxProgress);
 		mProgressDialog.setCancelable(false);
 		// mProgressDialog.setIndeterminate(true);
 		// mProgressDialog.setCancelable(true);
@@ -98,6 +99,7 @@ public class SyncStatusUpdaterFragment extends Fragment implements DetachableRes
 				// got max progress num
 				mSyncing = true;
 				maxProgress = resultData.getInt("EXTRA_MAX_PROGRESS");
+				mProgressDialog.setIndeterminate(false);
 				mProgressDialog.setMax(maxProgress);
 				break;
 			}
