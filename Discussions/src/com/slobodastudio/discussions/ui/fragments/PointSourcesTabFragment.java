@@ -200,7 +200,7 @@ public class PointSourcesTabFragment extends SherlockFragment implements OnItemC
 
 		if (mSourcesList.getAdapter() == null) {
 			mSourcesAdapter = new SimpleCursorAdapter(getActivity(), R.layout.list_item_source_2, null,
-					new String[] { Sources.Columns.LINK, Sources.Columns.ID }, new int[] {
+					new String[] { Sources.Columns.LINK, Sources.Columns.ORDER_NUMBER }, new int[] {
 							R.id.text_source_link, R.id.textSourceNumber }, 0);
 			mSourcesAdapter.setViewBinder(new ViewBinder() {
 
@@ -213,7 +213,10 @@ public class PointSourcesTabFragment extends SherlockFragment implements OnItemC
 							((TextView) view).setText(link);
 							return true;
 						case R.id.textSourceNumber:
-							int currentNumber = data.getPosition() + 1;
+							int currentNumber = data.getInt(columnId);
+							if (currentNumber == 0) {
+								currentNumber = data.getPosition() + 1;
+							}
 							((TextView) view).setText(String.valueOf(currentNumber));
 							return true;
 						default:
@@ -239,6 +242,8 @@ public class PointSourcesTabFragment extends SherlockFragment implements OnItemC
 		Source source = new Source();
 		source.setLink(mDescriptionLink);
 		source.setDescriptionId(mDescriptionId);
+		int orderNumber = mSourcesAdapter.getCount() + 1;
+		source.setOrderNumber(orderNumber);
 		((BaseActivity) getActivity()).getServiceHelper().insertSource(source, mSelectedPoint);
 	}
 
@@ -259,7 +264,7 @@ public class PointSourcesTabFragment extends SherlockFragment implements OnItemC
 					int descriptionId = arguments.getInt(ExtraKey.DESCRIPTION_ID, Integer.MIN_VALUE);
 					String where = Sources.Columns.DESCRIPTION_ID + "=?";
 					String[] args = new String[] { String.valueOf(descriptionId) };
-					String sortOrder = Sources.Columns.ID + " ASC";
+					String sortOrder = Sources.Columns.ORDER_NUMBER + " ASC";
 					return new CursorLoader(getActivity(), Sources.CONTENT_URI, null, where, args, sortOrder);
 				}
 				case POINT_NAME_ID: {

@@ -33,6 +33,7 @@ public class Attachment implements Parcelable {
 	private String videoEmbedURL;
 	private String videoLinkURL;
 	private String videoThumbURL;
+	private int orderNumber;
 
 	public Attachment() {
 
@@ -62,6 +63,7 @@ public class Attachment implements Parcelable {
 		videoEmbedURL = in.readString();
 		videoLinkURL = in.readString();
 		videoThumbURL = in.readString();
+		orderNumber = in.readInt();
 	}
 
 	@Override
@@ -194,6 +196,7 @@ public class Attachment implements Parcelable {
 		cv.put(Attachments.Columns.VIDEO_EMBED_URL, videoEmbedURL);
 		cv.put(Attachments.Columns.VIDEO_LINK_URL, videoLinkURL);
 		cv.put(Attachments.Columns.VIDEO_THUMB_URL, videoThumbURL);
+		cv.put(Attachments.Columns.ORDER_NUMBER, orderNumber);
 		return cv;
 	}
 
@@ -211,5 +214,6 @@ public class Attachment implements Parcelable {
 		out.writeString(videoEmbedURL);
 		out.writeString(videoLinkURL);
 		out.writeString(videoThumbURL);
+		out.writeInt(orderNumber);
 	}
 }

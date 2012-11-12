@@ -25,6 +25,7 @@ public class Source implements Parcelable {
 	private int descriptionId;
 	private String link;
 	private int sourceId;
+	private int orderNumber;
 
 	public Source() {
 
@@ -37,6 +38,7 @@ public class Source implements Parcelable {
 		descriptionId = in.readInt();
 		link = in.readString();
 		sourceId = in.readInt();
+		orderNumber = in.readInt();
 	}
 
 	@Override
@@ -60,6 +62,11 @@ public class Source implements Parcelable {
 		return sourceId;
 	}
 
+	public int getOrderNumber() {
+
+		return orderNumber;
+	}
+
 	public void setDescriptionId(final int descriptionId) {
 
 		this.descriptionId = descriptionId;
@@ -75,12 +82,18 @@ public class Source implements Parcelable {
 		this.sourceId = sourceId;
 	}
 
+	public void setOrderNumber(final int orderNumber) {
+
+		this.orderNumber = orderNumber;
+	}
+
 	public ContentValues toContentValues() {
 
 		ContentValues cv = new ContentValues();
 		cv.put(Sources.Columns.ID, sourceId);
 		cv.put(Sources.Columns.DESCRIPTION_ID, descriptionId);
 		cv.put(Sources.Columns.LINK, link);
+		cv.put(Sources.Columns.ORDER_NUMBER, orderNumber);
 		return cv;
 	}
 
@@ -90,5 +103,6 @@ public class Source implements Parcelable {
 		out.writeInt(descriptionId);
 		out.writeString(link);
 		out.writeInt(sourceId);
+		out.writeInt(orderNumber);
 	}
 }

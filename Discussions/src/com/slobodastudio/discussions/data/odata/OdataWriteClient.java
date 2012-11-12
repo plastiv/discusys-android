@@ -174,6 +174,7 @@ public class OdataWriteClient extends BaseOdataClient {
 		// @formatter:off
 		return mConsumer.createEntity(Sources.TABLE_NAME)
 				.properties(OProperties.string(Sources.Columns.LINK, source.getLink()))
+				.properties(OProperties.int32(Sources.Columns.ORDER_NUMBER, source.getOrderNumber()))
 				.link(Sources.Columns.DESCRIPTION_ID, OEntityKey.parse(String.valueOf(source.getDescriptionId())))
 				.execute();
 		// @formatter:on

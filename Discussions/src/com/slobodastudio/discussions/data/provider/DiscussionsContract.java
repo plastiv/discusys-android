@@ -161,6 +161,8 @@ public final class DiscussionsContract {
 			public static final String VIDEO_LINK_URL = "VideoLinkURL";
 			/** Type String. */
 			public static final String VIDEO_THUMB_URL = "VideoThumbURL";
+			/** Type Int32. */
+			public static final String ORDER_NUMBER = "OrderNumber";
 		}
 	}
 
@@ -911,6 +913,8 @@ public final class DiscussionsContract {
 			public static final String ID = "Id";
 			/** Type String. */
 			public static final String LINK = "Text";
+			/** Type Int32. */
+			public static final String ORDER_NUMBER = "OrderNumber";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when
