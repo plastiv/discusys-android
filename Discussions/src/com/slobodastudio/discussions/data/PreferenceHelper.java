@@ -24,6 +24,10 @@ public class PreferenceHelper {
 		if (serverAddress.equals(developmentServer)) {
 			return context.getString(R.string.development_database_address);
 		}
+		String newPublicDb = context.getString(R.string.new_public_server_address);
+		if (serverAddress.equals(newPublicDb)) {
+			return context.getString(R.string.new_public_database_address);
+		}
 		// default case
 		return context.getString(R.string.public_database_address);
 	}

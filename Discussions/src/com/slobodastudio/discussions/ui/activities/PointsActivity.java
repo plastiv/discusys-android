@@ -15,6 +15,7 @@ import com.slobodastudio.discussions.ui.PointsListPagerAdaptor;
 import com.slobodastudio.discussions.ui.fragments.AllOtherUserPointListFragment;
 import com.slobodastudio.discussions.ui.fragments.OtherUserPointListFragment;
 import com.slobodastudio.discussions.ui.fragments.UserPointListFragment;
+import com.slobodastudio.discussions.utils.MyLog;
 import com.slobodastudio.discussions.utils.fragmentasynctask.SyncStatusUpdaterFragment;
 
 import android.content.Intent;
@@ -184,6 +185,7 @@ public class PointsActivity extends BaseActivity implements PhotonServiceCallbac
 
 	private void connectPhoton() {
 
+		MyLog.v(TAG, "connectPhoton: " + mBound + " " + mService.getPhotonController().isConnected());
 		if (mBound && !mService.getPhotonController().isConnected()) {
 			mService.getPhotonController().connect(this, mDiscussionId,
 					PreferenceHelper.getPhotonDbAddress(this), mPersonName, mPersonId);

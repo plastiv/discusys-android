@@ -9,6 +9,7 @@ import com.slobodastudio.discussions.ui.fragments.PointCommentsTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointDescriptionTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointMediaTabFragment;
 import com.slobodastudio.discussions.ui.fragments.PointSourcesTabFragment;
+import com.slobodastudio.discussions.utils.MyLog;
 import com.slobodastudio.discussions.utils.fragmentasynctask.SyncStatusUpdaterFragment;
 
 import android.app.Activity;
@@ -252,6 +253,7 @@ public class PointDetailsActivity extends BaseActivity {
 
 	private void connectPhoton() {
 
+		MyLog.v(TAG, "connectPhoton: " + mBound + " " + mService.getPhotonController().isConnected());
 		if (mBound && !mService.getPhotonController().isConnected()) {
 			mService.getPhotonController().connect(this, discussionId,
 					PreferenceHelper.getPhotonDbAddress(this), personName, personId);

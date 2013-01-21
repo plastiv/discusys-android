@@ -447,6 +447,8 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 		attachment.setPointId(mSelectedPoint.getPointId());
 		attachment.setTitle(title);
 		attachment.setFormat(attachmentType);
+		int orderNumber = mediaGrid.getAdapter().getCount() + 1;
+		attachment.setOrderNumber(orderNumber);
 		PointDetailsActivity activity = (PointDetailsActivity) getActivity();
 		ResultReceiver receiver = activity.getStatusResultReceiver();
 		activity.getServiceHelper().insertAttachment(attachment, mSelectedPoint, uri, receiver);
@@ -640,7 +642,9 @@ public class PointMediaTabFragment extends SherlockFragment implements OnClickLi
 				case ATTACHMENTS_ID: {
 					String where = Attachments.Columns.POINT_ID + "=?";
 					String[] args = new String[] { String.valueOf(myPointId) };
-					return new CursorLoader(getActivity(), Attachments.CONTENT_URI, null, where, args, null);
+					String sortOrder = Attachments.Columns.ORDER_NUMBER + " ASC";
+					return new CursorLoader(getActivity(), Attachments.CONTENT_URI, null, where, args,
+							sortOrder);
 				}
 				case POINT_NAME_ID: {
 					String where = Points.Columns.ID + "=?";

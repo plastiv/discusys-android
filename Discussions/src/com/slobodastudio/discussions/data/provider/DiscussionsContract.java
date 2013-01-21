@@ -386,6 +386,7 @@ public final class DiscussionsContract {
 			public static final String ID = "Id";
 			/** Type String. */
 			public static final String SUBJECT = "Subject";
+			public static final String HTML_BACKGROUND = "HtmlBackground";
 		}
 
 		/** {@link ScheduleContract} fields that are fully qualified with a specific parent table. Used when

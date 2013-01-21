@@ -48,6 +48,7 @@ public class Attachment implements Parcelable {
 		videoEmbedURL = "";
 		videoLinkURL = "";
 		videoThumbURL = "";
+		orderNumber = 0;
 	}
 
 	private Attachment(final Parcel in) {
@@ -127,6 +128,11 @@ public class Attachment implements Parcelable {
 		return videoThumbURL;
 	}
 
+	public int getOrderNumber() {
+
+		return orderNumber;
+	}
+
 	public void setAttachmentId(final int attachmentId) {
 
 		this.attachmentId = attachmentId;
@@ -180,6 +186,11 @@ public class Attachment implements Parcelable {
 	public void setVideoThumbURL(final String videoThumbURL) {
 
 		this.videoThumbURL = videoThumbURL;
+	}
+
+	public void setOrderNumber(final int orderNumber) {
+
+		this.orderNumber = orderNumber;
 	}
 
 	public ContentValues toContentValues() {
