@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 
 public class PreferenceHelper {
 
@@ -17,19 +18,19 @@ public class PreferenceHelper {
 
 		String serverAddress = getServerAddress(context);
 		String localServer = context.getString(R.string.local_server_address);
-		if (serverAddress.equals(localServer)) {
+		if (TextUtils.equals(serverAddress, localServer)) {
 			return context.getString(R.string.local_database_address);
 		}
 		String developmentServer = context.getString(R.string.development_server_address);
-		if (serverAddress.equals(developmentServer)) {
+		if (TextUtils.equals(serverAddress, developmentServer)) {
 			return context.getString(R.string.development_database_address);
 		}
-		String newPublicDb = context.getString(R.string.new_public_server_address);
-		if (serverAddress.equals(newPublicDb)) {
-			return context.getString(R.string.new_public_database_address);
+		String publicServer = context.getString(R.string.public_server_address);
+		if (TextUtils.equals(serverAddress, publicServer)) {
+			return context.getString(R.string.public_database_address);
 		}
-		// default case
-		return context.getString(R.string.public_database_address);
+		throw new IllegalStateException("Could not find database connection string for this server: "
+				+ serverAddress);
 	}
 
 	public static String getPhotonUrl(final Context context) {
@@ -40,7 +41,8 @@ public class PreferenceHelper {
 	public static String getServerAddress(final Context context) {
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		return prefs.getString(PreferenceKey.SERVER_ADDRESS, context
-				.getString(R.string.public_server_address));
+		String defaultServer = context.getString(R.string.local_server_address);
+		String serverAddress = prefs.getString(PreferenceKey.SERVER_ADDRESS, defaultServer);
+		return serverAddress;
 	}
 }

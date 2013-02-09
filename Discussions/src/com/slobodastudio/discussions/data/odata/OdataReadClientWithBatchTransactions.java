@@ -82,7 +82,12 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 		if (classType.equals(Integer.class)) {
 			cv.put(property.getName(), (Integer) property.getValue());
 		} else if (classType.equals(String.class)) {
-			cv.put(property.getName(), (String) property.getValue());
+			String value = (String) property.getValue();
+			if (value == null) {
+				cv.put(property.getName(), "");
+			} else {
+				cv.put(property.getName(), value);
+			}
 		} else if (classType.equals(Boolean.class)) {
 			cv.put(property.getName(), (Boolean) property.getValue());
 		} else if (classType.equals(byte[].class)) {

@@ -6,9 +6,18 @@ import com.slobodastudio.discussions.data.PreferenceHelper;
 import android.content.ContentResolver;
 import android.content.Context;
 
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.filter.Filterable;
+
+import org.odata4j.consumer.ODataClientRequest;
 import org.odata4j.consumer.ODataConsumer;
+import org.odata4j.consumer.behaviors.OClientBehavior;
 import org.odata4j.format.FormatType;
 import org.odata4j.jersey.consumer.ODataJerseyConsumer;
+import org.odata4j.jersey.consumer.ODataJerseyConsumer.Builder;
+import org.odata4j.jersey.consumer.behaviors.JerseyClientBehavior;
+
+import java.util.Map;
 
 public class BaseOdataClient {
 
@@ -22,19 +31,20 @@ public class BaseOdataClient {
 		// FIXME: check if network is accessible
 		// FIXME catch 404 errors from HTTP RESPONSE
 		mContext = context;
-		mConsumer = ODataJerseyConsumer.newBuilder(getOdataServerUrl()).setFormatType(FormatType.JSON)
-				.build();
+		String odataServerUrl = getOdataServerUrl();
+		mConsumer = createOdataConsumer(odataServerUrl);
 		if (ApplicationConstants.ODATA_DUMP_LOG) {
 			ODataConsumer.dump.all(true);
 		}
 		mContentResolver = context.getContentResolver();
 	}
 
-	public BaseOdataClient(final String serviceRootUri, final Context context) {
+	private static ODataJerseyConsumer createOdataConsumer(final String odataServerUrl) {
 
-		mConsumer = ODataJerseyConsumer.newBuilder(serviceRootUri).setFormatType(FormatType.JSON).build();
-		mContext = context;
-		mContentResolver = context.getContentResolver();
+		Builder builder = ODataJerseyConsumer.newBuilder(odataServerUrl);
+		builder.setFormatType(FormatType.JSON);
+		builder.setClientBehaviors(TimeoutBehavior.reduceTimeout());
+		return builder.build();
 	}
 
 	public void logServerMetaData() {
@@ -45,5 +55,38 @@ public class BaseOdataClient {
 	protected String getOdataServerUrl() {
 
 		return PreferenceHelper.getOdataUrl(mContext);
+	}
+
+	private enum TimeoutBehavior implements JerseyClientBehavior {
+		INSTANCE;
+
+		@Override
+		public ODataClientRequest transform(final ODataClientRequest request) {
+
+			return request;
+		}
+
+		@Override
+		public void modify(final ClientConfig clientConfig) {
+
+			Map<String, Object> properties = clientConfig.getProperties();
+			properties.put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, 10 * 1000);
+			properties.put(ClientConfig.PROPERTY_READ_TIMEOUT, 10 * 1000);
+		}
+
+		@Override
+		public void modifyClientFilters(final Filterable filterable) {
+
+		}
+
+		@Override
+		public void modifyWebResourceFilters(final Filterable filterable) {
+
+		}
+
+		public static OClientBehavior reduceTimeout() {
+
+			return TimeoutBehavior.INSTANCE;
+		}
 	}
 }
