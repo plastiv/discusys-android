@@ -4,11 +4,13 @@
     <string-array name="server_addresses">
         <item>@string/local_server_address</item>
         <item>@string/public_server_address</item>
+        <item>@string/offline_server_address</item>
         <item>@string/development_server_address</item>
     </string-array>
     <string-array name="server_names">
         <item>Local</item>
         <item>Public</item>
+        <item>Offline</item>
         <item>Sergii development</item>
     </string-array>
     <string-array name="add_attachemt_types">

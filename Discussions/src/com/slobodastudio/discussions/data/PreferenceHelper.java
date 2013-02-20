@@ -29,6 +29,10 @@ public class PreferenceHelper {
 		if (TextUtils.equals(serverAddress, publicServer)) {
 			return context.getString(R.string.public_database_address);
 		}
+		String offlineServer = context.getString(R.string.offline_server_address);
+		if (TextUtils.equals(serverAddress, offlineServer)) {
+			return context.getString(R.string.offline_database_address);
+		}
 		throw new IllegalStateException("Could not find database connection string for this server: "
 				+ serverAddress);
 	}
