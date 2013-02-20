@@ -48,11 +48,6 @@ public class OdataReadClient extends BaseOdataClient {
 		super(context);
 	}
 
-	private static int getAsInt(final OEntity entity, final String valueColumn) {
-
-		return (Integer) entity.getProperty(valueColumn).getValue();
-	}
-
 	private static void logd(final String message) {
 
 		if (DEBUG) {

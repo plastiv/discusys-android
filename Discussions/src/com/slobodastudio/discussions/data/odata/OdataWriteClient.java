@@ -18,6 +18,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 
+import org.core4j.Enumerable;
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityId;
@@ -25,6 +26,7 @@ import org.odata4j.core.OEntityIds;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OModifyRequest;
 import org.odata4j.core.OProperties;
+import org.odata4j.core.ORelatedEntityLinkInline;
 
 public class OdataWriteClient extends BaseOdataClient {
 
@@ -46,6 +48,22 @@ public class OdataWriteClient extends BaseOdataClient {
 	public void deleteComment(final int commentId) {
 
 		mConsumer.deleteEntity(Comments.TABLE_NAME, commentId).execute();
+	}
+
+	public void deleteNullCommentAtPoint(final int pointId) {
+
+		Enumerable<OEntity> comments = mConsumer.getEntities(Comments.TABLE_NAME).expand(
+				Points.TABLE_NAME + "," + Persons.TABLE_NAME).filter(
+				"ArgPoint/Id eq " + String.valueOf(pointId)).execute();
+		for (OEntity comment : comments) {
+			OEntity point = comment.getLink(Points.TABLE_NAME, ORelatedEntityLinkInline.class)
+					.getRelatedEntity();
+			OEntity person = comment.getLink(Persons.TABLE_NAME, ORelatedEntityLinkInline.class)
+					.getRelatedEntity();
+			if ((point == null) || (person == null)) {
+				mConsumer.deleteEntity(Comments.TABLE_NAME, getAsInt(comment, Comments.Columns.ID)).execute();
+			}
+		}
 	}
 
 	public void deletePoint(final int pointId) {
@@ -72,6 +90,7 @@ public class OdataWriteClient extends BaseOdataClient {
 
 	public OEntity insertComment(final Comment comment) {
 
+		deleteNullCommentAtPoint(comment.getPointId());
 		// @formatter:off
 		return mConsumer.createEntity(Comments.TABLE_NAME)
 				.link(Comments.Columns.PERSON_ID, OEntityKey.parse(String.valueOf(comment.getPersonId())))

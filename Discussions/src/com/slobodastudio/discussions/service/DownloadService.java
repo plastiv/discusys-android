@@ -5,6 +5,7 @@ import com.slobodastudio.discussions.R;
 import com.slobodastudio.discussions.data.DataIoException;
 import com.slobodastudio.discussions.data.PreferenceHelper;
 import com.slobodastudio.discussions.data.SharedPreferenceHelper;
+import com.slobodastudio.discussions.data.odata.BaseOdataClient;
 import com.slobodastudio.discussions.data.odata.HttpUtil;
 import com.slobodastudio.discussions.data.odata.OdataReadClientWithBatchTransactions;
 import com.slobodastudio.discussions.data.provider.DiscussionsContract.Attachments;
@@ -396,7 +397,7 @@ public class DownloadService extends IntentService {
 				sb.append(" or ");
 			}
 			sb.append("Person/Id eq ");
-			int personId = OdataReadClientWithBatchTransactions.getAsInt(person, Persons.Columns.ID);
+			int personId = BaseOdataClient.getAsInt(person, Persons.Columns.ID);
 			sb.append(personId);
 			index++;
 		}
@@ -427,8 +428,7 @@ public class DownloadService extends IntentService {
 				sb.append(" or ");
 			}
 			sb.append("Discussion/Id eq ");
-			int discussionId = OdataReadClientWithBatchTransactions.getAsInt(discussion,
-					Discussions.Columns.ID);
+			int discussionId = BaseOdataClient.getAsInt(discussion, Discussions.Columns.ID);
 			sb.append(discussionId);
 			index++;
 		}

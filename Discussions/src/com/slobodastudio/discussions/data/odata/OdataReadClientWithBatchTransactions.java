@@ -51,11 +51,6 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 		super(context);
 	}
 
-	public static int getAsInt(final OEntity entity, final String valueColumn) {
-
-		return (Integer) entity.getProperty(valueColumn).getValue();
-	}
-
 	private static void logd(final String message) {
 
 		if (DEBUG) {
@@ -447,7 +442,6 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 			ContentValues cv = OEntityToContentValue(comment);
 			cv.put(Comments.Columns.POINT_ID, getAsInt(point, Points.Columns.ID));
 			cv.put(Comments.Columns.PERSON_ID, getAsInt(person, Persons.Columns.ID));
-			// mContentResolver.insert(Comments.CONTENT_URI, cv);
 			insertValues(Comments.CONTENT_URI, cv);
 		}
 	}
@@ -541,15 +535,6 @@ public class OdataReadClientWithBatchTransactions extends BaseOdataClient {
 
 		logd("[insertValues] values: " + cv.toString());
 		operations.add(ContentProviderOperation.newInsert(uri).withValues(cv).build());
-	}
-
-	private void sanitizeEntity(final OEntity entity, final String tableName, final String idColumn) {
-
-		Log.e(TAG, "One of related links (foreign key) is null for " + tableName + " , id:"
-				+ getAsInt(entity, idColumn));
-		if (ApplicationConstants.ODATA_SANITIZE) {
-			mConsumer.deleteEntity(tableName, getAsInt(entity, idColumn)).execute();
-		}
 	}
 
 	private void updatePoint(final OEntity point) {
